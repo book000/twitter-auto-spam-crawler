@@ -164,3 +164,13 @@ git checkout -b feature/new-feature origin/master --no-track
 # 避けるべき例
 git checkout -b feature/new-feature origin/master
 ```
+
+### コンフリクト対応
+
+コンフリクトが発生した場合の必須対応手順：
+
+1. **fetch & rebase**: `git fetch origin && git rebase origin/master`
+2. **コンフリクト解決**: マージコンフリクトマーカーを手動で解決
+3. **staged add**: `git add <解決済みファイル>`
+4. **rebase continue**: `git rebase --continue`
+5. **force push**: `git push --force-with-lease origin HEAD`
