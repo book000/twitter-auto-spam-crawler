@@ -10,20 +10,22 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 
 ### 開発環境要件
 
-- **Node.js**: 24.1.0 (engines フィールドで指定)
-- **パッケージマネージャ**: pnpm@9.15.4+ (必須)
+- **Node.js**: `24.1.0` (engines フィールドで指定)
+- **パッケージマネージャ**: `pnpm@9.15.4+` (必須)
 
-### 開発
+### 開発コマンド
 
 - `pnpm install` - 依存関係をインストール
 - `pnpm run build` - 本番用ユーザースクリプトをビルド
 - `pnpm run build:dev` - ソースマップ付き開発用ユーザースクリプトをビルド
 - `pnpm run watch` - 開発用のウォッチモードでビルド
-- `pnpm test` - カバレッジ付きで全テストを実行（120秒タイムアウト）
+- `pnpm test` - カバレッジ付きで全テストを実行（120秒タイムアウト※）
 - `pnpm test -- <ファイル>` - 特定のテストファイルを実行（例：`pnpm test -- src/services/tweet-service.test.ts`）
 - `pnpm run lint` - 全てのリンティング（prettier、eslint、typescript）を実行
 - `pnpm run fix` - リンティングエラーを自動修正
 - `pnpm run clean` - distディレクトリをクリーンアップ
+
+※ タイムアウト設定の詳細は `.claude/testing-guide.md` を参照
 
 ### 品質チェック
 
