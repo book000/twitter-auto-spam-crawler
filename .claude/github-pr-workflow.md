@@ -361,40 +361,6 @@ git push --force-with-lease
 - **Prettier設定**: `.prettierrc` / `.prettierrc.yml` / `prettier.config.js`
 - **パッケージマネージャ**: `package.json` / `yarn.lock` / `pnpm-lock.yaml`
 
-### 多言語プロジェクト対応
-
-#### Python プロジェクト
-
-```bash
-export TEST_CMD="python -m pytest"
-export LINT_CMD="python -m flake8"
-export FIX_CMD="python -m black ."
-```
-
-#### Go プロジェクト
-
-```bash
-export TEST_CMD="go test ./..."
-export LINT_CMD="golangci-lint run"
-export BUILD_CMD="go build"
-```
-
-#### Rust プロジェクト
-
-```bash
-export TEST_CMD="cargo test"
-export LINT_CMD="cargo clippy"
-export BUILD_CMD="cargo build"
-export FIX_CMD="cargo fmt"
-```
-
-#### Java/Gradle プロジェクト
-
-```bash
-export TEST_CMD="./gradlew test"
-export LINT_CMD="./gradlew check"
-export BUILD_CMD="./gradlew build"
-```
 
 ## 🎯 使用開始チェックリスト
 
@@ -406,5 +372,3 @@ export BUILD_CMD="./gradlew build"
 - [ ] プロジェクトのテスト・リント・ビルドコマンドを確認
 
 ---
-
-このガイドを次回のPR作業で参照し、どのプロジェクトでも効率的なワークフローを実現してください。
