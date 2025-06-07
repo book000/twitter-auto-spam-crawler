@@ -10,6 +10,16 @@ export class ScrollUtils {
     null
 
   /**
+   * テスト用: スクロール状態をリセット
+   */
+  static resetScrollState(): void {
+    if (this.scrollPageInterval) {
+      clearInterval(this.scrollPageInterval)
+    }
+    this.scrollPageInterval = null
+  }
+
+  /**
    * ページの自動無限スクロールを実行。
    * コンテンツの高さが変化しなくなるまで継続し、返信ボタンのクリックも実行。
    * @returns スクロール完了時に解決されるPromise

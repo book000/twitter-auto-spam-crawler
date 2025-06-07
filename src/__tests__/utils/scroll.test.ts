@@ -47,6 +47,9 @@ describe('ScrollUtils', () => {
     mockScrollBy.mockClear()
     ;(DomUtils.clickMoreReplies as jest.Mock).mockClear()
     ;(DomUtils.clickMoreRepliesAggressive as jest.Mock).mockClear()
+    
+    // Reset scroll state for clean tests
+    ScrollUtils.resetScrollState()
 
     // Reset scroll height
     Object.defineProperty(document.body, 'scrollHeight', {
@@ -57,6 +60,8 @@ describe('ScrollUtils', () => {
   })
 
   afterEach(() => {
+    // Clean up any running intervals
+    ScrollUtils.resetScrollState()
     jest.runOnlyPendingTimers()
   })
 
@@ -136,8 +141,8 @@ describe('ScrollUtils', () => {
       // Second call should resolve immediately
       await expect(promise2).resolves.toBeUndefined()
 
-      // Complete the first scroll
-      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT + 1; i++) {
+      // Complete the first scroll by triggering enough failures
+      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT; i++) {
         jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
       }
 
@@ -153,18 +158,34 @@ describe('ScrollUtils', () => {
         .spyOn(console, 'warn')
         .mockImplementation(() => {})
 
+      // Start with initial height of 1000
+      Object.defineProperty(document.body, 'scrollHeight', {
+        value: 1000,
+        writable: true,
+        configurable: true,
+      })
+
       const promise = ScrollUtils.scrollPage()
 
-      // Fail once
+      // First interval - height stays same (fail)
       jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
 
-      // Success (height changes)
+      // Change height to simulate successful scroll
       Object.defineProperty(document.body, 'scrollHeight', {
         value: 1500,
         writable: true,
         configurable: true,
       })
+      
+      // Second interval - height changed (success)
       jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
+
+      // Restore height to cause failures until max count
+      Object.defineProperty(document.body, 'scrollHeight', {
+        value: 1500, // Keep same height to cause failures
+        writable: true,
+        configurable: true,
+      })
 
       // Fail again until max count
       for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT; i++) {
@@ -176,7 +197,7 @@ describe('ScrollUtils', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('scrollPage: success')
       expect(consoleWarnSpy).toHaveBeenCalledWith('scrollPage: failed scroll')
 
-      // Should have been called MAX_FAIL_SCROLL_COUNT times (reset after success)
+      // Should have been called MAX_FAIL_SCROLL_COUNT times (1 before success resets counter, then MAX_FAIL_SCROLL_COUNT after)
       expect(consoleWarnSpy).toHaveBeenCalledTimes(
         THRESHOLDS.MAX_FAIL_SCROLL_COUNT
       )
@@ -214,9 +235,9 @@ describe('ScrollUtils', () => {
     })
 
     /** スクロール間の適切な待機時間が設定されることを検証 */
-    it('should wait between scrolls', () => {
+    it('should wait between scrolls', async () => {
       const count = 2
-      ScrollUtils.scrollWithCount(count)
+      const promise = ScrollUtils.scrollWithCount(count)
 
       // First scroll should happen immediately
       expect(mockScrollBy).toHaveBeenCalledTimes(1)
@@ -224,6 +245,9 @@ describe('ScrollUtils', () => {
 
       // Advance timer to trigger second scroll
       jest.advanceTimersByTime(TIMEOUTS.CRAWL_INTERVAL)
+
+      // Wait for async operations to complete
+      await promise
 
       // Second scroll should be called after timeout
       expect(mockScrollBy).toHaveBeenCalledTimes(2)

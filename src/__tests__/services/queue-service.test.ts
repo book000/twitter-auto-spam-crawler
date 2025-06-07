@@ -24,13 +24,7 @@ describe('QueueService', () => {
   })
 
   afterEach(() => {
-    // Only run pending timers if fake timers are active
-    try {
-      jest.runOnlyPendingTimers()
-    } catch {
-      // Ignore timer errors - fake timers may not be active
-    }
-    jest.useRealTimers()
+    jest.runOnlyPendingTimers()
   })
 
   /**
