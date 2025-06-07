@@ -74,6 +74,10 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --prefer-frozen-lockfile
 
+      - name: 📝 Update package.json version
+        run: |
+          pnpm version ${{ env.version }} --no-git-tag-version
+
       - name: 🏗️ Run build
         run: |
           pnpm run build
