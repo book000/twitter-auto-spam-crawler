@@ -59,7 +59,7 @@ describe('DomUtils', () => {
 
     /** タイムアウト時間内に要素が見つからない場合のエラー処理を検証 */
     it('should reject when element is not found within timeout', async () => {
-      const promise = DomUtils.waitElement('#non-existent', 1 as never) // 1 second timeout
+      const promise = DomUtils.waitElement('#non-existent', 1)
 
       jest.advanceTimersByTime(2000) // 2 seconds
 

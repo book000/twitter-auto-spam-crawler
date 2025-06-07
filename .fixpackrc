@@ -26,7 +26,6 @@
     "engines",
     "os",
     "cpu",
-    "private",
     "publishConfig"
   ],
   "required": [

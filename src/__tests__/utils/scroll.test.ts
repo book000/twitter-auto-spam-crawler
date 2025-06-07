@@ -221,6 +221,12 @@ describe('ScrollUtils', () => {
       // First scroll should happen immediately
       expect(mockScrollBy).toHaveBeenCalledTimes(1)
       expect(mockScrollBy).toHaveBeenCalled()
+
+      // Advance timer to trigger second scroll
+      jest.advanceTimersByTime(TIMEOUTS.CRAWL_INTERVAL)
+
+      // Second scroll should be called after timeout
+      expect(mockScrollBy).toHaveBeenCalledTimes(2)
     })
 
     /** 正しいパラメーターでスクロールが実行されることを検証 */

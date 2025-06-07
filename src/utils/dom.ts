@@ -12,7 +12,7 @@ export const DomUtils = {
    */
   async waitElement(
     selector: string,
-    limitSec = TIMEOUTS.ELEMENT_WAIT_LIMIT
+    limitSec: number = TIMEOUTS.ELEMENT_WAIT_LIMIT
   ): Promise<void> {
     const limit = limitSec * 2
     let count = 0
