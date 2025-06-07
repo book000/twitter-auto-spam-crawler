@@ -1,3 +1,5 @@
+import packageJson from '../../package.json'
+
 /**
  * main.tsの動作確認用テスト
  *
@@ -8,7 +10,6 @@
 describe('main.ts version import', () => {
   it('should be able to import package.json version', () => {
     // package.jsonからバージョンをインポートできることを確認
-    const packageJson = require('../../package.json')
     expect(packageJson.version).toBeDefined()
     expect(typeof packageJson.version).toBe('string')
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/)
@@ -16,10 +17,8 @@ describe('main.ts version import', () => {
 
   it('should construct correct version log message', () => {
     // バージョンログメッセージの形式を確認
-    const packageJson = require('../../package.json')
-    const expectedMessage = `Twitter Auto Spam Crawler v${packageJson.version}`
-    expect(expectedMessage).toMatch(
-      /^Twitter Auto Spam Crawler v\d+\.\d+\.\d+$/
-    )
+    const expectedMessage = `${packageJson.name} v${packageJson.version}`
+    expect(expectedMessage).toBe('twitter-auto-spam-crawler v1.25.1')
+    expect(expectedMessage).toMatch(/^twitter-auto-spam-crawler v\d+\.\d+\.\d+$/)
   })
 })
