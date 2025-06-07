@@ -1,0 +1,17 @@
+{
+  "ignores": [
+    "@types/greasemonkey",
+    "@types/jest",
+    "@types/jsdom",
+    "@types/node",
+    "@typescript-eslint/parser",
+    "eslint-plugin-import",
+    "eslint-plugin-n",
+    "eslint-plugin-promise",
+    "jest-environment-jsdom",
+    "rimraf",
+    "ts-loader",
+    "webpack-cli"
+  ],
+  "skip-missing": false
+}
