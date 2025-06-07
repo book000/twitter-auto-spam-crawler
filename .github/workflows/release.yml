@@ -84,4 +84,4 @@ jobs:
           body: ${{ needs.bump-version.outputs.changelog }}
           tag_name: ${{ needs.bump-version.outputs.tag }}
           target_commitish: ${{ github.sha }}
-          files: dist\twitter-auto-spam-crawler.user.js
+          files: dist/twitter-auto-spam-crawler.user.js
