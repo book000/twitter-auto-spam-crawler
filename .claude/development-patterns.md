@@ -27,13 +27,13 @@ GM_setValue('config', config)
 
 ```typescript
 // メニューコマンド登録例
-const commandId = GM_registerMenuCommand('設定を開く', () => {
+GM_registerMenuCommand('設定を開く', () => {
   // 設定画面を表示
   showConfigDialog()
 })
 
-// 必要に応じて登録解除
-GM_unregisterMenuCommand(commandId)
+// 注意: GM_unregisterMenuCommandは実装によっては利用可能
+// 現在のモックでは基本的なGM_registerMenuCommandのみをサポート
 ```
 
 ## DOM操作パターン
