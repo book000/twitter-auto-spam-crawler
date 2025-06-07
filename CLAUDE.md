@@ -174,3 +174,11 @@ git checkout -b feature/new-feature origin/master
 3. **staged add**: `git add <解決済みファイル>`
 4. **rebase continue**: `git rebase --continue`
 5. **force push**: `git push --force-with-lease origin HEAD`
+
+## 重要：ファイル変更時の必須事項
+
+**ファイルを変更した場合は必ずコミットすること！**
+
+- ファイル編集後は即座に `git add` → `git commit` → `git push`
+- コミットを忘れると変更が失われる可能性がある
+- 必ず変更内容を適切なコミットメッセージで記録する
