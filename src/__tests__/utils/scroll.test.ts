@@ -47,7 +47,7 @@ describe('ScrollUtils', () => {
     mockScrollBy.mockClear()
     ;(DomUtils.clickMoreReplies as jest.Mock).mockClear()
     ;(DomUtils.clickMoreRepliesAggressive as jest.Mock).mockClear()
-    
+
     // Reset scroll state for clean tests
     ScrollUtils.resetScrollState()
 
@@ -176,7 +176,7 @@ describe('ScrollUtils', () => {
         writable: true,
         configurable: true,
       })
-      
+
       // Second interval - height changed (success)
       jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
 

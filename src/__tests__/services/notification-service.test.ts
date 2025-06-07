@@ -172,7 +172,7 @@ describe('NotificationService', () => {
 
       // Verify fetch was called (error handling is async and tested via integration)
       expect(mockFetch).toHaveBeenCalled()
-      
+
       consoleErrorSpy.mockRestore()
     })
 
