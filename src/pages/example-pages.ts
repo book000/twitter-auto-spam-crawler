@@ -31,6 +31,12 @@ export const ExamplePages = {
       },
       false
     )
+      .then(() => {
+        console.info('Notification sent successfully')
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to notify login:', error)
+      })
   },
 
   runLoginSuccessNotify(): void {
@@ -41,6 +47,12 @@ export const ExamplePages = {
       },
       false
     )
+      .then(() => {
+        console.info('Notification sent successfully')
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to notify login success:', error)
+      })
   },
 
   runLockedNotify(): void {
@@ -52,6 +64,12 @@ export const ExamplePages = {
       },
       true
     )
+      .then(() => {
+        console.info('Notification sent successfully')
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to notify account locked:', error)
+      })
   },
 
   runUnlockedNotify(): void {
@@ -62,6 +80,12 @@ export const ExamplePages = {
       },
       false
     )
+      .then(() => {
+        console.info('Notification sent successfully')
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to notify account unlocked:', error)
+      })
   },
 
   runResetWaiting(): void {

@@ -38,7 +38,6 @@ export const NotificationService = {
       })
       .catch((error: unknown) => {
         console.error('notifyDiscord: fetch error', error)
-        return Promise.resolve()
       })
   },
 }
