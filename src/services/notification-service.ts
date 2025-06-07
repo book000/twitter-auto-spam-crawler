@@ -6,7 +6,7 @@ export const NotificationService = {
     message: string,
     callback?: (_response: Response) => void,
     withReply = false
-  ): void {
+  ): Promise<void> {
     const mention = withReply ? `<@${DISCORD_MENTION_ID}>` : ''
     const comment = ConfigManager.getComment()
     const data = JSON.stringify({
@@ -16,10 +16,10 @@ export const NotificationService = {
     const webhookUrl = ConfigManager.getDiscordWebhookUrl()
     if (!webhookUrl) {
       console.warn('notifyDiscord: Discord Webhook URL is not set.')
-      return
+      return Promise.resolve()
     }
 
-    fetch(webhookUrl, {
+    return fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,6 +38,7 @@ export const NotificationService = {
       })
       .catch((error: unknown) => {
         console.error('notifyDiscord: fetch error', error)
+        return Promise.resolve()
       })
   },
 }

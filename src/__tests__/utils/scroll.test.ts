@@ -45,8 +45,8 @@ describe('ScrollUtils', () => {
     jest.clearAllMocks()
     jest.clearAllTimers()
     mockScrollBy.mockClear()
-    ;(DomUtils.clickMoreReplies as jest.Mock).mockClear()
-    ;(DomUtils.clickMoreRepliesAggressive as jest.Mock).mockClear()
+    ;(DomUtils.clickMoreReplies as jest.Mock).mockClear?.()
+    ;(DomUtils.clickMoreRepliesAggressive as jest.Mock).mockClear?.()
 
     // Reset scroll state for clean tests
     ScrollUtils.resetScrollState()

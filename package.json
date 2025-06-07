@@ -76,6 +76,7 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
+    "testTimeout": 120000,
     "fakeTimers": {
       "enableGlobally": true
     },

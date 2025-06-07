@@ -156,7 +156,7 @@ describe('NotificationService', () => {
      * - fetch関数がリジェクトした場合の処理
      * - ネットワークエラーやコネクションタイムアウトの適切な処理
      */
-    it('should handle fetch error', () => {
+    it('should handle fetch error', async () => {
       const mockError = new Error('Network error')
       mockFetch.mockRejectedValue(mockError)
 
@@ -168,10 +168,13 @@ describe('NotificationService', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      NotificationService.notifyDiscord('Test message')
+      await NotificationService.notifyDiscord('Test message')
 
-      // Verify fetch was called (error handling is async and tested via integration)
       expect(mockFetch).toHaveBeenCalled()
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'notifyDiscord: fetch error',
+        mockError
+      )
 
       consoleErrorSpy.mockRestore()
     })
