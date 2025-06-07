@@ -158,3 +158,29 @@ X.com固有のセレクターを使用。サイト変更に応じて更新が必
 - エンゲージメント閾値（リツイート100+、リプライ10+）
 - タイムアウト値（クロール、スクロール、要素待機）
 - 自動ダウンロード閾値（500ツイート）
+
+## 重要な参考文書
+
+### GitHub PRワークフローガイド
+詳細なPR作成・レビュー・CI対応手順については `.claude/github-pr-workflow.md` を参照してください。
+このファイルには以下が含まれています：
+- Pull Request作成フロー  
+- Copilot Review対応手順
+- CI/CD修正とトラブルシューティング
+- コミット・プッシュ・マージの完全ワークフロー
+- 多言語プロジェクト対応
+
+### このプロジェクト固有の設定
+
+このプロジェクトでのワークフロー使用時の設定値：
+
+```bash
+export REPO_OWNER="book000"
+export REPO_NAME="twitter-auto-spam-crawler" 
+export MAIN_BRANCH="master"
+export PACKAGE_MANAGER="pnpm"
+export TEST_CMD="pnpm test"
+export LINT_CMD="pnpm run lint" 
+export BUILD_CMD="pnpm run build"
+export FIX_CMD="pnpm run fix"
+```
