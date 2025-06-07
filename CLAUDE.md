@@ -31,148 +31,43 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 1. `pnpm run lint` - 静的解析とコード品質チェック
 2. `pnpm test` - 全テストの実行と検証
 
-### テスト環境
+## 詳細ガイド
 
-- **Jest** with jsdom環境とグローバルに有効化されたフェイクタイマー
-- **テストファイル命名**: `*.test.ts` （`src/__tests__/` 配下）
-- **タイマーテスト**: `jest.useFakeTimers()` がグローバル有効、`jest.advanceTimersByTime()` を使用
-- **ユーザースクリプトモック**: `src/__mocks__/userscript.ts` でGM_* APIをモック
-- **カバレッジ除外**: `src/main.ts`, `src/types/`, `src/pages/`, テストファイル、モック
+プロジェクトの詳細情報については、以下の専門ガイドを参照してください：
 
-## コアアーキテクチャ
+### アーキテクチャ
+**`.claude/architecture.md`** - コアアーキテクチャの詳細
+- ページベースルーティングシステム
+- サービス層アーキテクチャ（CrawlerService, TweetService, QueueService, NotificationService）
+- データフロー、ストレージシステム、DOM操作パターン
 
-### ページベースルーティングシステム
+### ビルドシステム
+**`.claude/build-system.md`** - ビルド・設定の詳細  
+- Webpack構成とユーザースクリプトメタデータ自動生成
+- TypeScript設定（ES2020, strict モード）
+- ESLint構成（テスト・モック特有ルール）
 
-`src/main.ts`でURL基盤のルーティングシステムを使用し、異なるTwitter/Xページを特定の機能にマッピング：
+### 開発パターン
+**`.claude/development-patterns.md`** - 実装パターンの詳細
+- ユーザースクリプトAPI使用例（GM_getValue/GM_setValue）
+- DOM操作パターン（X.com固有セレクター）
+- エラーハンドリング、非同期処理、TypeScript型定義
 
-- **ホーム/探索/検索ページ**: ツイートの自動クロールとスクロール
-- **ツイートページ**: 個別ツイートのインタラクション処理
-- **特別ページ**: ログイン、アカウントロック、サンプルエンドポイントの処理
-- **URLマッチング**: 文字列マッチング（`startsWith`）と正規表現パターンの両方を使用
+### テスト
+**`.claude/testing-guide.md`** - テスト環境と手法の詳細
+- Jest設定（jsdom、フェイクタイマー、120秒タイムアウト） 
+- ユーザースクリプトモック（GM_* API）
+- DOM・タイマー・サービステストの実装方法
 
-### サービス層アーキテクチャ
-
-**CrawlerService**: メインのツイートクロールワークフローを統制
-
-- 定期的にツイートを自動クロール
-- エンゲージメント閾値でツイートをフィルタリング（リツイート100+、リプライ10+）
-- クロール状態とカウントを管理
-
-**TweetService**: ツイートの抽出と保存を処理
-
-- 特定のセレクターを使用してDOMからツイートを抽出
-- エンゲージメント指標（リツイート、リプライ、いいね）を解析
-- ツイートの保存と自動ダウンロードを管理
-
-**QueueService**: ツイート処理キューを管理
-
-- localStorageを使用して「待機中」と「確認済み」のツイートリストを維持
-- 処理に応じてツイートを状態間で移動
-- 重複処理を防止
-
-**NotificationService**: アラート用のDiscord webhook統合
-
-### データフロー
-
-1. **クロール**: CrawlerServiceがツイートを抽出 → TweetServiceがエンゲージメントでフィルタリング → QueueServiceが待機キューに追加
-2. **処理**: ページが待機中のツイートを処理 → QueueServiceが確認済み状態に移動
-3. **保存**: TweetServiceが500ツイート制限に達すると自動ダウンロード
-
-### ストレージシステム
-
-永続化にGM_getValue/GM_setValue（ユーザースクリプトAPI）を使用：
-
-- `waitingTweets`: 処理待ちのツイートIDの配列
-- `checkedTweets`: 処理済みツイートIDの配列
-- `savedTweets`: エクスポート用の完全なツイートオブジェクト
-- `config`: ユーザー設定
-
-### DOM操作パターン
-
-- サイトの変更に応じて更新が必要な可能性があるX.com固有のDOMセレクターを使用
-- スクロール自動化と「さらに読み込む」ボタンのクリックを実装
-- タイムアウトベースの待機で動的コンテンツの読み込みを処理
-
-## ビルドシステム
-
-### Webpack構成
-
-- **エントリーポイント**: `src/main.ts`
-- **出力**: `dist/twitter-auto-spam-crawler.user.js`
-- **TypeScript**: ES2020ターゲット、ES2015モジュール、strictモード
-- **パスエイリアス**: `@/` → `src/` マッピング
-- **最小化なし**: ユーザースクリプトの可読性とセキュリティ検証のため
-- **ソースマップ**: 開発モードでのみ有効
-
-### ユーザースクリプトメタデータ自動生成
-
-package.jsonの`userscript`フィールドから以下を自動生成：
-- `@name`, `@namespace`, `@version`, `@description`
-- `@match`: x.com/*, example.com/*
-- `@grant`: GM_getValue, GM_setValue, GM_registerMenuCommand, GM_unregisterMenuCommand
-- `@require`: Tampermonkey Config外部スクリプト
-
-### TypeScript設定
-
-- **ES2020**: モダンJS機能使用
-- **strict**: 全ての厳密チェック有効
-- **モジュール解決**: bundler（Webpack用）
-- **DOM型**: ブラウザ環境対応
-
-## ESLint構成
-
-- **ベース**: @book000/eslint-config
-- **テスト特有**: GM_プレフィックス許可、floating promises無効
-- **モック特有**: unsafe member access許可
-
-## 重要な開発パターン
-
-### ユーザースクリプト API使用
-
-```typescript
-// Storage操作
-const value = GM_getValue('key', defaultValue)
-GM_setValue('key', value)
-
-// メニューコマンド登録
-GM_registerMenuCommand('Label', () => {})
-```
-
-### サービス層の依存関係
-
-- **CrawlerService** → TweetService, QueueService, NotificationService
-- **TweetService** → DOM操作, StorageAPI
-- **QueueService** → StorageAPI 
-- **StateService** → 状態管理ユーティリティ
-
-### DOM操作パターン
-
-X.com固有のセレクターを使用。サイト変更に応じて更新が必要：
-- ツイート要素の特定
-- エンゲージメント数の抽出
-- 動的コンテンツの待機とスクロール処理
-
-### 定数とグローバル値
-
-`src/core/constants.ts`で管理：
-- エンゲージメント閾値（リツイート100+、リプライ10+）
-- タイムアウト値（クロール、スクロール、要素待機）
-- 自動ダウンロード閾値（500ツイート）
-
-## 重要な参考文書
-
-### GitHub PRワークフローガイド
-詳細なPR作成・レビュー・CI対応手順については `.claude/github-pr-workflow.md` を参照してください。
-このファイルには以下が含まれています：
-- Pull Request作成フロー  
+### GitHub PRワークフロー  
+**`.claude/github-pr-workflow.md`** - PR作成・レビュー・CI対応の詳細
+- Pull Request作成フロー
 - Copilot Review対応手順
 - CI/CD修正とトラブルシューティング
-- コミット・プッシュ・マージの完全ワークフロー
-- 多言語プロジェクト対応
 
-### このプロジェクト固有の設定
+## このプロジェクト固有の設定
 
-このプロジェクトでのワークフロー使用時の設定値：
+GitHub PRワークフロー使用時の環境変数：
 
 ```bash
 export REPO_OWNER="book000"
