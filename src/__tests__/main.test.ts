@@ -19,6 +19,8 @@ describe('main.ts version import', () => {
     // バージョンログメッセージの形式を確認
     const expectedMessage = `${packageJson.name} v${packageJson.version}`
     expect(expectedMessage).toBe('twitter-auto-spam-crawler v1.25.1')
-    expect(expectedMessage).toMatch(/^twitter-auto-spam-crawler v\d+\.\d+\.\d+$/)
+    expect(expectedMessage).toMatch(
+      /^twitter-auto-spam-crawler v\d+\.\d+\.\d+$/
+    )
   })
 })
