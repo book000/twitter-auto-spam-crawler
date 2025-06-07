@@ -2,12 +2,20 @@ import { TweetService } from './tweet-service'
 import { QueueService } from './queue-service'
 import { Storage } from '@/core/storage'
 
+/**
+ * 自動ツイートクローリングワークフローのメインオーケストレーターサービス。
+ * エンゲージメント閾値に基づいたツイートの定期クロール、フィルタリング、キューイングを管理。
+ */
 export class CrawlerService {
   private static crawlTweetInterval: ReturnType<typeof setInterval> | null =
     null
 
   private static crawledTweetCount = 0
 
+  /**
+   * 現在のページからツイートをクロールし、エンゲージメント闾値でフィルタリングし、
+   * 条件を満たすツイートを処理キューに追加。
+   */
   static async crawlTweets(): Promise<void> {
     const tweets = TweetService.getTweets()
     if (!tweets) {
@@ -43,6 +51,10 @@ export class CrawlerService {
     )
   }
 
+  /**
+   * 1秒間隔で自動クローリングプロセスを開始。
+   * 既に実行中でない場合のみ開始。
+   */
   static startCrawling(): void {
     this.crawlTweetInterval ??= setInterval(() => {
       this.crawlTweets().catch((error: unknown) => {
@@ -51,6 +63,9 @@ export class CrawlerService {
     }, 1000)
   }
 
+  /**
+   * 自動クローリングプロセスを停止し、インターバルタイマーをクリア。
+   */
   static stopCrawling(): void {
     if (this.crawlTweetInterval) {
       clearInterval(this.crawlTweetInterval)
@@ -58,10 +73,17 @@ export class CrawlerService {
     }
   }
 
+  /**
+   * 現在のセッションでクロールしたツイートの総数を取得。
+   * @returns クロールしたツイート数
+   */
   static getCrawledTweetCount(): number {
     return this.crawledTweetCount
   }
 
+  /**
+   * クロールしたツイートカウンターをゼロにリセット。
+   */
   static resetCrawledTweetCount(): void {
     this.crawledTweetCount = 0
   }

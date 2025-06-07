@@ -1,4 +1,13 @@
+/**
+ * エラーダイアログと問題のあるコンテンツの検出・処理を行うユーティリティ。
+ * アラートダイアログや削除されたポストの検出を定期的にチェック。
+ */
 export const ErrorHandler = {
+  /**
+   * エラーダイアログの出現を監視し、検出時にコールバックを実行。
+   * @param callback - ダイアログ検出時に実行するコールバック関数
+   * @returns コールバック実行完了時に解決されるPromise
+   */
   handleErrorDialog(
     callback: (dialog: Element) => void | Promise<void>
   ): Promise<void> {
@@ -28,6 +37,12 @@ export const ErrorHandler = {
     })
   },
 
+  /**
+   * 処理不可能なポスト（ルール違反や削除済み）の検出。
+   * 特定のキーワードを含むコンテンツを定期的にチェック。
+   * @param callback - 問題のあるポスト検出時に実行するコールバック関数
+   * @returns コールバック実行完了時に解決されるPromise
+   */
   detectCantProcessingPost(
     callback: (element: Element) => void | Promise<void>
   ): Promise<void> {

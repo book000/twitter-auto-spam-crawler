@@ -1,5 +1,9 @@
 import type { StorageData, StorageKey } from '@/types'
 
+/**
+ * ユーザースクリプトGM_getValue/GM_setValue APIを使用したタイプセーフなストレージ抽象化層。
+ * ツイートデータとアプリケーション状態のための強力に型付けされた永続ストレージアクセスを提供。
+ */
 export const Storage = {
   getValue<K extends StorageKey>(
     key: K,

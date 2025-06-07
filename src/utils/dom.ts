@@ -1,6 +1,15 @@
 import { TIMEOUTS } from '@/core/constants'
 
+/**
+ * DOM操作とページ状態検出のためのユーティリティ関数群。
+ * 要素の待機、ページエラー検出、返信読み込みボタンのクリック処理を提供。
+ */
 export const DomUtils = {
+  /**
+   * 指定されたセレクターの要素がDOMに出現するまで待機。
+   * @param selector - 待機する要素のCSSセレクター
+   * @param limitSec - 待機のタイムアウト時間（秒）
+   */
   async waitElement(
     selector: string,
     limitSec = TIMEOUTS.ELEMENT_WAIT_LIMIT
@@ -28,6 +37,10 @@ export const DomUtils = {
     })
   },
 
+  /**
+   * 現在のページがエラーページ（リフレッシュアイコン表示）かどうかを判定。
+   * @returns エラーページの場合true
+   */
   isFailedPage(): boolean {
     return (
       document.querySelector(
@@ -36,6 +49,9 @@ export const DomUtils = {
     )
   },
 
+  /**
+   * 「さらに返信を読み込む」ボタンをクリック（標準的な検出方法）。
+   */
   clickMoreReplies(): void {
     const moreRepliesButton = document.querySelector(
       'div[data-testid="primaryColumn"] div[data-testid="cellInnerDiv"] > div > div > button[role="button"]'
@@ -46,6 +62,10 @@ export const DomUtils = {
     }
   },
 
+  /**
+   * 「さらに返信を読み込む」ボタンをクリック（積極的な検出方法）。
+   * テキストコンテンツベースで対象ボタンを特定。
+   */
   clickMoreRepliesAggressive(): void {
     const texts = ['さらに返信を表示する']
     const tweetArticleElements = document.querySelectorAll(
