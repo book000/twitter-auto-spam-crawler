@@ -10,6 +10,7 @@ import {
   ExamplePages,
   OtherPages,
 } from '@/pages'
+import packageJson from '../package.json'
 ;(function () {
   const methods: PageMethod[] = [
     {
@@ -129,6 +130,7 @@ import {
   }
 
   async function run(): Promise<void> {
+    console.log(`${packageJson.name} v${packageJson.version}`)
     console.log('Waiting:', Storage.getWaitingTweets().length)
     console.log('Checked:', Storage.getCheckedTweets().length)
     console.log('SavedTweets:', Storage.getSavedTweets().length)
