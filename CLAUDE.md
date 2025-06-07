@@ -150,3 +150,17 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - **開発効率**: 最新の情報に基づく適切な開発支援
 
 **注意**: ドキュメント更新を怠ると、将来のセッションで古い情報に基づく不適切な提案をする可能性があります。必ず実装と同時にドキュメントも更新してください。
+
+## Git ブランチ作成ガイドライン
+
+### ブランチ作成時の設定
+
+- **デフォルト**: 必ず `--no-track` オプションを使用してリモートブランチの追跡を無効化
+
+```bash
+# 正しい例
+git checkout -b feature/new-feature origin/master --no-track
+
+# 避けるべき例
+git checkout -b feature/new-feature origin/master
+```
