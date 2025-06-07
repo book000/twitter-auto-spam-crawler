@@ -4,6 +4,14 @@ import { TIMEOUTS } from '../../core/constants'
 // Mock timers
 jest.useFakeTimers()
 
+/**
+ * DomUtilsクラスのテストスイート
+ * DOM操作に関するユーティリティ機能を検証する
+ * - 要素の待機と検出機能
+ * - エラーページの判定機能
+ * - ツイート返信の展開ボタンクリック機能
+ * - X.com固有のDOMセレクターを使用した要素操作
+ */
 describe('DomUtils', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
@@ -15,7 +23,12 @@ describe('DomUtils', () => {
     jest.runOnlyPendingTimers()
   })
 
+  /**
+   * waitElementメソッドのテスト
+   * 指定されたセレクターに一致する要素が見つかるまで待機する機能を検証
+   */
   describe('waitElement', () => {
+    /** 要素が即座に見つかった場合の正常完了を検証 */
     it('should resolve when element is found immediately', async () => {
       const testDiv = document.createElement('div')
       testDiv.id = 'test-element'
@@ -27,6 +40,7 @@ describe('DomUtils', () => {
       await expect(promise).resolves.toBeUndefined()
     })
 
+    /** 要素が遅れて追加された場合でも正常に検出することを検証 */
     it('should resolve when element appears after some time', async () => {
       const promise = DomUtils.waitElement('#delayed-element')
 
@@ -43,6 +57,7 @@ describe('DomUtils', () => {
       await expect(promise).resolves.toBeUndefined()
     })
 
+    /** タイムアウト時間内に要素が見つからない場合のエラー処理を検証 */
     it('should reject when element is not found within timeout', async () => {
       const promise = DomUtils.waitElement('#non-existent', 1 as never) // 1 second timeout
 
@@ -53,6 +68,7 @@ describe('DomUtils', () => {
       )
     })
 
+    /** タイムアウト時間が指定されていない場合のデフォルト値使用を検証 */
     it('should use default timeout when not specified', async () => {
       const promise = DomUtils.waitElement('#non-existent')
 
@@ -65,6 +81,7 @@ describe('DomUtils', () => {
       )
     })
 
+    /** 複雑なCSSセレクターでの要素検索が正常に動作することを検証 */
     it('should handle complex selectors', async () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
@@ -82,7 +99,12 @@ describe('DomUtils', () => {
     })
   })
 
+  /**
+   * isFailedPageメソッドのテスト
+   * X.comのエラーページ（リロードアイコン表示）を検出する機能を検証
+   */
   describe('isFailedPage', () => {
+    /** エラーページの特定のSVGアイコンが存在する場合にtrueを返すことを検証 */
     it('should return true when failed page indicator is present', () => {
       const div = document.createElement('div')
       div.className = 'css-175oi2r'
@@ -104,6 +126,7 @@ describe('DomUtils', () => {
       expect(DomUtils.isFailedPage()).toBe(true)
     })
 
+    /** エラーページのインジケーターが存在しない場合にfalseを返すことを検証 */
     it('should return false when failed page indicator is not present', () => {
       const div = document.createElement('div')
       div.className = 'css-175oi2r'
@@ -112,12 +135,18 @@ describe('DomUtils', () => {
       expect(DomUtils.isFailedPage()).toBe(false)
     })
 
+    /** 空のドキュメントに対してfalseを返すことを検証 */
     it('should return false for empty document', () => {
       expect(DomUtils.isFailedPage()).toBe(false)
     })
   })
 
+  /**
+   * clickMoreRepliesメソッドのテスト
+   * ツイートの返信をさらに読み込むボタンをクリックする機能を検証
+   */
   describe('clickMoreReplies', () => {
+    /** 返信展開ボタンが見つかった場合にクリック処理が実行されることを検証 */
     it('should click more replies button when found', () => {
       const primaryColumn = document.createElement('div')
       primaryColumn.dataset.testid = 'primaryColumn'
@@ -151,6 +180,7 @@ describe('DomUtils', () => {
       consoleSpy.mockRestore()
     })
 
+    /** 返信展開ボタンが見つからない場合に何も実行されないことを検証 */
     it('should do nothing when more replies button is not found', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
@@ -161,7 +191,12 @@ describe('DomUtils', () => {
     })
   })
 
+  /**
+   * clickMoreRepliesAggressiveメソッドのテスト
+   * より積極的な方法でツイート返信を展開するボタンをクリックする機能を検証
+   */
   describe('clickMoreRepliesAggressive', () => {
+    /** 特定のテキストを含むarticle内のボタンをクリックすることを検証 */
     it('should click buttons in articles with specific text', () => {
       const primaryColumn = document.createElement('div')
       primaryColumn.dataset.testid = 'primaryColumn'
@@ -200,6 +235,7 @@ describe('DomUtils', () => {
       consoleSpy.mockRestore()
     })
 
+    /** 特定のテキストを含まないarticle内のボタンはクリックしないことを検証 */
     it('should not click buttons in articles without specific text', () => {
       const primaryColumn = document.createElement('div')
       primaryColumn.dataset.testid = 'primaryColumn'
@@ -234,6 +270,7 @@ describe('DomUtils', () => {
       consoleSpy.mockRestore()
     })
 
+    /** 複数の一致するarticleが存在する場合の適切な処理を検証 */
     it('should handle multiple matching articles', () => {
       const primaryColumn = document.createElement('div')
       primaryColumn.dataset.testid = 'primaryColumn'
@@ -273,6 +310,7 @@ describe('DomUtils', () => {
       consoleSpy.mockRestore()
     })
 
+    /** ボタンが存在しないarticleに対する適切な処理を検証 */
     it('should handle articles without buttons', () => {
       const primaryColumn = document.createElement('div')
       primaryColumn.dataset.testid = 'primaryColumn'

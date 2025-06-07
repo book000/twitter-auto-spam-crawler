@@ -3,6 +3,13 @@ import { ErrorHandler } from '../../utils/error'
 // Mock timers
 jest.useFakeTimers()
 
+/**
+ * ErrorHandlerクラスのテストスイート
+ * X.comでのエラー検出とハンドリング機能を検証する
+ * - エラーダイアログの検出と対応処理
+ * - 削除・違反投稿の検出機能
+ * - 非同期コールバック処理の適切な実行
+ */
 describe('ErrorHandler', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
@@ -14,7 +21,12 @@ describe('ErrorHandler', () => {
     jest.runOnlyPendingTimers()
   })
 
+  /**
+   * handleErrorDialogメソッドのテスト
+   * エラーダイアログの出現を監視し、発見時にコールバックを実行する機能を検証
+   */
   describe('handleErrorDialog', () => {
+    /** エラーダイアログが発見された時にコールバックが呼び出されることを検証 */
     it('should call callback when error dialog is found', async () => {
       const mockCallback = jest.fn()
 
@@ -38,6 +50,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
 
+    /** 非同期コールバックが正常に解決される場合の処理を検証 */
     it('should handle async callback that resolves', async () => {
       const mockCallback = jest.fn().mockResolvedValue(undefined)
 
@@ -57,6 +70,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
 
+    /** 非同期コールバックがエラーで拒否される場合の処理を検証 */
     it('should handle async callback that rejects', async () => {
       const mockCallback = jest
         .fn()
@@ -78,6 +92,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
 
+    /** 関数以外のコールバックが渡された場合のエラーハンドリングを検証 */
     it('should handle non-function callback', async () => {
       // @ts-expect-error Testing invalid input
       const promise = ErrorHandler.handleErrorDialog(null)
@@ -95,6 +110,7 @@ describe('ErrorHandler', () => {
       await expect(promise).resolves.toBeUndefined()
     })
 
+    /** ダイアログが見つかるまでポーリングを継続することを検証 */
     it('should continue polling until dialog is found', async () => {
       const mockCallback = jest.fn()
 
@@ -118,7 +134,12 @@ describe('ErrorHandler', () => {
     })
   })
 
+  /**
+   * detectCantProcessingPostメソッドのテスト
+   * 違反・削除された投稿を検出し、コールバックを実行する機能を検証
+   */
   describe('detectCantProcessingPost', () => {
+    /** ルール違反投稿が検出された時にコールバックが呼び出されることを検証 */
     it('should call callback when violation post is detected', async () => {
       const mockCallback = jest.fn()
 
@@ -149,6 +170,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
+    /** 削除された投稿が検出された時にコールバックが呼び出されることを検証 */
     it('should call callback when deleted post is detected', async () => {
       const mockCallback = jest.fn()
 
@@ -179,6 +201,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
+    /** 非同期コールバックが正常に解決される場合の処理を検証（detectCantProcessingPost用） */
     it('should handle async callback that resolves', async () => {
       const mockCallback = jest.fn().mockResolvedValue(undefined)
 
@@ -209,6 +232,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
+    /** 非同期コールバックがエラーで拒否される場合の処理を検証（detectCantProcessingPost用） */
     it('should handle async callback that rejects', async () => {
       const mockCallback = jest
         .fn()
@@ -241,6 +265,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
+    /** 通常の投稿に対してはコールバックが呼び出されないことを検証 */
     it('should not call callback for normal posts', () => {
       const mockCallback = jest.fn()
 
@@ -273,6 +298,7 @@ describe('ErrorHandler', () => {
       jest.clearAllTimers()
     })
 
+    /** ツイート記事が見つからない場合にポーリングを継続することを検証 */
     it('should continue polling when no tweet article is found', () => {
       const mockCallback = jest.fn()
 
@@ -286,6 +312,7 @@ describe('ErrorHandler', () => {
       jest.clearAllTimers()
     })
 
+    /** テキストコンテンツがないツイート記事の適切な処理を検証 */
     it('should handle tweet article without text content', () => {
       const mockCallback = jest.fn()
 

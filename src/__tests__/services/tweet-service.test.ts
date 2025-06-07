@@ -24,6 +24,15 @@ globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
   options,
 }))
 
+/**
+ * TweetServiceクラスのテストスイート
+ * ツイートの取得、保存、フィルタリング、ダウンロード機能を検証する
+ * - DOMからのツイート要素抽出とデータパース
+ * - エンゲージメント指標（リプライ、リツイート、いいね）の解析
+ * - ストレージを使用したツイートの保存と更新
+ * - 閾値による対象ツイートのフィルタリング
+ * - JSONファイルとしてのツイートダウンロード機能
+ */
 describe('TweetService', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
@@ -37,7 +46,21 @@ describe('TweetService', () => {
     document.body.append = originalAppend
   })
 
+  /**
+   * getTweetsメソッドのテスト
+   * DOMからツイート記事要素を抽出し、構造化されたTweetオブジェクトに変換する機能を検証
+   * - ツイートURL、テキスト内容、HTML、ユーザー名、IDの抽出
+   * - エンゲージメント数（リプライ、リツイート、いいね）の解析
+   * - 無効なURL、欠損要素、不正データの適切な処理
+   */
   describe('getTweets', () => {
+    /**
+     * 正常なツイート記事からのデータ抽出をテスト
+     * - 完全なツイート要素（リンク、テキスト、インタラクションボタン）からの情報抽出
+     * - URL、ユーザー名、ツイートIDの正確な解析
+     * - エンゲージメント数の正確な読み取り
+     * - HTMLとテキストコンテンツの適切な分離
+     */
     it('should return tweets from tweet articles', () => {
       // Create mock tweet articles
       const article1 = document.createElement('article')
@@ -101,6 +124,12 @@ describe('TweetService', () => {
       })
     })
 
+    /**
+     * ツイート要素が見つからない場合のnull返却をテスト
+     * - 無効なarticle要素（timeを含むlink要素なし）の処理
+     * - 適切な警告メッセージの出力確認
+     * - エラー状態での安全な処理終了
+     */
     it('should return null when tweet element is not found', () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
@@ -130,6 +159,12 @@ describe('TweetService', () => {
       article.querySelector = originalQuerySelector
     })
 
+    /**
+     * 無効なURLを持つツイートのスキップ処理をテスト
+     * - X.com以外のドメインURLの除外
+     * - 無効なツイートURLパターンの適切なフィルタリング
+     * - 結果として空配列が返されることを確認
+     */
     it('should skip tweets with invalid URLs', () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
@@ -154,6 +189,12 @@ describe('TweetService', () => {
       expect(result).toEqual([])
     })
 
+    /**
+     * テキストコンテンツなしツイートの処理をテスト
+     * - ツイートテキスト要素が存在しない場合の処理
+     * - null値での適切なデータ構造維持
+     * - 他の要素（URL、エンゲージメント数）の正常な処理継続
+     */
     it('should handle tweets without text content', () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
@@ -188,6 +229,12 @@ describe('TweetService', () => {
       expect(result![0].tweetHtml).toBeNull()
     })
 
+    /**
+     * インタラクションボタン欠損時のデフォルト値設定をテスト
+     * - リプライ、リツイート、いいねボタンが存在しない場合
+     * - 各エンゲージメント数が'0'でデフォルト設定されることを確認
+     * - ツイート構造の一貫性維持
+     */
     it('should handle missing interaction buttons', () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
@@ -221,7 +268,20 @@ describe('TweetService', () => {
     })
   })
 
+  /**
+   * saveTweetsメソッドのテスト
+   * ストレージへのツイート保存と更新機能を検証
+   * - 既存ツイートとの重複チェックと統合
+   * - 新規ツイートの追加処理
+   * - 同一IDツイートの更新処理
+   */
   describe('saveTweets', () => {
+    /**
+     * 新規ツイートのストレージ追加をテスト
+     * - 既存ツイートリストへの新規ツイート追加
+     * - 重複なし新規ツイートの正常な保存処理
+     * - ストレージ更新の適切な呼び出し確認
+     */
     it('should add new tweets to storage', () => {
       const existingTweets: Tweet[] = [
         {
@@ -263,6 +323,12 @@ describe('TweetService', () => {
       ])
     })
 
+    /**
+     * 既存ツイートの更新処理をテスト
+     * - 同一tweetIdを持つツイートの内容更新
+     * - エンゲージメント数増加等の変更反映
+     * - 重複除去による正確な更新処理
+     */
     it('should update existing tweets', () => {
       const existingTweets: Tweet[] = [
         {
@@ -300,7 +366,18 @@ describe('TweetService', () => {
     })
   })
 
+  /**
+   * isNeedDownloadメソッドのテスト
+   * 保存ツイート数が制限を超えた場合のダウンロード要否判定を検証
+   * - SAVED_TWEETS_LIMIT閾値との比較判定
+   * - ダウンロードトリガー条件の正確な評価
+   */
   describe('isNeedDownload', () => {
+    /**
+     * 制限超過時のダウンロード要否判定をテスト
+     * - 保存ツイート数が制限値を超えた場合のtrue返却
+     * - 閾値チェックの正確な動作確認
+     */
     it('should return true when tweets count exceeds limit', () => {
       const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT + 1 })
         .fill({})
@@ -315,6 +392,11 @@ describe('TweetService', () => {
       expect(result).toBe(true)
     })
 
+    /**
+     * 制限未満時のダウンロード不要判定をテスト
+     * - 保存ツイート数が制限値未満の場合のfalse返却
+     * - ダウンロード不要状態の正確な判定
+     */
     it('should return false when tweets count is below limit', () => {
       const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT - 1 })
         .fill({})
@@ -329,6 +411,11 @@ describe('TweetService', () => {
       expect(result).toBe(false)
     })
 
+    /**
+     * 制限値ちょうどの場合のダウンロード不要判定をテスト
+     * - 保存ツイート数が制限値と同じ場合のfalse返却
+     * - 境界値での正確な判定動作確認
+     */
     it('should return false when tweets count equals limit', () => {
       const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT })
         .fill({})
@@ -344,7 +431,21 @@ describe('TweetService', () => {
     })
   })
 
+  /**
+   * downloadTweetsメソッドのテスト
+   * ツイートのJSONファイルダウンロード機能を検証
+   * - Blob作成とダウンロードリンク生成
+   * - ファイル名の適切なタイムスタンプ形式
+   * - ダウンロード後のストレージクリア
+   */
   describe('downloadTweets', () => {
+    /**
+     * ツイートダウンロードとストレージクリア処理をテスト
+     * - JSONフォーマットでのBlob作成
+     * - タイムスタンプ付きファイル名生成
+     * - ダウンロードリンクの自動クリック
+     * - 保存ツイートの自動削除処理
+     */
     it('should create download link and clear saved tweets', () => {
       // Set up mocks for this specific test
       // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -404,7 +505,20 @@ describe('TweetService', () => {
     })
   })
 
+  /**
+   * getTargetTweetsメソッドのテスト
+   * エンゲージメント閾値による対象ツイートフィルタリング機能を検証
+   * - リツイート数とリプライ数の両方が閾値以上のツイート抽出
+   * - 閾値に満たないツイートの除外処理
+   * - 境界値での正確なフィルタリング動作
+   */
   describe('getTargetTweets', () => {
+    /**
+     * 両閾値を満たすツイートのフィルタリングをテスト
+     * - リツイート数100以上かつリプライ数10以上の条件確認
+     * - 条件を満たすツイートのみが抽出されることを検証
+     * - 条件不足ツイートの適切な除外確認
+     */
     it('should filter tweets that meet both retweet and reply thresholds', () => {
       const tweets: Tweet[] = [
         {
@@ -448,6 +562,11 @@ describe('TweetService', () => {
       expect(result[0].tweetId).toBe('1')
     })
 
+    /**
+     * 閾値未満ツイートの空配列返却をテスト
+     * - 全ツイートが閾値条件を満たさない場合の処理
+     * - 空配列が正確に返されることを確認
+     */
     it('should return empty array when no tweets meet thresholds', () => {
       const tweets: Tweet[] = [
         {
@@ -468,6 +587,11 @@ describe('TweetService', () => {
       expect(result).toEqual([])
     })
 
+    /**
+     * 閾値境界値での正確な判定をテスト
+     * - エンゲージメント数が閾値ちょうどの場合の処理
+     * - 境界値条件でのツイート包含確認
+     */
     it('should handle edge case values at threshold boundaries', () => {
       const tweets: Tweet[] = [
         {

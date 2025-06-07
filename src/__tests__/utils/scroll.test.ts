@@ -32,6 +32,14 @@ Object.defineProperty(document.body, 'scrollHeight', {
   configurable: true,
 })
 
+/**
+ * ScrollUtilsクラスのテストスイート
+ * ページスクロール機能とスクロール制御ロジックを検証する
+ * - 自動スクロールとページ高さ変化の検出
+ * - スクロール失敗回数の管理と制限
+ * - 返信展開ボタンとの連携機能
+ * - 指定回数のスクロール実行機能
+ */
 describe('ScrollUtils', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -52,7 +60,12 @@ describe('ScrollUtils', () => {
     jest.runOnlyPendingTimers()
   })
 
+  /**
+   * scrollPageメソッドのテスト
+   * ページの自動スクロールとコンテンツ読み込み検出機能を検証
+   */
   describe('scrollPage', () => {
+    /** 最大失敗回数に達した時にスクロールが終了することを検証 */
     it('should start scrolling and resolve when max fail count is reached', async () => {
       const consoleSpy = jest
         .spyOn(console, 'warn')
@@ -78,6 +91,7 @@ describe('ScrollUtils', () => {
       consoleSpy.mockRestore()
     })
 
+    /** ページ高の変化でスクロール成功を検出することを検証 */
     it('should detect successful scrolling when page height changes', async () => {
       const consoleLogSpy = jest
         .spyOn(console, 'log')
@@ -114,6 +128,7 @@ describe('ScrollUtils', () => {
       consoleWarnSpy.mockRestore()
     })
 
+    /** スクロールが既に実行中の場合に即座に返すことを検証 */
     it('should return immediately if scrolling is already in progress', async () => {
       const promise1 = ScrollUtils.scrollPage()
       const promise2 = ScrollUtils.scrollPage()
@@ -129,6 +144,7 @@ describe('ScrollUtils', () => {
       await expect(promise1).resolves.toBeUndefined()
     })
 
+    /** スクロール成功時に失敗カウントがリセットされることを検証 */
     it('should reset fail count when scroll succeeds', async () => {
       const consoleLogSpy = jest
         .spyOn(console, 'log')
@@ -170,7 +186,12 @@ describe('ScrollUtils', () => {
     })
   })
 
+  /**
+   * scrollWithCountメソッドのテスト
+   * 指定された回数だけスクロールを実行する機能を検証
+   */
   describe('scrollWithCount', () => {
+    /** スクロールが即座に実行されることを検証 */
     it('should call scrollBy immediately', () => {
       const count = 3
       ScrollUtils.scrollWithCount(count)
@@ -183,6 +204,7 @@ describe('ScrollUtils', () => {
       })
     })
 
+    /** ゼロ回数のスクロール指定が適切に処理されることを検証 */
     it('should handle zero count', async () => {
       const promise = ScrollUtils.scrollWithCount(0)
 
@@ -191,6 +213,7 @@ describe('ScrollUtils', () => {
       expect(mockScrollBy).not.toHaveBeenCalled()
     })
 
+    /** スクロール間の適切な待機時間が設定されることを検証 */
     it('should wait between scrolls', () => {
       const count = 2
       ScrollUtils.scrollWithCount(count)
@@ -200,6 +223,7 @@ describe('ScrollUtils', () => {
       expect(mockScrollBy).toHaveBeenCalled()
     })
 
+    /** 正しいパラメーターでスクロールが実行されることを検証 */
     it('should scroll with correct parameters', async () => {
       const promise = ScrollUtils.scrollWithCount(1)
 

@@ -9,6 +9,14 @@ import { clearMockStorage } from '../../__mocks__/userscript'
 const mockFetch = jest.fn()
 globalThis.fetch = mockFetch
 
+/**
+ * NotificationServiceクラスのテストスイート
+ * Discord Webhookを使用した通知機能を検証する
+ * - Discord Webhook URLへのメッセージ送信機能
+ * - メンション付き通知とコメント追加機能
+ * - ネットワークエラーやレスポンス失敗のエラーハンドリング
+ * - 設定未完了時の適切な処理と警告出力
+ */
 describe('NotificationService', () => {
   beforeEach(() => {
     clearMockStorage()
@@ -16,7 +24,22 @@ describe('NotificationService', () => {
     mockFetch.mockClear()
   })
 
+  /**
+   * notifyDiscordメソッドのテスト
+   * Discord Webhookを使用したメッセージ送信機能を検証
+   * - コンフィグからのWebhook URLとコメント取得
+   * - HTTP POSTリクエストの適切なフォーマットとヘッダー設定
+   * - メンション、コメント、コールバックのオプション処理
+   * - エラーレスポンスやネットワークエラーの適切なハンドリング
+   */
   describe('notifyDiscord', () => {
+    /**
+     * メッセージとコメント付きDiscord通知の正常送信をテスト
+     * - コンフィグからのWebhook URLとコメントの取得
+     * - Discord APIのフォーマットに合わせたHTTP POSTリクエスト
+     * - メッセージとコメントの適切な連結とフォーマット
+     * - 成功レスポンス時の適切なログ出力
+     */
     it('should send discord notification with message and comment', async () => {
       const mockResponse = { ok: true }
       mockFetch.mockResolvedValue(mockResponse)
@@ -50,6 +73,11 @@ describe('NotificationService', () => {
       consoleSpy.mockRestore()
     })
 
+    /**
+     * withReplyフラグ有効時のメンション付き通知をテスト
+     * - メンションIDの適切なフォーマットと連結
+     * - メッセージ内容の正確な構成確認
+     */
     it('should include mention when withReply is true', () => {
       const mockResponse = { ok: true }
       mockFetch.mockResolvedValue(mockResponse)
@@ -72,6 +100,11 @@ describe('NotificationService', () => {
       )
     })
 
+    /**
+     * コールバック関数指定時の適切な呼び出しをテスト
+     * - コールバック関数がレスポンスとともに呼び出されることを確認
+     * - 非同期処理終了後のコールバック実行タイミング
+     */
     it('should call callback function when provided', async () => {
       const mockResponse = { ok: true }
       mockFetch.mockResolvedValue(mockResponse)
@@ -89,6 +122,11 @@ describe('NotificationService', () => {
       expect(mockCallback).toHaveBeenCalledWith(mockResponse)
     })
 
+    /**
+     * 失敗レスポンスのエラーハンドリングをテスト
+     * - サーバーからのエラーレスポンス（ok: false）の処理
+     * - 適切なエラーログの出力確認
+     */
     it('should handle failed response', async () => {
       const mockResponse = { ok: false }
       mockFetch.mockResolvedValue(mockResponse)
@@ -113,6 +151,11 @@ describe('NotificationService', () => {
       consoleErrorSpy.mockRestore()
     })
 
+    /**
+     * ネットワークエラーのエラーハンドリングをテスト
+     * - fetch関数がリジェクトした場合の処理
+     * - ネットワークエラーやコネクションタイムアウトの適切な処理
+     */
     it('should handle fetch error', () => {
       const mockError = new Error('Network error')
       mockFetch.mockRejectedValue(mockError)
@@ -133,6 +176,11 @@ describe('NotificationService', () => {
       consoleErrorSpy.mockRestore()
     })
 
+    /**
+     * Webhook URL未設定時の通知スキップをテスト
+     * - 空のWebhook URL時の適切な警告メッセージ出力
+     * - 通知送信がスキップされることの確認
+     */
     it('should not send notification when webhook URL is not set', () => {
       jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
       const consoleWarnSpy = jest
@@ -149,6 +197,11 @@ describe('NotificationService', () => {
       consoleWarnSpy.mockRestore()
     })
 
+    /**
+     * 空文字列Webhook URLの処理をテスト
+     * - 空文字列のWebhook URL時の適切な警告出力
+     * - メンションやコメント有無に関わらずスキップされることを確認
+     */
     it('should handle empty webhook URL', () => {
       jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
       jest.spyOn(ConfigManager, 'getComment').mockReturnValue('Comment')
