@@ -1,141 +1,102 @@
-# Twitter Auto Spam Crawler
+# 🕷️ twitter-auto-spam-crawler
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-24.1.0-green.svg)](https://nodejs.org)
-[![pnpm](https://img.shields.io/badge/pnpm-9.15.4%2B-yellow.svg)](https://pnpm.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するユーザースクリプト
 
-A TypeScript-based userscript that automatically crawls tweets on Twitter/X to identify potential spam content. Designed to work in conjunction with the Blue Blocker extension.
+[日本語](README-ja.md) | English
 
-[日本語版](README-ja.md)
+## ✨ Features
 
-## Features
+- 🔄 **Automatic crawling** - Continuously monitors tweets on X.com pages
+- 🎯 **Smart filtering** - Detects spam based on engagement thresholds (RT 100+, Reply 10+)
+- 📊 **Queue management** - Maintains waiting and checked tweet queues with persistent storage
+- 💾 **Auto-save** - Downloads collected tweets when reaching 500 items
+- 🔔 **Discord integration** - Optional webhook notifications for alerts
+- 🧩 **Blue Blocker compatibility** - Designed to work with Blue Blocker extension
 
-- **Automatic Tweet Crawling**: Continuously monitors and crawls tweets based on engagement thresholds
-- **Spam Detection**: Filters tweets with high retweet counts (100+) and reply counts (10+)
-- **Queue Management**: Maintains waiting and checked tweet queues with persistent storage
-- **Auto-save**: Automatically downloads collected tweets when reaching 500 items
-- **Multi-page Support**: Works on home, explore, search, and individual tweet pages
-- **Discord Notifications**: Optional webhook integration for alerts
+## 📦 Installation
 
-## Installation
+### For Users
 
-### Prerequisites
+1. Install [Tampermonkey](https://www.tampermonkey.net/) browser extension
+2. Download the userscript: [twitter-auto-spam-crawler.user.js](https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js)
+3. Click to install when prompted by Tampermonkey
 
-- [Tampermonkey](https://www.tampermonkey.net/) or [Greasemonkey](https://www.greasespot.net/) browser extension
-- [Blue Blocker](https://github.com/kheina-com/Blue-Blocker) extension (recommended)
+### For Developers
 
-### Install the Userscript
-
-1. Install the userscript from the latest release:
-   - [Download twitter-auto-spam-crawler.user.js](https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js)
-
-2. The userscript will automatically update when new versions are released
-
-## Usage
-
-1. Navigate to Twitter/X (https://x.com)
-2. The script will automatically start crawling tweets
-3. Monitor the console for crawling status
-4. Collected tweets are automatically saved when reaching 500 items
-
-### Configuration
-
-Access configuration through the Tampermonkey menu:
-- Enable/disable auto-crawling
-- Adjust crawling intervals
-- Configure Discord webhook URL
-- Manage saved tweets
-
-## Development
-
-### Requirements
-
+**Requirements:**
 - Node.js 24.1.0
 - pnpm 9.15.4+
 
-### Setup
-
 ```bash
-# Clone the repository
 git clone https://github.com/book000/twitter-auto-spam-crawler.git
 cd twitter-auto-spam-crawler
-
-# Install dependencies
 pnpm install
-
-# Development build with watch mode
-pnpm run watch
 ```
 
-### Scripts
+## 🚀 Usage
+
+1. Navigate to [x.com](https://x.com)
+2. The script automatically starts monitoring tweets
+3. Use Tampermonkey menu to configure settings
+4. Collected data is automatically saved and can be exported
+
+## 🛠️ Development
+
+### Commands
 
 | Command | Description |
 |---------|-------------|
-| `pnpm install` | Install dependencies |
 | `pnpm run build` | Build production userscript |
-| `pnpm run build:dev` | Build development userscript with source maps |
-| `pnpm run watch` | Watch mode for development |
-| `pnpm test` | Run all tests with coverage |
-| `pnpm run lint` | Run all linters (prettier, eslint, typescript) |
-| `pnpm run fix` | Fix linting errors |
-| `pnpm run clean` | Clean dist directory |
+| `pnpm run build:dev` | Build with source maps |
+| `pnpm run watch` | Development watch mode |
+| `pnpm test` | Run tests with coverage |
+| `pnpm run lint` | Lint code (ESLint + Prettier + TypeScript) |
+| `pnpm run fix` | Auto-fix linting issues |
 
 ### Architecture
 
-The project follows a service-based architecture:
+```
+src/
+├── core/           # Configuration, constants, storage
+├── pages/          # Page-specific handlers
+├── services/       # Business logic services
+├── types/          # TypeScript definitions
+└── utils/          # Utility functions
+```
 
-- **CrawlerService**: Orchestrates the main crawling workflow
-- **TweetService**: Handles tweet extraction and storage
-- **QueueService**: Manages tweet processing queues
-- **NotificationService**: Handles Discord webhook integration
-- **StateService**: Manages application state
-
-For detailed architecture information, see the [architecture documentation](.claude/architecture.md).
+**Services:**
+- `CrawlerService` - Main crawling orchestration
+- `TweetService` - Tweet extraction and storage
+- `QueueService` - Tweet queue management
+- `NotificationService` - Discord webhook integration
 
 ### Testing
 
-Tests are written using Jest with jsdom environment:
-
 ```bash
-# Run all tests
-pnpm test
-
-# Run specific test file
-pnpm test -- src/services/tweet-service.test.ts
-
-# Run tests in watch mode
-pnpm test -- --watch
+pnpm test                                    # All tests
+pnpm test -- src/services/tweet-service.test.ts  # Specific test
 ```
 
-## Contributing
+## 🏗️ Technical Details
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- **Build system**: Webpack with TypeScript
+- **Environment**: Userscript (GM_getValue/GM_setValue APIs)
+- **Target pages**: Home, explore, search, individual tweets on x.com
+- **Storage**: LocalStorage with persistent queue management
+- **Testing**: Jest with jsdom environment
 
-### Code Style
+## ⚠️ Disclaimer
 
-- Follow TypeScript strict mode
-- Use ESLint and Prettier for code formatting
-- Run `pnpm run lint` before committing
-- Write tests for new features
+This is an **unofficial tool** for Twitter/X. Use at your own risk.
 
-## License
+- Not affiliated with Twitter/X or Blue Blocker
+- May break due to site changes
+- Intended for research and educational purposes
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 License
 
-## Author
+MIT License - see [LICENSE](LICENSE)
 
-**Tomachi** - [@book000](https://github.com/book000)
+## 👤 Author
 
-## Acknowledgments
-
-- Designed to work with [Blue Blocker](https://github.com/kheina-com/Blue-Blocker)
-- Built with [Tampermonkey](https://www.tampermonkey.net/) userscript APIs
-
-## Support
-
-For bugs and feature requests, please [create an issue](https://github.com/book000/twitter-auto-spam-crawler/issues/new).
+**Tomachi** ([@book000](https://github.com/book000))

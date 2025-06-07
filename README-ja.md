@@ -1,141 +1,102 @@
-# Twitter Auto Spam Crawler
+# 🕷️ twitter-auto-spam-crawler
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-24.1.0-green.svg)](https://nodejs.org)
-[![pnpm](https://img.shields.io/badge/pnpm-9.15.4%2B-yellow.svg)](https://pnpm.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するユーザースクリプト
 
-Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するTypeScriptベースのユーザースクリプトです。Blue Blocker拡張機能と組み合わせて使用することを想定しています。
+日本語 | [English](README.md)
 
-[English](README.md)
+## ✨ 機能
 
-## 機能
+- 🔄 **自動クロール** - X.com のページでツイートを継続的に監視
+- 🎯 **スマートフィルタリング** - エンゲージメント閾値（RT 100以上、リプライ 10以上）でスパムを検出
+- 📊 **キュー管理** - 永続ストレージで待機中・確認済みツイートキューを管理
+- 💾 **自動保存** - 500件に達するとツイートを自動ダウンロード
+- 🔔 **Discord連携** - アラート用のWebhook通知（オプション）
+- 🧩 **Blue Blocker対応** - Blue Blocker拡張機能との連携を想定
 
-- **自動ツイートクロール**: エンゲージメント閾値に基づいてツイートを継続的に監視・クロール
-- **スパム検出**: 高リツイート数（100以上）と高リプライ数（10以上）のツイートをフィルタリング
-- **キュー管理**: 永続ストレージで待機中と確認済みツイートキューを管理
-- **自動保存**: 500件に達すると収集したツイートを自動ダウンロード
-- **マルチページ対応**: ホーム、探索、検索、個別ツイートページで動作
-- **Discord通知**: アラート用のWebhook統合（オプション）
+## 📦 インストール
 
-## インストール
+### ユーザー向け
 
-### 前提条件
+1. [Tampermonkey](https://www.tampermonkey.net/) ブラウザ拡張機能をインストール
+2. ユーザースクリプトをダウンロード: [twitter-auto-spam-crawler.user.js](https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js)
+3. Tampermonkey のプロンプトが表示されたらクリックしてインストール
 
-- [Tampermonkey](https://www.tampermonkey.net/) または [Greasemonkey](https://www.greasespot.net/) ブラウザ拡張機能
-- [Blue Blocker](https://github.com/kheina-com/Blue-Blocker) 拡張機能（推奨）
+### 開発者向け
 
-### ユーザースクリプトのインストール
-
-1. 最新リリースからユーザースクリプトをインストール:
-   - [twitter-auto-spam-crawler.user.js をダウンロード](https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js)
-
-2. 新しいバージョンがリリースされると自動的に更新されます
-
-## 使い方
-
-1. Twitter/X (https://x.com) にアクセス
-2. スクリプトが自動的にツイートのクロールを開始します
-3. コンソールでクロール状況を監視
-4. 収集したツイートは500件に達すると自動的に保存されます
-
-### 設定
-
-Tampermonkeyメニューから設定にアクセス:
-- 自動クロールの有効/無効
-- クロール間隔の調整
-- Discord Webhook URLの設定
-- 保存されたツイートの管理
-
-## 開発
-
-### 必要環境
-
+**必要環境:**
 - Node.js 24.1.0
 - pnpm 9.15.4+
 
-### セットアップ
-
 ```bash
-# リポジトリをクローン
 git clone https://github.com/book000/twitter-auto-spam-crawler.git
 cd twitter-auto-spam-crawler
-
-# 依存関係をインストール
 pnpm install
-
-# 開発用ビルド（ウォッチモード）
-pnpm run watch
 ```
 
-### スクリプト
+## 🚀 使い方
+
+1. [x.com](https://x.com) にアクセス
+2. スクリプトが自動的にツイートの監視を開始
+3. Tampermonkey メニューから設定を調整
+4. 収集されたデータは自動保存され、エクスポート可能
+
+## 🛠️ 開発
+
+### コマンド
 
 | コマンド | 説明 |
 |---------|------|
-| `pnpm install` | 依存関係をインストール |
 | `pnpm run build` | 本番用ユーザースクリプトをビルド |
-| `pnpm run build:dev` | ソースマップ付き開発用ユーザースクリプトをビルド |
-| `pnpm run watch` | 開発用のウォッチモード |
-| `pnpm test` | カバレッジ付きで全テストを実行 |
-| `pnpm run lint` | 全てのリンター（prettier、eslint、typescript）を実行 |
-| `pnpm run fix` | リンティングエラーを自動修正 |
-| `pnpm run clean` | distディレクトリをクリーンアップ |
+| `pnpm run build:dev` | ソースマップ付きでビルド |
+| `pnpm run watch` | 開発用ウォッチモード |
+| `pnpm test` | カバレッジ付きでテスト実行 |
+| `pnpm run lint` | コードリント（ESLint + Prettier + TypeScript） |
+| `pnpm run fix` | リンティング問題を自動修正 |
 
 ### アーキテクチャ
 
-プロジェクトはサービスベースのアーキテクチャに従っています:
+```
+src/
+├── core/           # 設定、定数、ストレージ
+├── pages/          # ページ固有のハンドラー
+├── services/       # ビジネスロジックサービス
+├── types/          # TypeScript型定義
+└── utils/          # ユーティリティ関数
+```
 
-- **CrawlerService**: メインのクロールワークフローを統制
-- **TweetService**: ツイートの抽出と保存を処理
-- **QueueService**: ツイート処理キューを管理
-- **NotificationService**: Discord Webhook統合を処理
-- **StateService**: アプリケーション状態を管理
-
-詳細なアーキテクチャ情報については、[アーキテクチャドキュメント](.claude/architecture.md)を参照してください。
+**サービス:**
+- `CrawlerService` - メインクロール処理の統制
+- `TweetService` - ツイート抽出・保存
+- `QueueService` - ツイートキュー管理
+- `NotificationService` - Discord Webhook連携
 
 ### テスト
 
-テストはjsdom環境でJestを使用して記述されています:
-
 ```bash
-# 全てのテストを実行
-pnpm test
-
-# 特定のテストファイルを実行
-pnpm test -- src/services/tweet-service.test.ts
-
-# ウォッチモードでテストを実行
-pnpm test -- --watch
+pnpm test                                    # 全テスト実行
+pnpm test -- src/services/tweet-service.test.ts  # 特定テスト実行
 ```
 
-## コントリビューション
+## 🏗️ 技術詳細
 
-1. リポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'feat: 素晴らしい機能を追加'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
+- **ビルドシステム**: Webpack + TypeScript
+- **実行環境**: ユーザースクリプト（GM_getValue/GM_setValue API）
+- **対象ページ**: x.com のホーム、探索、検索、個別ツイートページ
+- **ストレージ**: 永続キュー管理でLocalStorage使用
+- **テスト**: jsdom環境のJest
 
-### コードスタイル
+## ⚠️ 免責事項
 
-- TypeScript strictモードに従う
-- ESLintとPrettierでコードフォーマット
-- コミット前に `pnpm run lint` を実行
-- 新機能にはテストを記述
+これは Twitter/X の**非公式ツール**です。利用は自己責任でお願いします。
 
-## ライセンス
+- Twitter/X や Blue Blocker との公式な関係はありません
+- サイト変更により動作しなくなる可能性があります
+- 研究・教育目的での利用を想定しています
 
-このプロジェクトはMITライセンスの下でライセンスされています - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
+## 📄 ライセンス
 
-## 作者
+MIT License - [LICENSE](LICENSE) を参照
 
-**Tomachi** - [@book000](https://github.com/book000)
+## 👤 作者
 
-## 謝辞
-
-- [Blue Blocker](https://github.com/kheina-com/Blue-Blocker)と連携するよう設計
-- [Tampermonkey](https://www.tampermonkey.net/)ユーザースクリプトAPIで構築
-
-## サポート
-
-バグや機能リクエストについては、[issueを作成](https://github.com/book000/twitter-auto-spam-crawler/issues/new)してください。
+**Tomachi** ([@book000](https://github.com/book000))
