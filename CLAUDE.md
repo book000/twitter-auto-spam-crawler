@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイダンスを提供します。
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## プロジェクト概要
 
@@ -20,13 +20,21 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 - `pnpm test -- <ファイル>` - 特定のテストファイルを実行（例：`pnpm test -- src/services/tweet-service.test.ts`）
 - `pnpm run lint` - 全てのリンティング（prettier、eslint、typescript）を実行
 - `pnpm run fix` - リンティングエラーを自動修正
+- `pnpm run clean` - distディレクトリをクリーンアップ
+
+### 品質チェック
+
+変更後は必ず以下のコマンドを実行してください：
+1. `pnpm run lint` - 静的解析とコード品質チェック
+2. `pnpm test` - 全テストの実行と検証
 
 ### テスト
 
 - テストはjsdom環境とグローバルに有効化されたフェイクタイマーを使用したJestを使用
-- 全てのテストファイルは `*.test.ts` という命名規則
+- 全てのテストファイルは `*.test.ts` という命名規則（`src/__tests__/` 配下）
 - タイマーに依存するテストでは `jest.useFakeTimers()` を使用
 - ユーザースクリプト環境のため、DOMテストでは慎重なモック設定が必要
+- カバレッジレポートは自動生成され、`src/main.ts`、`src/types/`、`src/pages/` は除外
 
 ## コアアーキテクチャ
 
