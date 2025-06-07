@@ -76,7 +76,7 @@ jobs:
 
       - name: 📝 Update package.json version
         run: |
-          npm version ${{ env.version }} --no-git-tag-version
+          pnpm version ${{ env.version }} --no-git-tag-version
 
       - name: 🏗️ Run build
         run: |
