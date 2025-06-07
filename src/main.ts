@@ -130,7 +130,7 @@ import packageJson from '../package.json'
   }
 
   async function run(): Promise<void> {
-    console.log(`Twitter Auto Spam Crawler v${packageJson.version}`)
+    console.log(`${packageJson.name} v${packageJson.version}`)
     console.log('Waiting:', Storage.getWaitingTweets().length)
     console.log('Checked:', Storage.getCheckedTweets().length)
     console.log('SavedTweets:', Storage.getSavedTweets().length)
