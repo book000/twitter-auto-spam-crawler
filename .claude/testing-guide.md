@@ -54,18 +54,22 @@ src/__tests__/
 
 ```typescript
 // Map-based storage simulation
-const storage = new Map<string, any>()
+const mockStorage = new Map<string, unknown>()
 
-global.GM_getValue = jest.fn((key: string, defaultValue?: any) => {
-  return storage.get(key) ?? defaultValue
+;(globalThis as any).GM_getValue = jest.fn(
+  (key: string, defaultValue?: unknown) => {
+    return mockStorage.get(key) ?? defaultValue
+  }
+)
+;(globalThis as any).GM_setValue = jest.fn((key: string, value: unknown) => {
+  mockStorage.set(key, value)
 })
-
-global.GM_setValue = jest.fn((key: string, value: any) => {
-  storage.set(key, value)
+;(globalThis as any).GM_registerMenuCommand = jest.fn((text: string, onClick: () => void) => {
+  return Math.random().toString(36).substring(7) // Return mock command ID
 })
-
-global.GM_registerMenuCommand = jest.fn()
-global.GM_unregisterMenuCommand = jest.fn()
+;(globalThis as any).GM_unregisterMenuCommand = jest.fn((commandId: string) => {
+  // Mock implementation for unregistering menu commands
+})
 ```
 
 ### モックの使用例
@@ -79,18 +83,18 @@ describe('StorageService', () => {
     // モックをリセット
     jest.clearAllMocks()
     // ストレージをクリア
-    (global.GM_getValue as jest.Mock).mockClear()
-    ;(global.GM_setValue as jest.Mock).mockClear()
+    ;(globalThis.GM_getValue as jest.Mock).mockClear()
+    ;(globalThis.GM_setValue as jest.Mock).mockClear()
   })
 
   test('should save and retrieve data', () => {
     const service = new StorageService()
     
     service.setValue('test', 'value')
-    expect(global.GM_setValue).toHaveBeenCalledWith('test', 'value')
+    expect(globalThis.GM_setValue).toHaveBeenCalledWith('test', 'value')
     
     const result = service.getValue('test', 'default')
-    expect(global.GM_getValue).toHaveBeenCalledWith('test', 'default')
+    expect(globalThis.GM_getValue).toHaveBeenCalledWith('test', 'default')
   })
 })
 ```
@@ -238,7 +242,7 @@ test('should save tweets to storage', () => {
   
   queueService.saveTweets(tweets)
   
-  expect(global.GM_setValue).toHaveBeenCalledWith(
+  expect(globalThis.GM_setValue).toHaveBeenCalledWith(
     'savedTweets',
     expect.arrayContaining(tweets)
   )
