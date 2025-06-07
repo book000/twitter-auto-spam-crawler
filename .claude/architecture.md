@@ -12,6 +12,7 @@
 ## サービス層アーキテクチャ
 
 ### CrawlerService
+
 メインのツイートクロールワークフローを統制
 
 - 定期的にツイートを自動クロール
@@ -19,6 +20,7 @@
 - クロール状態とカウントを管理
 
 ### TweetService
+
 ツイートの抽出と保存を処理
 
 - 特定のセレクターを使用してDOMからツイートを抽出
@@ -26,6 +28,7 @@
 - ツイートの保存と自動ダウンロードを管理
 
 ### QueueService
+
 ツイート処理キューを管理
 
 - localStorageを使用して「待機中」と「確認済み」のツイートリストを維持
@@ -33,6 +36,7 @@
 - 重複処理を防止
 
 ### NotificationService
+
 アラート用のDiscord webhook統合
 
 ## データフロー
@@ -60,12 +64,13 @@
 
 - **CrawlerService** → TweetService, QueueService, NotificationService
 - **TweetService** → DOM操作, StorageAPI
-- **QueueService** → StorageAPI 
+- **QueueService** → StorageAPI
 - **StateService** → 状態管理ユーティリティ
 
 ## 定数とグローバル値
 
 `src/core/constants.ts`で管理：
+
 - エンゲージメント閾値（リツイート100+、リプライ10+）
 - タイムアウト値（クロール、スクロール、要素待機）
 - 自動ダウンロード閾値（500ツイート）

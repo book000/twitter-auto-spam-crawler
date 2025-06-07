@@ -28,6 +28,7 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 ### 品質チェック
 
 変更後は必ず以下のコマンドを実行してください：
+
 1. `pnpm run lint` - 静的解析とコード品質チェック
 2. `pnpm test` - 全テストの実行と検証
 
@@ -36,31 +37,41 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 プロジェクトの詳細情報については、以下の専門ガイドを参照してください：
 
 ### アーキテクチャ
+
 **`.claude/architecture.md`** - コアアーキテクチャの詳細
+
 - ページベースルーティングシステム
 - サービス層アーキテクチャ（CrawlerService, TweetService, QueueService, NotificationService）
 - データフロー、ストレージシステム、DOM操作パターン
 
 ### ビルドシステム
+
 **`.claude/build-system.md`** - ビルド・設定の詳細  
+
 - Webpack構成とユーザースクリプトメタデータ自動生成
 - TypeScript設定（ES2020, strict モード）
 - ESLint構成（テスト・モック特有ルール）
 
 ### 開発パターン
+
 **`.claude/development-patterns.md`** - 実装パターンの詳細
+
 - ユーザースクリプトAPI使用例（GM_getValue/GM_setValue）
 - DOM操作パターン（X.com固有セレクター）
 - エラーハンドリング、非同期処理、TypeScript型定義
 
 ### テスト
+
 **`.claude/testing-guide.md`** - テスト環境と手法の詳細
-- Jest設定（jsdom、フェイクタイマー、120秒タイムアウト） 
+
+- Jest設定（jsdom、フェイクタイマー、120秒タイムアウト）
 - ユーザースクリプトモック（GM_* API）
 - DOM・タイマー・サービステストの実装方法
 
 ### GitHub PRワークフロー  
+
 **`.claude/github-pr-workflow.md`** - PR作成・レビュー・CI対応の詳細
+
 - Pull Request作成フロー
 - Copilot Review対応手順
 - CI/CD修正とトラブルシューティング
@@ -71,11 +82,11 @@ GitHub PRワークフロー使用時の環境変数：
 
 ```bash
 export REPO_OWNER="book000"
-export REPO_NAME="twitter-auto-spam-crawler" 
+export REPO_NAME="twitter-auto-spam-crawler"
 export MAIN_BRANCH="master"
 export PACKAGE_MANAGER="pnpm"
 export TEST_CMD="pnpm test"
-export LINT_CMD="pnpm run lint" 
+export LINT_CMD="pnpm run lint"
 export BUILD_CMD="pnpm run build"
 export FIX_CMD="pnpm run fix"
 ```

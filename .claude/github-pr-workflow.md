@@ -304,7 +304,7 @@ $BUILD_CMD
 
 ### コミット履歴例
 
-```
+```text
 abc1234 fix: address CI failures and test issues
 def5678 refactor: address Copilot review feedback for cross-platform compatibility
 ghi9012 refactor: address Copilot review feedback  

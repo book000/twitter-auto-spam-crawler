@@ -12,6 +12,7 @@
 ## ユーザースクリプトメタデータ自動生成
 
 package.jsonの`userscript`フィールドから以下を自動生成：
+
 - `@name`, `@namespace`, `@version`, `@description`
 - `@match`: x.com/*, example.com/*
 - `@grant`: GM_getValue, GM_setValue, GM_registerMenuCommand, GM_unregisterMenuCommand
@@ -143,7 +144,7 @@ pnpm run watch
 
 ## 出力ファイル構造
 
-```
+```text
 dist/
 └── twitter-auto-spam-crawler.user.js  # 単一の結合ファイル
 ```
