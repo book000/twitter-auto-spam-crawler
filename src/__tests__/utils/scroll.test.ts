@@ -1,9 +1,9 @@
-import { ScrollUtils } from './scroll'
-import { DomUtils } from './dom'
-import { TIMEOUTS, THRESHOLDS } from '../core/constants'
+import { ScrollUtils } from '../../utils/scroll'
+import { DomUtils } from '../../utils/dom'
+import { TIMEOUTS, THRESHOLDS } from '../../core/constants'
 
 // Mock DomUtils
-jest.mock('./dom', () => ({
+jest.mock('../../utils/dom', () => ({
   DomUtils: {
     clickMoreReplies: jest.fn(),
     clickMoreRepliesAggressive: jest.fn(),
@@ -15,12 +15,12 @@ jest.useFakeTimers()
 
 // Mock window.scrollBy and window.innerHeight
 const mockScrollBy = jest.fn()
-Object.defineProperty(window, 'scrollBy', {
+Object.defineProperty(globalThis, 'scrollBy', {
   value: mockScrollBy,
   writable: true,
 })
 
-Object.defineProperty(window, 'innerHeight', {
+Object.defineProperty(globalThis, 'innerHeight', {
   value: 800,
   writable: true,
 })
@@ -54,7 +54,9 @@ describe('ScrollUtils', () => {
 
   describe('scrollPage', () => {
     it('should start scrolling and resolve when max fail count is reached', async () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       const promise = ScrollUtils.scrollPage()
 
@@ -77,8 +79,12 @@ describe('ScrollUtils', () => {
     })
 
     it('should detect successful scrolling when page height changes', async () => {
-      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleLogSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       const promise = ScrollUtils.scrollPage()
 
@@ -124,8 +130,12 @@ describe('ScrollUtils', () => {
     })
 
     it('should reset fail count when scroll succeeds', async () => {
-      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleLogSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       const promise = ScrollUtils.scrollPage()
 

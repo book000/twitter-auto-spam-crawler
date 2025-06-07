@@ -1,4 +1,4 @@
-import { ErrorHandler } from './error'
+import { ErrorHandler } from '../../utils/error'
 
 // Mock timers
 jest.useFakeTimers()
@@ -28,8 +28,8 @@ describe('ErrorHandler', () => {
       layers.id = 'layers'
       const dialog = document.createElement('div')
       dialog.setAttribute('role', 'alert')
-      layers.appendChild(dialog)
-      document.body.appendChild(layers)
+      layers.append(dialog)
+      document.body.append(layers)
 
       // Advance timer to detect the dialog
       jest.advanceTimersByTime(500)
@@ -48,8 +48,8 @@ describe('ErrorHandler', () => {
       layers.id = 'layers'
       const dialog = document.createElement('div')
       dialog.setAttribute('role', 'alert')
-      layers.appendChild(dialog)
-      document.body.appendChild(layers)
+      layers.append(dialog)
+      document.body.append(layers)
 
       jest.advanceTimersByTime(500)
 
@@ -69,8 +69,8 @@ describe('ErrorHandler', () => {
       layers.id = 'layers'
       const dialog = document.createElement('div')
       dialog.setAttribute('role', 'alert')
-      layers.appendChild(dialog)
-      document.body.appendChild(layers)
+      layers.append(dialog)
+      document.body.append(layers)
 
       jest.advanceTimersByTime(500)
 
@@ -87,8 +87,8 @@ describe('ErrorHandler', () => {
       layers.id = 'layers'
       const dialog = document.createElement('div')
       dialog.setAttribute('role', 'alert')
-      layers.appendChild(dialog)
-      document.body.appendChild(layers)
+      layers.append(dialog)
+      document.body.append(layers)
 
       jest.advanceTimersByTime(500)
 
@@ -108,8 +108,8 @@ describe('ErrorHandler', () => {
       layers.id = 'layers'
       const dialog = document.createElement('div')
       dialog.setAttribute('role', 'alert')
-      layers.appendChild(dialog)
-      document.body.appendChild(layers)
+      layers.append(dialog)
+      document.body.append(layers)
 
       jest.advanceTimersByTime(500)
 
@@ -126,10 +126,10 @@ describe('ErrorHandler', () => {
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -137,11 +137,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       article.textContent = 'このポストはXルールに違反しています。'
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500)
 
@@ -156,10 +156,10 @@ describe('ErrorHandler', () => {
 
       // Add tweet with deletion text
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -167,11 +167,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       article.textContent = 'このポストは、ポストの作成者により削除されました。'
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500)
 
@@ -186,10 +186,10 @@ describe('ErrorHandler', () => {
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -197,11 +197,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       article.textContent = 'このポストはXルールに違反しています。'
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500)
 
@@ -218,10 +218,10 @@ describe('ErrorHandler', () => {
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -229,11 +229,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       article.textContent = 'このポストはXルールに違反しています。'
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500)
 
@@ -241,17 +241,17 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
-    it('should not call callback for normal posts', async () => {
+    it('should not call callback for normal posts', () => {
       const mockCallback = jest.fn()
 
       ErrorHandler.detectCantProcessingPost(mockCallback)
 
       // Add normal tweet
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -259,11 +259,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       article.textContent = 'これは通常のツイートです。'
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500 * 3)
 
@@ -273,7 +273,7 @@ describe('ErrorHandler', () => {
       jest.clearAllTimers()
     })
 
-    it('should continue polling when no tweet article is found', async () => {
+    it('should continue polling when no tweet article is found', () => {
       const mockCallback = jest.fn()
 
       ErrorHandler.detectCantProcessingPost(mockCallback)
@@ -286,17 +286,17 @@ describe('ErrorHandler', () => {
       jest.clearAllTimers()
     })
 
-    it('should handle tweet article without text content', async () => {
+    it('should handle tweet article without text content', () => {
       const mockCallback = jest.fn()
 
       ErrorHandler.detectCantProcessingPost(mockCallback)
 
       // Add tweet article without text
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const container = document.createElement('div')
       const subContainer = document.createElement('div')
@@ -304,11 +304,11 @@ describe('ErrorHandler', () => {
       article.setAttribute('tabindex', '-1')
       // No text content
 
-      subContainer.appendChild(article)
-      container.appendChild(subContainer)
-      cellInnerDiv.appendChild(container)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
       jest.advanceTimersByTime(500 * 3)
 

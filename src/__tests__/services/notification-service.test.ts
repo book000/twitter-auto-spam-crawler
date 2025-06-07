@@ -1,14 +1,13 @@
-import { NotificationService } from './notification-service'
-import { ConfigManager } from '../core/config'
-import { DISCORD_MENTION_ID } from '../core/constants'
-import { clearMockStorage } from '../__mocks__/userscript'
-
+import { NotificationService } from '../../services/notification-service'
+import { ConfigManager } from '../../core/config'
+import { DISCORD_MENTION_ID } from '../../core/constants'
 // Import mock before the module under test
-import '../__mocks__/userscript'
+import '../../__mocks__/userscript'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock fetch
 const mockFetch = jest.fn()
-global.fetch = mockFetch
+globalThis.fetch = mockFetch
 
 describe('NotificationService', () => {
   beforeEach(() => {
@@ -26,7 +25,7 @@ describe('NotificationService', () => {
         .spyOn(ConfigManager, 'getDiscordWebhookUrl')
         .mockReturnValue('https://discord.com/api/webhooks/test')
       jest.spyOn(ConfigManager, 'getComment').mockReturnValue('Test comment')
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       const testMessage = 'Test notification message'
       NotificationService.notifyDiscord(testMessage)
@@ -51,7 +50,7 @@ describe('NotificationService', () => {
       consoleSpy.mockRestore()
     })
 
-    it('should include mention when withReply is true', async () => {
+    it('should include mention when withReply is true', () => {
       const mockResponse = { ok: true }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -98,7 +97,9 @@ describe('NotificationService', () => {
         .spyOn(ConfigManager, 'getDiscordWebhookUrl')
         .mockReturnValue('https://discord.com/api/webhooks/test')
       jest.spyOn(ConfigManager, 'getComment').mockReturnValue('')
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
 
       NotificationService.notifyDiscord('Test message')
 
@@ -120,7 +121,9 @@ describe('NotificationService', () => {
         .spyOn(ConfigManager, 'getDiscordWebhookUrl')
         .mockReturnValue('https://discord.com/api/webhooks/test')
       jest.spyOn(ConfigManager, 'getComment').mockReturnValue('')
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
 
       NotificationService.notifyDiscord('Test message')
 
@@ -132,7 +135,9 @@ describe('NotificationService', () => {
 
     it('should not send notification when webhook URL is not set', () => {
       jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       NotificationService.notifyDiscord('Test message')
 
@@ -147,7 +152,9 @@ describe('NotificationService', () => {
     it('should handle empty webhook URL', () => {
       jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
       jest.spyOn(ConfigManager, 'getComment').mockReturnValue('Comment')
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       NotificationService.notifyDiscord('Test message', undefined, true)
 

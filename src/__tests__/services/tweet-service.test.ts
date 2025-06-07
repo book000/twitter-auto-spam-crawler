@@ -1,27 +1,28 @@
-import { TweetService } from './tweet-service'
-import { Storage } from '../core/storage'
-import { THRESHOLDS } from '../core/constants'
-import type { Tweet } from '../types'
+import { TweetService } from '../../services/tweet-service'
+import { Storage } from '../../core/storage'
+import { THRESHOLDS } from '../../core/constants'
+import type { Tweet } from '../../types'
 
 // Mock Storage
-jest.mock('../core/storage')
+jest.mock('../../core/storage')
 
 // Mock document methods for download tests only
 const mockCreateElement = jest.fn()
 const mockAppend = jest.fn()
 const mockClick = jest.fn()
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 const originalCreateElement = document.createElement.bind(document)
 const originalAppend = document.body.append.bind(document.body)
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-global.URL.createObjectURL = jest.fn(() => 'mock-blob-url')
-global.URL.revokeObjectURL = jest.fn()
+globalThis.URL.createObjectURL = jest.fn(() => 'mock-blob-url')
+globalThis.URL.revokeObjectURL = jest.fn()
 
 // Mock Blob
-global.Blob = jest.fn().mockImplementation((data, options) => ({
+globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
   data,
   options,
-})) as jest.Mock
+}))
 
 describe('TweetService', () => {
   beforeEach(() => {
@@ -31,6 +32,7 @@ describe('TweetService', () => {
     mockAppend.mockClear()
     mockClick.mockClear()
     // Reset to original methods for most tests
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     document.createElement = originalCreateElement
     document.body.append = originalAppend
   })
@@ -39,7 +41,7 @@ describe('TweetService', () => {
     it('should return tweets from tweet articles', () => {
       // Create mock tweet articles
       const article1 = document.createElement('article')
-      article1.setAttribute('data-testid', 'tweet')
+      article1.dataset.testid = 'tweet'
 
       // Create tweet link with time
       const link1 = document.createElement('a')
@@ -47,39 +49,40 @@ describe('TweetService', () => {
       link1.href = 'https://x.com/testuser1/status/123456789'
       const time1 = document.createElement('time')
       time1.setAttribute('datetime', '2024-01-01T12:00:00Z')
-      link1.appendChild(time1)
-      article1.appendChild(link1)
+      link1.append(time1)
+      article1.append(link1)
 
       // Create tweet text
       const textDiv1 = document.createElement('div')
       textDiv1.setAttribute('lang', 'ja')
       textDiv1.setAttribute('dir', 'ltr')
-      textDiv1.setAttribute('data-testid', 'tweetText')
+      textDiv1.dataset.testid = 'tweetText'
       textDiv1.textContent = 'Test tweet content'
       textDiv1.innerHTML = '<span>Test tweet content</span>'
-      article1.appendChild(textDiv1)
+      article1.append(textDiv1)
 
       // Create interaction buttons
       const replyButton1 = document.createElement('button')
       replyButton1.setAttribute('role', 'button')
-      replyButton1.setAttribute('data-testid', 'reply')
+      replyButton1.dataset.testid = 'reply'
       replyButton1.setAttribute('aria-label', '5 replies')
-      article1.appendChild(replyButton1)
+      article1.append(replyButton1)
 
       const retweetButton1 = document.createElement('button')
       retweetButton1.setAttribute('role', 'button')
-      retweetButton1.setAttribute('data-testid', 'retweet')
+      retweetButton1.dataset.testid = 'retweet'
       retweetButton1.setAttribute('aria-label', '10 retweets')
-      article1.appendChild(retweetButton1)
+      article1.append(retweetButton1)
 
       const likeButton1 = document.createElement('button')
       likeButton1.setAttribute('role', 'button')
-      likeButton1.setAttribute('data-testid', 'like')
+      likeButton1.dataset.testid = 'like'
       likeButton1.setAttribute('aria-label', '20 likes')
-      article1.appendChild(likeButton1)
+      article1.append(likeButton1)
 
       // Mock querySelectorAll to return our test article
       const mockQuerySelectorAll = jest.fn().mockReturnValue([article1])
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.querySelectorAll = mockQuerySelectorAll
 
       const result = TweetService.getTweets()
@@ -100,15 +103,20 @@ describe('TweetService', () => {
 
     it('should return null when tweet element is not found', () => {
       const article = document.createElement('article')
-      article.setAttribute('data-testid', 'tweet')
+      article.dataset.testid = 'tweet'
       // No link with time element
 
       const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       const originalQuerySelector = article.querySelector.bind(article)
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       article.querySelector = jest.fn().mockReturnValue(null)
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.querySelectorAll = mockQuerySelectorAll
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       const result = TweetService.getTweets()
 
@@ -118,24 +126,27 @@ describe('TweetService', () => {
       )
 
       consoleWarnSpy.mockRestore()
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       article.querySelector = originalQuerySelector
     })
 
     it('should skip tweets with invalid URLs', () => {
       const article = document.createElement('article')
-      article.setAttribute('data-testid', 'tweet')
+      article.dataset.testid = 'tweet'
 
       const link = document.createElement('a')
       link.setAttribute('role', 'link')
       link.href = 'https://example.com/invalid'
       const time = document.createElement('time')
       time.setAttribute('datetime', '2024-01-01T12:00:00Z')
-      link.appendChild(time)
-      article.appendChild(link)
+      link.append(time)
+      article.append(link)
 
       const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
       const mockQuerySelector = jest.fn().mockReturnValue(link)
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       article.querySelector = mockQuerySelector
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.querySelectorAll = mockQuerySelectorAll
 
       const result = TweetService.getTweets()
@@ -145,26 +156,29 @@ describe('TweetService', () => {
 
     it('should handle tweets without text content', () => {
       const article = document.createElement('article')
-      article.setAttribute('data-testid', 'tweet')
+      article.dataset.testid = 'tweet'
 
       const link = document.createElement('a')
       link.setAttribute('role', 'link')
       link.href = 'https://x.com/testuser/status/123'
       const time = document.createElement('time')
       time.setAttribute('datetime', '2024-01-01T12:00:00Z')
-      link.appendChild(time)
-      article.appendChild(link)
+      link.append(time)
+      article.append(link)
 
       // No text element
 
       const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
-      const mockQuerySelector = jest.fn()
+      const mockQuerySelector = jest
+        .fn()
         .mockReturnValueOnce(link) // for tweetElement
         .mockReturnValueOnce(null) // for textElement
         .mockReturnValueOnce(null) // for replyButton
         .mockReturnValueOnce(null) // for retweetButton
         .mockReturnValueOnce(null) // for likeButton
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       article.querySelector = mockQuerySelector
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.querySelectorAll = mockQuerySelectorAll
 
       const result = TweetService.getTweets()
@@ -176,23 +190,26 @@ describe('TweetService', () => {
 
     it('should handle missing interaction buttons', () => {
       const article = document.createElement('article')
-      article.setAttribute('data-testid', 'tweet')
+      article.dataset.testid = 'tweet'
 
       const link = document.createElement('a')
       link.setAttribute('role', 'link')
       link.href = 'https://x.com/testuser/status/123'
       const time = document.createElement('time')
-      link.appendChild(time)
-      article.appendChild(link)
+      link.append(time)
+      article.append(link)
 
       const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
-      const mockQuerySelector = jest.fn()
+      const mockQuerySelector = jest
+        .fn()
         .mockReturnValueOnce(link) // for tweetElement
         .mockReturnValueOnce(null) // for textElement
         .mockReturnValueOnce(null) // for replyButton
         .mockReturnValueOnce(null) // for retweetButton
         .mockReturnValueOnce(null) // for likeButton
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       article.querySelector = mockQuerySelector
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.querySelectorAll = mockQuerySelectorAll
 
       const result = TweetService.getTweets()
@@ -234,7 +251,9 @@ describe('TweetService', () => {
         },
       ]
 
-      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([...existingTweets])
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([
+        ...existingTweets,
+      ])
 
       TweetService.saveTweets(newTweets)
 
@@ -283,7 +302,7 @@ describe('TweetService', () => {
 
   describe('isNeedDownload', () => {
     it('should return true when tweets count exceeds limit', () => {
-      const tweets = Array(THRESHOLDS.SAVED_TWEETS_LIMIT + 1)
+      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT + 1 })
         .fill({})
         .map((_, index) => ({
           tweetId: index.toString(),
@@ -297,7 +316,7 @@ describe('TweetService', () => {
     })
 
     it('should return false when tweets count is below limit', () => {
-      const tweets = Array(THRESHOLDS.SAVED_TWEETS_LIMIT - 1)
+      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT - 1 })
         .fill({})
         .map((_, index) => ({
           tweetId: index.toString(),
@@ -311,7 +330,7 @@ describe('TweetService', () => {
     })
 
     it('should return false when tweets count equals limit', () => {
-      const tweets = Array(THRESHOLDS.SAVED_TWEETS_LIMIT)
+      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT })
         .fill({})
         .map((_, index) => ({
           tweetId: index.toString(),
@@ -328,6 +347,7 @@ describe('TweetService', () => {
   describe('downloadTweets', () => {
     it('should create download link and clear saved tweets', () => {
       // Set up mocks for this specific test
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.createElement = mockCreateElement
       document.body.append = mockAppend
 
@@ -355,12 +375,12 @@ describe('TweetService', () => {
       }
       mockCreateElement.mockReturnValue(mockAnchor)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       const result = TweetService.downloadTweets()
 
       expect(consoleSpy).toHaveBeenCalledWith('downloadTweets: download tweets')
-      expect(global.Blob).toHaveBeenCalledWith(
+      expect(globalThis.Blob).toHaveBeenCalledWith(
         [
           JSON.stringify({
             type: 'tweets',
@@ -369,7 +389,7 @@ describe('TweetService', () => {
         ],
         { type: 'application/json' }
       )
-      expect(global.URL.createObjectURL).toHaveBeenCalled()
+      expect(globalThis.URL.createObjectURL).toHaveBeenCalled()
       expect(mockAnchor.href).toBe('mock-blob-url')
       expect(mockAnchor.download).toMatch(
         /^tweets-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z\.json$/

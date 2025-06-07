@@ -1,9 +1,6 @@
-import { Storage } from './storage'
-import type { Tweet } from '../types'
-import { clearMockStorage } from '../__mocks__/userscript'
-
-// Import mock before the module under test
-import '../__mocks__/userscript'
+import { Storage } from '../../core/storage'
+import type { Tweet } from '../../types'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 describe('Storage', () => {
   beforeEach(() => {

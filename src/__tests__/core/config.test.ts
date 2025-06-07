@@ -1,8 +1,5 @@
-import { ConfigManager } from './config'
-import { clearMockStorage } from '../__mocks__/userscript'
-
-// Import mock before the module under test
-import '../__mocks__/userscript'
+import { ConfigManager } from '../../core/config'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 describe('ConfigManager', () => {
   beforeEach(() => {

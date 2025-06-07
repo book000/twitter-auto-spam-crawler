@@ -1,6 +1,6 @@
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readFileSync } from 'node:fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -11,13 +11,22 @@ const packageJson = JSON.parse(
 )
 
 // Extract metadata from package.json
-const { name, version, description, author, repository, userscript: userscriptConfig } = packageJson
-const homepage = repository?.url?.replace(/\.git$/, '') || 'https://github.com/book000/twitter-auto-spam-crawler'
+const {
+  name,
+  version,
+  description,
+  author,
+  repository,
+  userscript: userscriptConfig,
+} = packageJson
+const homepage =
+  repository?.url?.replace(/\.git$/, '') ||
+  'https://github.com/book000/twitter-auto-spam-crawler'
 
 // Convert package name to user-friendly script name
 const scriptName = name
   .split('-')
-  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
   .join(' ')
 
 export default function webpackConfig(environment, argv) {
@@ -75,17 +84,22 @@ export default function webpackConfig(environment, argv) {
                   updateURL: userscriptConfig.updateURL,
                   downloadURL: userscriptConfig.downloadURL,
                   grant: userscriptConfig.grant,
-                  require: userscriptConfig.require
+                  require: userscriptConfig.require,
                 }
 
                 // Generate header from metadata object
-                const banner = '// ==UserScript==\n' +
-                  Object.entries(metadata).map(([key, value]) => {
-                    if (Array.isArray(value)) {
-                      return value.map(v => `// @${key.padEnd(12)} ${v}`).join('\n')
-                    }
-                    return `// @${key.padEnd(12)} ${value}`
-                  }).join('\n') +
+                const banner =
+                  '// ==UserScript==\n' +
+                  Object.entries(metadata)
+                    .map(([key, value]) => {
+                      if (Array.isArray(value)) {
+                        return value
+                          .map((v) => `// @${key.padEnd(12)} ${v}`)
+                          .join('\n')
+                      }
+                      return `// @${key.padEnd(12)} ${value}`
+                    })
+                    .join('\n') +
                   '\n// ==/UserScript==\n\n'
 
                 for (const [filename, source] of Object.entries(
@@ -94,7 +108,7 @@ export default function webpackConfig(environment, argv) {
                   if (filename.endsWith('.js')) {
                     const content = source.source()
                     const modifiedSource = banner + content
-                    
+
                     compilation.updateAsset(
                       filename,
                       new compiler.webpack.sources.RawSource(modifiedSource)

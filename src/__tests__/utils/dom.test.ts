@@ -1,5 +1,5 @@
-import { DomUtils } from './dom'
-import { TIMEOUTS } from '../core/constants'
+import { DomUtils } from '../../utils/dom'
+import { TIMEOUTS } from '../../core/constants'
 
 // Mock timers
 jest.useFakeTimers()
@@ -19,7 +19,7 @@ describe('DomUtils', () => {
     it('should resolve when element is found immediately', async () => {
       const testDiv = document.createElement('div')
       testDiv.id = 'test-element'
-      document.body.appendChild(testDiv)
+      document.body.append(testDiv)
 
       const promise = DomUtils.waitElement('#test-element')
 
@@ -36,7 +36,7 @@ describe('DomUtils', () => {
       // Add element after some time
       const testDiv = document.createElement('div')
       testDiv.id = 'delayed-element'
-      document.body.appendChild(testDiv)
+      document.body.append(testDiv)
 
       // Advance timer again
       jest.advanceTimersByTime(TIMEOUTS.ELEMENT_WAIT)
@@ -67,11 +67,11 @@ describe('DomUtils', () => {
 
     it('should handle complex selectors', async () => {
       const article = document.createElement('article')
-      article.setAttribute('data-testid', 'tweet')
+      article.dataset.testid = 'tweet'
       const span = document.createElement('span')
       span.className = 'tweet-text'
-      article.appendChild(span)
-      document.body.appendChild(article)
+      article.append(span)
+      document.body.append(article)
 
       const promise = DomUtils.waitElement(
         'article[data-testid="tweet"] .tweet-text'
@@ -97,9 +97,9 @@ describe('DomUtils', () => {
         'M12 4c-4.418 0-8 3.58-8 8s3.582 8 8 8c3.806 0 6.993-2.66 7.802-6.22l1.95.44C20.742 18.67 16.76 22 12 22 6.477 22 2 17.52 2 12S6.477 2 12 2c3.272 0 6.176 1.57 8 4V3.5h2v6h-6v-2h2.616C17.175 5.39 14.749 4 12 4z'
       )
 
-      svg.appendChild(path)
-      div.appendChild(svg)
-      document.body.appendChild(div)
+      svg.append(path)
+      div.append(svg)
+      document.body.append(div)
 
       expect(DomUtils.isFailedPage()).toBe(true)
     })
@@ -107,7 +107,7 @@ describe('DomUtils', () => {
     it('should return false when failed page indicator is not present', () => {
       const div = document.createElement('div')
       div.className = 'css-175oi2r'
-      document.body.appendChild(div)
+      document.body.append(div)
 
       expect(DomUtils.isFailedPage()).toBe(false)
     })
@@ -120,10 +120,10 @@ describe('DomUtils', () => {
   describe('clickMoreReplies', () => {
     it('should click more replies button when found', () => {
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const buttonContainer = document.createElement('div')
       const buttonSubContainer = document.createElement('div')
@@ -133,13 +133,13 @@ describe('DomUtils', () => {
       const clickSpy = jest.fn()
       button.click = clickSpy
 
-      buttonSubContainer.appendChild(button)
-      buttonContainer.appendChild(buttonSubContainer)
-      cellInnerDiv.appendChild(buttonContainer)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      buttonSubContainer.append(button)
+      buttonContainer.append(buttonSubContainer)
+      cellInnerDiv.append(buttonContainer)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreReplies()
 
@@ -152,7 +152,7 @@ describe('DomUtils', () => {
     })
 
     it('should do nothing when more replies button is not found', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreReplies()
 
@@ -164,10 +164,10 @@ describe('DomUtils', () => {
   describe('clickMoreRepliesAggressive', () => {
     it('should click buttons in articles with specific text', () => {
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const outerDiv = document.createElement('div')
       const innerDiv = document.createElement('div')
@@ -181,14 +181,14 @@ describe('DomUtils', () => {
       const clickSpy = jest.fn()
       button.click = clickSpy
 
-      article.appendChild(button)
-      innerDiv.appendChild(article)
-      outerDiv.appendChild(innerDiv)
-      cellInnerDiv.appendChild(outerDiv)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      article.append(button)
+      innerDiv.append(article)
+      outerDiv.append(innerDiv)
+      cellInnerDiv.append(outerDiv)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreRepliesAggressive()
 
@@ -202,10 +202,10 @@ describe('DomUtils', () => {
 
     it('should not click buttons in articles without specific text', () => {
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const articleContainer = document.createElement('div')
       const article = document.createElement('article')
@@ -218,13 +218,13 @@ describe('DomUtils', () => {
       const clickSpy = jest.fn()
       button.click = clickSpy
 
-      article.appendChild(button)
-      articleContainer.appendChild(article)
-      cellInnerDiv.appendChild(articleContainer)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      article.append(button)
+      articleContainer.append(article)
+      cellInnerDiv.append(articleContainer)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreRepliesAggressive()
 
@@ -236,10 +236,10 @@ describe('DomUtils', () => {
 
     it('should handle multiple matching articles', () => {
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       // Create two matching articles
       for (let i = 0; i < 2; i++) {
@@ -255,16 +255,16 @@ describe('DomUtils', () => {
         const clickSpy = jest.fn()
         button.click = clickSpy
 
-        article.appendChild(button)
-        innerDiv.appendChild(article)
-        outerDiv.appendChild(innerDiv)
-        cellInnerDiv.appendChild(outerDiv)
+        article.append(button)
+        innerDiv.append(article)
+        outerDiv.append(innerDiv)
+        cellInnerDiv.append(outerDiv)
       }
 
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreRepliesAggressive()
 
@@ -275,22 +275,22 @@ describe('DomUtils', () => {
 
     it('should handle articles without buttons', () => {
       const primaryColumn = document.createElement('div')
-      primaryColumn.setAttribute('data-testid', 'primaryColumn')
+      primaryColumn.dataset.testid = 'primaryColumn'
 
       const cellInnerDiv = document.createElement('div')
-      cellInnerDiv.setAttribute('data-testid', 'cellInnerDiv')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       const articleContainer = document.createElement('div')
       const article = document.createElement('article')
       article.setAttribute('tabindex', '-1')
       article.textContent = 'さらに返信を表示する'
 
-      articleContainer.appendChild(article)
-      cellInnerDiv.appendChild(articleContainer)
-      primaryColumn.appendChild(cellInnerDiv)
-      document.body.appendChild(primaryColumn)
+      articleContainer.append(article)
+      cellInnerDiv.append(articleContainer)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       DomUtils.clickMoreRepliesAggressive()
 

@@ -63,8 +63,8 @@
       "https://example.com/*"
     ],
     "icon": "https://www.google.com/s2/favicons?sz=64&domain=x.com",
-    "updateURL": "https://gist.github.com/book000/0d99dca4ea44b4d0af515a6e568db223/raw/twitter-auto-spam-crawler.user.js",
-    "downloadURL": "https://gist.github.com/book000/0d99dca4ea44b4d0af515a6e568db223/raw/twitter-auto-spam-crawler.user.js",
+    "updateURL": "https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js",
+    "downloadURL": "https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js",
     "grant": [
       "GM_getValue",
       "GM_setValue",
@@ -92,7 +92,7 @@
       "ts"
     ],
     "testMatch": [
-      "**/*.test.ts"
+      "<rootDir>/src/__tests__/**/*.test.ts"
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
@@ -103,7 +103,8 @@
       "!src/types/**/*",
       "!src/pages/**/*",
       "!src/**/*.test.ts",
-      "!src/__mocks__/**/*"
+      "!src/__mocks__/**/*",
+      "!src/__tests__/**/*"
     ]
   }
 }

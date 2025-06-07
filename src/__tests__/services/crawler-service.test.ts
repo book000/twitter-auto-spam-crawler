@@ -1,13 +1,13 @@
-import { CrawlerService } from './crawler-service'
-import { TweetService } from './tweet-service'
-import { QueueService } from './queue-service'
-import { Storage } from '../core/storage'
-import type { Tweet } from '../types'
+import { CrawlerService } from '../../services/crawler-service'
+import { TweetService } from '../../services/tweet-service'
+import { QueueService } from '../../services/queue-service'
+import { Storage } from '../../core/storage'
+import type { Tweet } from '../../types'
 
 // Mock the dependencies
-jest.mock('./tweet-service')
-jest.mock('./queue-service')
-jest.mock('../core/storage')
+jest.mock('../../services/tweet-service')
+jest.mock('../../services/queue-service')
+jest.mock('../../core/storage')
 
 // Mock timers
 jest.useFakeTimers()
@@ -73,7 +73,7 @@ describe('CrawlerService', () => {
         mockWaitingTweets
       )
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       await CrawlerService.crawlTweets()
 
@@ -117,12 +117,16 @@ describe('CrawlerService', () => {
 
       ;(TweetService.getTweets as jest.Mock).mockReturnValue(mockTweets)
       ;(TweetService.getTargetTweets as jest.Mock).mockReturnValue(mockTweets)
-      ;(QueueService.isCheckedTweet as jest.Mock).mockImplementation((tweetId) => {
-        return tweetId === '1' // Tweet 1 is already checked
-      })
-      ;(QueueService.isWaitingTweet as jest.Mock).mockImplementation((tweetId) => {
-        return tweetId === '2' // Tweet 2 is already waiting
-      })
+      ;(QueueService.isCheckedTweet as jest.Mock).mockImplementation(
+        (tweetId) => {
+          return tweetId === '1' // Tweet 1 is already checked
+        }
+      )
+      ;(QueueService.isWaitingTweet as jest.Mock).mockImplementation(
+        (tweetId) => {
+          return tweetId === '2' // Tweet 2 is already waiting
+        }
+      )
 
       await CrawlerService.crawlTweets()
 
@@ -143,7 +147,9 @@ describe('CrawlerService', () => {
     it('should handle empty tweets array', async () => {
       ;(TweetService.getTweets as jest.Mock).mockReturnValue([])
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
 
       await CrawlerService.crawlTweets()
 
@@ -176,7 +182,7 @@ describe('CrawlerService', () => {
       ;(QueueService.isCheckedTweet as jest.Mock).mockReturnValue(true)
       ;(QueueService.isWaitingTweet as jest.Mock).mockReturnValue(false)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       await CrawlerService.crawlTweets()
 
@@ -221,7 +227,9 @@ describe('CrawlerService', () => {
         throw new Error('Test error')
       })
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
 
       // Test the error handling directly
       await expect(CrawlerService.crawlTweets()).rejects.toThrow('Test error')
@@ -231,9 +239,9 @@ describe('CrawlerService', () => {
 
     it('should handle async crawlTweets rejections', async () => {
       const mockTweets = [
-        { tweetId: '1', replyCount: '15', retweetCount: '150' } as Tweet
+        { tweetId: '1', replyCount: '15', retweetCount: '150' } as Tweet,
       ]
-      
+
       ;(TweetService.getTweets as jest.Mock).mockReturnValue(mockTweets)
       ;(TweetService.getTargetTweets as jest.Mock).mockReturnValue(mockTweets)
       ;(QueueService.isCheckedTweet as jest.Mock).mockReturnValue(false)

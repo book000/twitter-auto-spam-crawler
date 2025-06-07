@@ -1,9 +1,9 @@
-import { QueueService } from './queue-service'
-import { Storage } from '../core/storage'
-import { clearMockStorage } from '../__mocks__/userscript'
+import { QueueService } from '../../services/queue-service'
+import { Storage } from '../../core/storage'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Import mock before the module under test
-import '../__mocks__/userscript'
+import '../../__mocks__/userscript'
 
 // Mock timers
 jest.useFakeTimers()
@@ -146,7 +146,7 @@ describe('QueueService', () => {
       jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue(existingChecked)
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingWaiting)
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
       const promise = QueueService.checkedTweet(tweetId)
 

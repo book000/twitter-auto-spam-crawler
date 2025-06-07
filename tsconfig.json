@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "commonjs",
-    "moduleResolution": "Node",
+    "module": "ES2015",
+    "moduleResolution": "bundler",
     "lib": ["ESNext", "esnext.AsyncIterable", "DOM", "DOM.Iterable"],
     "outDir": "./dist",
     "removeComments": true,
