@@ -24,7 +24,7 @@ export const ExamplePages = {
 
   runLoginNotify(): void {
     NotificationService.notifyDiscord(
-      'Need to login.',
+      ':key: Need to login.',
       () => {
         window.close()
         Storage.setLoginNotified(true)
@@ -45,7 +45,7 @@ export const ExamplePages = {
 
   runLockedNotify(): void {
     NotificationService.notifyDiscord(
-      ':warning: Account is locked!',
+      ':lock: Account is locked!',
       () => {
         window.close()
         Storage.setLockedNotified(true)
@@ -56,11 +56,11 @@ export const ExamplePages = {
 
   runUnlockedNotify(): void {
     NotificationService.notifyDiscord(
-      ':white_check_mark: Account is unlocked.',
+      ':unlock: Account is unlocked.',
       () => {
         window.close()
       },
-      true
+      false
     )
   },
 
