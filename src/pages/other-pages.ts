@@ -51,9 +51,28 @@ export const OtherPages = {
   },
 
   runLocked(): void {
-    setTimeout(() => {
+    console.log(
+      'runLocked: Account is locked, starting periodic unlock detection'
+    )
+
+    let checkCount = 0
+    const maxChecks = Math.floor(
+      TIMEOUTS.LOCKED_REDIRECT_WAIT / TIMEOUTS.LOCKED_CHECK_INTERVAL
+    )
+
+    const intervalId = setInterval(() => {
+      checkCount++
+      console.log(
+        `runLocked: Periodic check ${checkCount}/${maxChecks} - navigating to bookmark page to test unlock status`
+      )
+
+      if (checkCount >= maxChecks) {
+        console.log('runLocked: Max checks reached, clearing interval')
+        clearInterval(intervalId)
+      }
+
       location.href = URLS.BOOKMARK
-    }, TIMEOUTS.LOCKED_REDIRECT_WAIT)
+    }, TIMEOUTS.LOCKED_CHECK_INTERVAL)
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
