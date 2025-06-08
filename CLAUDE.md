@@ -150,3 +150,35 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - **開発効率**: 最新の情報に基づく適切な開発支援
 
 **注意**: ドキュメント更新を怠ると、将来のセッションで古い情報に基づく不適切な提案をする可能性があります。必ず実装と同時にドキュメントも更新してください。
+
+## Git ブランチ作成ガイドライン
+
+### ブランチ作成時の設定
+
+- **デフォルト**: 必ず `--no-track` オプションを使用してリモートブランチの追跡を無効化
+
+```bash
+# 正しい例
+git checkout -b feature/new-feature origin/master --no-track
+
+# 避けるべき例
+git checkout -b feature/new-feature origin/master
+```
+
+### コンフリクト対応
+
+コンフリクトが発生した場合の必須対応手順：
+
+1. **fetch & rebase**: `git fetch origin && git rebase origin/master`
+2. **コンフリクト解決**: マージコンフリクトマーカーを手動で解決
+3. **staged add**: `git add <解決済みファイル>`
+4. **rebase continue**: `git rebase --continue`
+5. **force push**: `git push --force-with-lease origin HEAD`
+
+## 重要：ファイル変更時の必須事項
+
+**ファイルを変更した場合は必ずコミットすること！**
+
+- ファイル編集後は即座に `git add` → `git commit` → `git push`
+- コミットを忘れると変更が失われる可能性がある
+- 必ず変更内容を適切なコミットメッセージで記録する
