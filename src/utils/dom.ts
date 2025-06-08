@@ -1,4 +1,4 @@
-import { TIMEOUTS, URLS } from '@/core/constants'
+import { TIMEOUTS, URLS, SELECTORS } from '@/core/constants'
 
 /**
  * DOM操作とページ状態検出のためのユーティリティ関数群。
@@ -97,9 +97,7 @@ export const DomUtils = {
    * @returns ログイン要素が検出され遷移が実行された場合true
    */
   checkAndNavigateToLogin(): boolean {
-    const loginElement = document.querySelector(
-      'div[data-testid="BottomBar"]:has(a[data-testid="login"])'
-    )
+    const loginElement = document.querySelector(SELECTORS.BOTTOM_BAR_LOGIN)
 
     if (loginElement) {
       console.log(

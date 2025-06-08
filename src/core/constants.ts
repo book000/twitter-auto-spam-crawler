@@ -39,3 +39,7 @@ export const TIMEOUTS = {
   DOWNLOAD_WAIT: 5000,
   PROCESSING_WAIT: 60_000,
 } as const
+
+export const SELECTORS = {
+  BOTTOM_BAR_LOGIN: 'div[data-testid="BottomBar"]:has(a[data-testid="login"])',
+} as const
