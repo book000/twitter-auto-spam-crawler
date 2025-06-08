@@ -51,7 +51,3 @@ pnpm run build:dev
 ## 📑 ライセンス
 
 MIT License - [LICENSE](LICENSE) を参照
-
-## 👤 作者
-
-**Tomachi** ([@book000](https://github.com/book000))

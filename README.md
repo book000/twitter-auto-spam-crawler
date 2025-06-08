@@ -51,7 +51,3 @@ This is an **unofficial tool** for Twitter/X. Use at your own risk.
 ## 📑 License
 
 MIT License - see [LICENSE](LICENSE)
-
-## 👤 Author
-
-**Tomachi** ([@book000](https://github.com/book000))
