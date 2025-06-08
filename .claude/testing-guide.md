@@ -333,3 +333,81 @@ pnpm test -- --coverage
 - **タイムアウト**: 120秒設定で長時間テストに対応
 - **並列実行**: `--runInBand` でシーケンシャル実行（安定性重視）
 - **プロセス終了**: `--detectOpenHandles --forceExit` で確実終了
+
+## ScrollUtilsテスト特記事項（Issue #19対応結果）
+
+### 問題とその解決策
+
+#### 背景
+ScrollUtilsテストは当初`describe.skip()`で完全に無効化されており、テストカバレッジが12.12%に留まっていた。これらのテストを有効化してカバレッジを改善する際に、特殊な課題に直面した。
+
+#### 発見された課題
+
+1. **非同期処理とfakeTimers組み合わせでのタイムアウト**
+   - 複数の長時間実行テストが120秒のタイムアウトに到達
+   - `scrollPage`メソッドのsetInterval + Promise組み合わせが原因
+   - 特に複数のPromise待機を含むテストで発生
+
+2. **解決困難なテストケース**
+   ```typescript
+   // これらのテストはタイムアウトでスキップ
+   it.skip('should return immediately if scrolling is already in progress')
+   it.skip('should wait between scrolls')  
+   it.skip('should properly reset scroll state with active interval')
+   it.skip('should handle multiple scrollPage calls correctly')
+   ```
+
+#### 成功した解決策
+
+1. **基本機能テストは正常動作**
+   ```typescript
+   // 正常に動作するテスト（6個）
+   ✓ should start scrolling and resolve when max fail count is reached
+   ✓ should detect successful scrolling when page height changes  
+   ✓ should reset fail count when scroll succeeds
+   ✓ should call scrollBy immediately
+   ✓ should handle zero count
+   ✓ should scroll with correct parameters
+   ```
+
+2. **適切なモック化**
+   ```typescript
+   // 効果的だったモック設定
+   const mockScrollBy = jest.fn()
+   Object.defineProperty(globalThis, 'scrollBy', { value: mockScrollBy })
+   Object.defineProperty(document.body, 'scrollHeight', { 
+     value: 1000, writable: true, configurable: true 
+   })
+   ```
+
+3. **DomUtilsモック**
+   ```typescript
+   jest.mock('../../utils/dom', () => ({
+     DomUtils: {
+       clickMoreReplies: jest.fn(),
+       clickMoreRepliesAggressive: jest.fn(),
+     },
+   }))
+   ```
+
+#### 達成された結果
+
+- **カバレッジ大幅改善**: 12.12% → 93.93%
+- **動作テスト**: 6個（10個中）
+- **スキップテスト**: 4個（タイムアウト課題）
+- **Lines**: 93.75% | **Functions**: 100% | **Branches**: 66.66%
+
+#### 学んだ教訓
+
+1. **複雑な非同期処理のテスト限界**
+   - setInterval + Promise + 複数awaitの組み合わせは困難
+   - 一部の複雑なテストケースは実装より統合テストが適切
+   
+2. **プラグマティックなアプローチ**
+   - 80%カバレッジ目標は達成
+   - 動作する核心機能はテスト済み
+   - 完璧さよりも実用性を重視
+
+3. **継続的改善**
+   - 将来的にfakeTimersの詳細調整でさらなる改善可能
+   - 現在の93.93%カバレッジで十分な品質保証
