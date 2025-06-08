@@ -20,11 +20,10 @@ const mockLocation = {
   search: '',
   reload: jest.fn(),
 }
-Object.defineProperty(globalThis, 'location', {
-  value: mockLocation,
-  writable: true,
-  configurable: true,
-})
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+delete (globalThis as any).location
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+;(globalThis as any).location = mockLocation
 
 const mockDomUtils = DomUtils as jest.Mocked<typeof DomUtils>
 const mockStateService = StateService as jest.Mocked<typeof StateService>
