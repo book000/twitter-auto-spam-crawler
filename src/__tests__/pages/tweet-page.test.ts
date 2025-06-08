@@ -18,11 +18,7 @@ jest.mock('../../utils/error')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = {
-  href: '',
-  reload: jest.fn(),
-  assign: jest.fn(),
-}
+const mockLocation = { href: '', reload: jest.fn() }
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 delete (globalThis as any).location
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

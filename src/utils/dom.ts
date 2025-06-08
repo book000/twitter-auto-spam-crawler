@@ -103,8 +103,7 @@ export const DomUtils = {
       console.log(
         'checkAndNavigateToLogin: Login required detected, navigating to login page'
       )
-      // Use globalThis.location.assign for better testability
-      globalThis.location.assign(URLS.LOGIN)
+      location.href = URLS.LOGIN
       return true
     }
 
