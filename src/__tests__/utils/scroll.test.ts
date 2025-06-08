@@ -134,6 +134,7 @@ describe('ScrollUtils', () => {
     })
 
     /** スクロールが既に実行中の場合に即座に返すことを検証 */
+    // TODO: Re-enable after improving fakeTimers setup (Issue #19)
     it.skip('should return immediately if scrolling is already in progress', async () => {
       // Start the first scroll
       const promise1 = ScrollUtils.scrollPage()
@@ -153,6 +154,7 @@ describe('ScrollUtils', () => {
     })
 
     /** resetScrollStateメソッドの動作を検証 */
+    // TODO: Re-enable after improving timer mocks for state cleanup (Issue #19)
     it.skip('should properly reset scroll state with active interval', () => {
       // Start a scroll to create an interval
       ScrollUtils.scrollPage()
@@ -172,6 +174,7 @@ describe('ScrollUtils', () => {
     })
 
     /** 複数のscrollPage呼び出しが適切に処理されることを検証 */
+    // TODO: Re-enable by refining fakeTimers for multiple Promise handling (Issue #19)
     it.skip('should handle multiple scrollPage calls correctly', async () => {
       // First scroll starts normally
       const promise1 = ScrollUtils.scrollPage()
@@ -270,6 +273,7 @@ describe('ScrollUtils', () => {
     })
 
     /** スクロール間の適切な待機時間が設定されることを検証 */
+    // TODO: Re-enable by extending fakeTimers or jest.setTimeout for timing logic (Issue #19)
     it.skip('should wait between scrolls', async () => {
       const count = 2
       const promise = ScrollUtils.scrollWithCount(count)
