@@ -2,6 +2,7 @@ import type { PageMethod } from '@/types'
 import { URLS, TWEET_URL_REGEX } from '@/core/constants'
 import { ConfigManager } from '@/core/config'
 import { Storage } from '@/core/storage'
+import { VersionService } from '@/services/version-service'
 import {
   HomePage,
   ExplorePage,
@@ -108,6 +109,13 @@ import packageJson from '../package.json'
         ExamplePages.runResetWaiting()
       },
     },
+    {
+      url: URLS.EXAMPLE_UPDATE_NOTIFY,
+      urlType: 'startsWith',
+      run: () => {
+        ExamplePages.runUpdateNotify()
+      },
+    },
   ]
 
   function getMethod(): PageMethod | null {
@@ -134,6 +142,8 @@ import packageJson from '../package.json'
     console.log('Waiting:', Storage.getWaitingTweets().length)
     console.log('Checked:', Storage.getCheckedTweets().length)
     console.log('SavedTweets:', Storage.getSavedTweets().length)
+
+    VersionService.checkVersionAndNotify(packageJson.version)
 
     ConfigManager.registerMenuCommand()
 
