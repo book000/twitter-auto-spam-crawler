@@ -45,13 +45,18 @@ git checkout -b [type]/issue-$ISSUE_NUMBER-[brief-description] origin/$MAIN_BRAN
    - インポート順序や命名規則を遵守
 
 2. **テスト作成**
-   - 単体テストを必ず作成
+   - 単体テストの作成を試みる
    - 既存のテスト命名規則に従う
-   - カバレッジ100%を目指す
+   - カバレッジ向上を目指す
+   - **重要な判断基準**:
+     - テストが複雑で失敗し続ける場合
+     - モックが過度に複雑になる場合
+     - テスト作成に過度な時間がかかる場合
+     → 実装の品質と動作確認を優先し、テスト作成を見送ることも検討する
 
 3. **品質チェック**
    ```bash
-   pnpm test          # テスト実行
+   pnpm test          # テスト実行（既存テストが壊れていないか確認）
    pnpm run lint      # リンティング
    pnpm run fix       # 自動修正
    ```
@@ -92,9 +97,9 @@ gh pr create --title "[type]: [title] (closes #$ISSUE_NUMBER)" --body "$(cat <<'
 - [変更内容2]
 
 ## Test plan
-- [x] 単体テスト追加
 - [x] 既存テスト全て合格
 - [x] リンティング通過
+- [ ] 単体テスト追加（※複雑な場合は省略）
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 EOF
