@@ -156,11 +156,11 @@ ErrorHandler.handleErrorDialog(async (dialog) => {
 }, 10000) // 10秒タイムアウト
 
 // 削除・違反投稿の検出（デフォルト30秒タイムアウト）
-ErrorHandler.detectCantProcessingPost(async (element) => {
+ErrorHandler.detectUnprocessablePost(async (element) => {
   console.error('Problematic post detected:', element)
   await skipProblematicPost()
 }).catch((error: unknown) => {
-  console.error('Error in detectCantProcessingPost:', error)
+  console.error('Error in detectUnprocessablePost:', error)
 })
 ```
 

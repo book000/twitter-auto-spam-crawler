@@ -57,7 +57,7 @@ export const ErrorHandler = {
    * @param timeout - タイムアウト時間（ミリ秒）、デフォルトは30秒
    * @returns コールバック実行完了時に解決されるPromise
    */
-  detectCantProcessingPost(
+  detectUnprocessablePost(
     callback: (element: Element) => void | Promise<void>,
     timeout = 30_000
   ): Promise<void> {

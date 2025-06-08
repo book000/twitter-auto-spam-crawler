@@ -60,7 +60,7 @@ export const TweetPage = {
       console.error('Error in handleErrorDialog:', error)
     })
 
-    ErrorHandler.detectCantProcessingPost(async (tweetArticleElement) => {
+    ErrorHandler.detectUnprocessablePost(async (tweetArticleElement) => {
       console.error(
         "runTweet: found can't processing post",
         tweetArticleElement
@@ -77,7 +77,7 @@ export const TweetPage = {
         console.error('Error in TweetPage.run:', error)
       })
     }).catch((error: unknown) => {
-      console.error('Error in detectCantProcessingPost:', error)
+      console.error('Error in detectUnprocessablePost:', error)
     })
 
     const retryCount = Storage.getRetryCount()

@@ -176,15 +176,15 @@ describe('ErrorHandler', () => {
   })
 
   /**
-   * detectCantProcessingPostメソッドのテスト
+   * detectUnprocessablePostメソッドのテスト
    * 違反・削除された投稿を検出し、コールバックを実行する機能を検証
    */
-  describe('detectCantProcessingPost', () => {
+  describe('detectUnprocessablePost', () => {
     /** ルール違反投稿が検出された時にコールバックが呼び出されることを検証 */
     it('should call callback when violation post is detected', async () => {
       const mockCallback = jest.fn()
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
@@ -215,7 +215,7 @@ describe('ErrorHandler', () => {
     it('should call callback when deleted post is detected', async () => {
       const mockCallback = jest.fn()
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add tweet with deletion text
       const primaryColumn = document.createElement('div')
@@ -242,11 +242,11 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
-    /** 非同期コールバックが正常に解決される場合の処理を検証（detectCantProcessingPost用） */
+    /** 非同期コールバックが正常に解決される場合の処理を検証（detectUnprocessablePost用） */
     it('should handle async callback that resolves', async () => {
       const mockCallback = jest.fn().mockResolvedValue(undefined)
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
@@ -273,13 +273,13 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(article)
     })
 
-    /** 非同期コールバックがエラーで拒否される場合の処理を検証（detectCantProcessingPost用） */
+    /** 非同期コールバックがエラーで拒否される場合の処理を検証（detectUnprocessablePost用） */
     it('should handle async callback that rejects', async () => {
       const mockCallback = jest
         .fn()
         .mockRejectedValue(new Error('Callback error'))
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add tweet with violation text
       const primaryColumn = document.createElement('div')
@@ -310,7 +310,7 @@ describe('ErrorHandler', () => {
     it('should not call callback for normal posts', () => {
       const mockCallback = jest.fn()
 
-      ErrorHandler.detectCantProcessingPost(mockCallback)
+      ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add normal tweet
       const primaryColumn = document.createElement('div')
@@ -343,7 +343,7 @@ describe('ErrorHandler', () => {
     it('should continue polling when no tweet article is found', () => {
       const mockCallback = jest.fn()
 
-      ErrorHandler.detectCantProcessingPost(mockCallback)
+      ErrorHandler.detectUnprocessablePost(mockCallback)
 
       jest.advanceTimersByTime(500 * 3)
 
@@ -357,7 +357,7 @@ describe('ErrorHandler', () => {
     it('should handle tweet article without text content', () => {
       const mockCallback = jest.fn()
 
-      ErrorHandler.detectCantProcessingPost(mockCallback)
+      ErrorHandler.detectUnprocessablePost(mockCallback)
 
       // Add tweet article without text
       const primaryColumn = document.createElement('div')
@@ -390,7 +390,7 @@ describe('ErrorHandler', () => {
       const mockCallback = jest.fn()
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback, 3000)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback, 3000)
 
       // Add normal tweet without problematic content
       const primaryColumn = document.createElement('div')
@@ -420,15 +420,17 @@ describe('ErrorHandler', () => {
         'ErrorHandler: Problematic post not found within 3000ms'
       )
 
+      // Clean up DOM elements
+      primaryColumn.remove()
       consoleSpy.mockRestore()
     })
 
-    /** カスタムタイムアウト値が正しく適用されることを検証（detectCantProcessingPost用） */
+    /** カスタムタイムアウト値が正しく適用されることを検証（detectUnprocessablePost用） */
     it('should use custom timeout value for post detection', async () => {
       const mockCallback = jest.fn()
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
 
-      const promise = ErrorHandler.detectCantProcessingPost(mockCallback, 2000)
+      const promise = ErrorHandler.detectUnprocessablePost(mockCallback, 2000)
 
       // Advance timer just before timeout
       jest.advanceTimersByTime(1999)
