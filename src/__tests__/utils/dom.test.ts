@@ -1,14 +1,8 @@
 import { DomUtils } from '../../utils/dom'
-import { TIMEOUTS, URLS } from '../../core/constants'
-// Import mock before the module under test
-import '../../__mocks__/userscript'
+import { TIMEOUTS } from '../../core/constants'
 
 // Mock timers
 jest.useFakeTimers()
-
-// Mock location
-delete (globalThis as any).location
-;(globalThis as any).location = { href: '' }
 
 /**
  * DomUtilsクラスのテストスイート
@@ -341,87 +335,6 @@ describe('DomUtils', () => {
       expect(consoleSpy).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
-    })
-  })
-
-  /**
-   * checkAndNavigateToLoginメソッドのテスト
-   * BottomBarのログインボタン検出と自動ログイン画面遷移機能を検証
-   */
-  describe('checkAndNavigateToLogin', () => {
-    beforeEach(() => {
-      globalThis.location.href = ''
-    })
-
-    /** BottomBarログイン要素が存在する場合にログイン画面に遷移することを検証 */
-    it('should navigate to login page when BottomBar login element is detected', () => {
-      const bottomBarDiv = document.createElement('div')
-      bottomBarDiv.dataset.testid = 'BottomBar'
-
-      const loginLink = document.createElement('a')
-      loginLink.dataset.testid = 'login'
-
-      bottomBarDiv.append(loginLink)
-      document.body.append(bottomBarDiv)
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-
-      const result = DomUtils.checkAndNavigateToLogin()
-
-      expect(result).toBe(true)
-      expect(globalThis.location.href).toBe(URLS.LOGIN)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'checkAndNavigateToLogin: Login required detected, navigating to login page'
-      )
-
-      consoleSpy.mockRestore()
-    })
-
-    /** BottomBarログイン要素が存在しない場合にfalseを返すことを検証 */
-    it('should return false when BottomBar login element is not detected', () => {
-      const normalDiv = document.createElement('div')
-      normalDiv.className = 'some-other-element'
-      document.body.append(normalDiv)
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-
-      const result = DomUtils.checkAndNavigateToLogin()
-
-      expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
-      expect(consoleSpy).not.toHaveBeenCalled()
-
-      consoleSpy.mockRestore()
-    })
-
-    /** BottomBarは存在するがログイン要素がない場合にfalseを返すことを検証 */
-    it('should return false when BottomBar exists but login element is missing', () => {
-      const bottomBarDiv = document.createElement('div')
-      bottomBarDiv.dataset.testid = 'BottomBar'
-
-      const otherElement = document.createElement('button')
-      otherElement.textContent = 'Some other button'
-
-      bottomBarDiv.append(otherElement)
-      document.body.append(bottomBarDiv)
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-
-      const result = DomUtils.checkAndNavigateToLogin()
-
-      expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
-      expect(consoleSpy).not.toHaveBeenCalled()
-
-      consoleSpy.mockRestore()
-    })
-
-    /** 空のドキュメントに対してfalseを返すことを検証 */
-    it('should return false for empty document', () => {
-      const result = DomUtils.checkAndNavigateToLogin()
-
-      expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
     })
   })
 })
