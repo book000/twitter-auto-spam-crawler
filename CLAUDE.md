@@ -78,6 +78,14 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 - Copilot Review対応手順
 - CI/CD修正とトラブルシューティング
 
+### Issue対応ワークフロー
+
+**`.claude/issue-workflow.md`** - GitHub Issue対応の完全自動フロー
+
+- 「issue #nnを対応してください」だけで完全対応
+- Issue取得から実装、テスト、PR作成まで
+- Copilotレビュー対応を含む標準フロー
+
 ## このプロジェクト固有の設定
 
 GitHub PRワークフロー使用時の環境変数：
