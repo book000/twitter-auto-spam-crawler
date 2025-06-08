@@ -132,6 +132,47 @@ describe('ErrorHandler', () => {
       await expect(promise).resolves.toBeUndefined()
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
+
+    /** タイムアウト時間内にダイアログが見つからない場合の処理を検証 */
+    it('should timeout if dialog is not found within timeout period', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.handleErrorDialog(mockCallback, 5000)
+
+      // Advance timer to exceed timeout
+      jest.advanceTimersByTime(6000)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ErrorHandler: Error dialog not found within 5000ms'
+      )
+
+      consoleSpy.mockRestore()
+    })
+
+    /** カスタムタイムアウト値が正しく適用されることを検証 */
+    it('should use custom timeout value', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.handleErrorDialog(mockCallback, 1000)
+
+      // Advance timer just before timeout
+      jest.advanceTimersByTime(999)
+      expect(consoleSpy).not.toHaveBeenCalled()
+
+      // Advance timer to exceed timeout
+      jest.advanceTimersByTime(2)
+      jest.runOnlyPendingTimers()
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalled()
+
+      consoleSpy.mockRestore()
+    })
   })
 
   /**
@@ -342,6 +383,66 @@ describe('ErrorHandler', () => {
       expect(mockCallback).not.toHaveBeenCalled()
 
       jest.clearAllTimers()
+    })
+
+    /** タイムアウト時間内に処理不可能ポストが見つからない場合の処理を検証 */
+    it('should timeout if problematic post is not found within timeout period', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.detectCantProcessingPost(mockCallback, 3000)
+
+      // Add normal tweet without problematic content
+      const primaryColumn = document.createElement('div')
+      primaryColumn.dataset.testid = 'primaryColumn'
+
+      const cellInnerDiv = document.createElement('div')
+      cellInnerDiv.dataset.testid = 'cellInnerDiv'
+
+      const container = document.createElement('div')
+      const subContainer = document.createElement('div')
+      const article = document.createElement('article')
+      article.setAttribute('tabindex', '-1')
+      article.textContent = 'これは通常のツイートです。'
+
+      subContainer.append(article)
+      container.append(subContainer)
+      cellInnerDiv.append(container)
+      primaryColumn.append(cellInnerDiv)
+      document.body.append(primaryColumn)
+
+      // Advance timer to exceed timeout
+      jest.advanceTimersByTime(4000)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ErrorHandler: Problematic post not found within 3000ms'
+      )
+
+      consoleSpy.mockRestore()
+    })
+
+    /** カスタムタイムアウト値が正しく適用されることを検証（detectCantProcessingPost用） */
+    it('should use custom timeout value for post detection', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.detectCantProcessingPost(mockCallback, 2000)
+
+      // Advance timer just before timeout
+      jest.advanceTimersByTime(1999)
+      expect(consoleSpy).not.toHaveBeenCalled()
+
+      // Advance timer to exceed timeout
+      jest.advanceTimersByTime(2)
+      jest.runOnlyPendingTimers()
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalled()
+
+      consoleSpy.mockRestore()
     })
   })
 })
