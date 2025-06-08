@@ -8,10 +8,11 @@ jest.useFakeTimers()
 
 // Mock location
 const mockLocation = { href: '' }
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-delete (globalThis as any).location
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-;(globalThis as any).location = mockLocation
+Object.defineProperty(globalThis, 'location', {
+  value: mockLocation,
+  writable: true,
+  configurable: true,
+})
 
 /**
  * DomUtilsクラスのテストスイート
