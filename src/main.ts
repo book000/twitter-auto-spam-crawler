@@ -149,6 +149,12 @@ import packageJson from '../package.json'
 
     const method = getMethod()
     if (method) {
+      console.log(
+        'Running method for URL:',
+        location.href,
+        'Method:',
+        method.url
+      )
       await method.run()
     } else {
       console.error('No method found', location.href)

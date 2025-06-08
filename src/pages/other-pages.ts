@@ -51,9 +51,20 @@ export const OtherPages = {
   },
 
   runLocked(): void {
-    setTimeout(() => {
+    console.log(
+      'runLocked: Account is locked, starting continuous unlock detection'
+    )
+
+    let checkCount = 0
+
+    setInterval(() => {
+      checkCount++
+      console.log(
+        `runLocked: Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+      )
+
       location.href = URLS.BOOKMARK
-    }, TIMEOUTS.LOCKED_REDIRECT_WAIT)
+    }, TIMEOUTS.LOCKED_CHECK_INTERVAL)
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
