@@ -46,7 +46,14 @@ export const VersionService = {
     const notifyUrl = `https://example.com/?update-notify&old=${encodeURIComponent(oldVersion)}&new=${encodeURIComponent(newVersion)}`
 
     try {
-      window.open(notifyUrl, '_blank')
+      const popup = window.open(notifyUrl, '_blank')
+      if (popup === null) {
+        console.error(
+          'VersionService: Popup was blocked. Failed to open notification URL:',
+          notifyUrl
+        )
+        throw new Error('Popup blocked')
+      }
       console.log(`VersionService: Opened notification URL: ${notifyUrl}`)
     } catch (error) {
       console.error('VersionService: Failed to open notification URL:', error)

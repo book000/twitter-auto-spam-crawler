@@ -106,7 +106,9 @@ describe('VersionService', () => {
   describe('notifyVersionUpdate', () => {
     it('should open correct URL with window.open', () => {
       // Arrange
-      const windowOpenSpy = jest.spyOn(globalThis, 'open').mockImplementation()
+      const windowOpenSpy = jest
+        .spyOn(globalThis, 'open')
+        .mockReturnValue({} as Window)
 
       // Act
       VersionService.notifyVersionUpdate('1.0.0', '1.1.0')
@@ -122,7 +124,9 @@ describe('VersionService', () => {
 
     it('should properly encode special characters in version strings', () => {
       // Arrange
-      const windowOpenSpy = jest.spyOn(globalThis, 'open').mockImplementation()
+      const windowOpenSpy = jest
+        .spyOn(globalThis, 'open')
+        .mockReturnValue({} as Window)
 
       // Act
       VersionService.notifyVersionUpdate('1.0.0-beta+build.1', '1.1.0-alpha')
@@ -148,6 +152,18 @@ describe('VersionService', () => {
       expect(() => {
         VersionService.notifyVersionUpdate('1.0.0', '1.1.0')
       }).toThrow('Failed to open window')
+
+      windowOpenSpy.mockRestore()
+    })
+
+    it('should throw error when popup is blocked', () => {
+      // Arrange
+      const windowOpenSpy = jest.spyOn(globalThis, 'open').mockReturnValue(null)
+
+      // Act & Assert
+      expect(() => {
+        VersionService.notifyVersionUpdate('1.0.0', '1.1.0')
+      }).toThrow('Popup blocked')
 
       windowOpenSpy.mockRestore()
     })
