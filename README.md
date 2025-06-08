@@ -1,6 +1,6 @@
 # 🕷️ twitter-auto-spam-crawler
 
-Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するユーザースクリプト
+A TypeScript-based userscript that automatically crawls tweets on Twitter/X to identify potential spam content
 
 [日本語](README-ja.md) | English
 

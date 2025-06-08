@@ -2,7 +2,7 @@
 
 Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するユーザースクリプト
 
-日本語 | [English](README.md)
+[日本語](README-ja.md) | [English](README.md)
 
 ## ✨ 機能
 
