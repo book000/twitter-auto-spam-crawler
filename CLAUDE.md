@@ -191,10 +191,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 7. PR作成 → [PR #27](https://github.com/book000/twitter-auto-spam-crawler/pull/27)
 8. CI・Copilot対応 → （進行中）
 
+### 修正例: ErrorHandlerの無言エラー処理修正（Issue #21）
+
+**実際のワークフロー例**:
+1. Issue #21確認 → コールバックエラーが`.catch(resolve)`で隠蔽される問題を把握
+2. Todoリスト作成 → 8つのタスクで進捗管理
+3. 実装 → ErrorHandlerに`waitForElementAndCallback`、`waitForAllElementsAndCallback`メソッド追加
+4. テスト → 8つの新しいテストケース作成、131 passed（エラー伝播シナリオ含む）
+5. 品質チェック → TypeScript型安全性エラー修正（NodeList型キャスト）
+6. ドキュメント更新 → `development-patterns.md`更新
+   - **ErrorHandlerの新しい要素待機メソッドセクション**: 新機能の使用例追加
+   - **修正内容（Issue #21対応）**: Before/After比較と重要な注意点追加
+7. PR作成 → [PR #28](https://github.com/book000/twitter-auto-spam-crawler/pull/28)
+8. CI・Copilot対応 → コンフリクト解決、masterとのマージ、Copilotレビュー確認
+
 **学んだポイント**:
-- 実装中にprettier修正、テストの無限ループ問題など複数の課題が発生
-- 手順3-7を複数回繰り返して最終的に完成
-- 確定した実装パターンをドキュメント化することで将来の再利用性を確保
+- 実装中にコンフリクト発生、masterブランチからの変更をマージ
+- 手順3-7を複数回繰り返し、コンフリクト解決とテスト調整を実施
+- エラー伝播の適切な実装により、デバッグ効率とコード品質が大幅に向上
+- Copilotレビューで存在しない変更への言及があったが、実際の修正内容に集中
 
 ## Git ブランチ作成ガイドライン
 
