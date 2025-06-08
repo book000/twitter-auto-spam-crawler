@@ -63,4 +63,12 @@ export const Storage = {
   setRetryCount(count: number): void {
     this.setValue('retryCount', count)
   },
+
+  getStoredVersion(): string {
+    return this.getValue('storedVersion', '')
+  },
+
+  setStoredVersion(version: string): void {
+    this.setValue('storedVersion', version)
+  },
 }

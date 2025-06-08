@@ -13,6 +13,7 @@ export const URLS = {
   EXAMPLE_LOCKED_NOTIFY: 'https://example.com/?locked-notify',
   EXAMPLE_UNLOCKED_NOTIFY: 'https://example.com/?unlocked-notify',
   EXAMPLE_RESET_WAITING: 'https://example.com/?reset-waiting',
+  EXAMPLE_UPDATE_NOTIFY: 'https://example.com/?update-notify',
 } as const
 
 export const TWEET_URL_REGEX =

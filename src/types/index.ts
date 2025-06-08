@@ -62,6 +62,8 @@ export interface StorageData {
   isLockedNotified: boolean
   /** リトライ試行回数 */
   retryCount: number
+  /** 保存されたスクリプトバージョン */
+  storedVersion: string
 }
 
 /**

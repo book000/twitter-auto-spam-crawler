@@ -98,4 +98,32 @@ export const ExamplePages = {
       location.href = URLS.HOME
     }, TIMEOUTS.RESET_REDIRECT_WAIT)
   },
+
+  runUpdateNotify(): void {
+    const params = new URLSearchParams(globalThis.location.search)
+    const oldVersion = params.get('old')
+    const newVersion = params.get('new')
+
+    if (!oldVersion || !newVersion) {
+      console.error('runUpdateNotify: Missing version parameters')
+      window.close()
+      return
+    }
+
+    NotificationService.notifyDiscord(
+      `🚀 Twitter Auto Spam Crawler がアップデートされました!\n` +
+        `📦 ${oldVersion} → ${newVersion}\n` +
+        `✨ 新しいバージョンが適用されました。`,
+      () => {
+        window.close()
+      },
+      true
+    )
+      .then(() => {
+        console.info('Update notification sent successfully')
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to notify update:', error)
+      })
+  },
 }
