@@ -18,12 +18,8 @@ jest.mock('../../utils/error')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = { href: '', reload: jest.fn() }
-Object.defineProperty(globalThis, 'location', {
-  value: mockLocation,
-  writable: true,
-  configurable: true,
-})
+delete (window as any).location
+window.location = { href: '', reload: jest.fn() } as any
 
 const mockDomUtils = DomUtils as jest.Mocked<typeof DomUtils>
 const mockStateService = StateService as jest.Mocked<typeof StateService>
@@ -38,7 +34,7 @@ describe('TweetPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     document.body.innerHTML = ''
-    mockLocation.href = ''
+    window.location.href = ''
 
     // Default mock implementations
     mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
@@ -103,7 +99,7 @@ describe('TweetPage', () => {
 
       await TweetPage.run(true)
 
-      expect(mockLocation.href).toBe('https://example.com/?download-json')
+      expect(window.location.href).toBe('https://example.com/?download-json')
     })
 
     /** ダウンロードが不要で次のツイートがある場合の処理を検証 */

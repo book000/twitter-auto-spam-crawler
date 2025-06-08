@@ -12,12 +12,8 @@ jest.mock('../../services/state-service')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = { href: '', reload: jest.fn() }
-Object.defineProperty(globalThis, 'location', {
-  value: mockLocation,
-  writable: true,
-  configurable: true,
-})
+delete (window as any).location
+window.location = { href: '', reload: jest.fn() } as any
 
 const mockDomUtils = DomUtils as jest.Mocked<typeof DomUtils>
 const mockStateService = StateService as jest.Mocked<typeof StateService>
@@ -30,7 +26,7 @@ describe('ExplorePage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     document.body.innerHTML = ''
-    mockLocation.href = ''
+    window.location.href = ''
 
     // Default mock implementations
     mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
@@ -91,14 +87,14 @@ describe('ExplorePage', () => {
         .mockImplementation(() => {})
 
       const runPromise = ExplorePage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'runExplore: failed page. Wait 1 minute and reload.'
       )
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleSpy.mockRestore()
       consoleLogSpy.mockRestore()
@@ -115,11 +111,11 @@ describe('ExplorePage', () => {
         .mockImplementation(() => {})
 
       const runPromise = ExplorePage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleLogSpy.mockRestore()
     })

@@ -15,16 +15,12 @@ jest.mock('./tweet-page')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = {
+delete (window as any).location
+window.location = {
   href: '',
   search: '',
   reload: jest.fn(),
-}
-Object.defineProperty(globalThis, 'location', {
-  value: mockLocation,
-  writable: true,
-  configurable: true,
-})
+} as any
 
 const mockDomUtils = DomUtils as jest.Mocked<typeof DomUtils>
 const mockStateService = StateService as jest.Mocked<typeof StateService>
@@ -38,8 +34,8 @@ describe('SearchPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     document.body.innerHTML = ''
-    mockLocation.href = ''
-    mockLocation.search = ''
+    window.location.href = ''
+    window.location.search = ''
 
     // Default mock implementations
     mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
@@ -71,7 +67,7 @@ describe('SearchPage', () => {
     /** ログイン要素が検出されなかった場合に通常処理が実行されることを検証 */
     it('should continue normal processing when login is not required', async () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
-      mockLocation.search = '?q=test&f=live'
+      window.location.search = '?q=test&f=live'
 
       await SearchPage.run()
 
@@ -92,20 +88,20 @@ describe('SearchPage', () => {
     /** f=liveパラメータがない場合に追加することを検証 */
     it('should add f=live parameter when not present', async () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
-      mockLocation.search = '?q=test'
+      window.location.search = '?q=test'
 
       const runPromise = SearchPage.run()
       jest.advanceTimersByTime(1000)
       await runPromise
 
-      expect(mockLocation.search).toBe('?q=test&f=live')
+      expect(window.location.search).toBe('?q=test&f=live')
       expect(mockCrawlerService.startCrawling).not.toHaveBeenCalled()
     })
 
     /** f=liveパラメータが既に存在する場合に処理を継続することを検証 */
     it('should continue processing when f=live parameter is present', async () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
-      mockLocation.search = '?q=test&f=live'
+      window.location.search = '?q=test&f=live'
 
       await SearchPage.run()
 
@@ -124,20 +120,20 @@ describe('SearchPage', () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
       mockDomUtils.waitElement.mockRejectedValue(new Error('Element not found'))
       mockDomUtils.isFailedPage.mockReturnValue(true)
-      mockLocation.search = '?q=test&f=live'
+      window.location.search = '?q=test&f=live'
 
       const consoleSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
       const runPromise = SearchPage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'runSearch: failed page. Wait 1 minute and reload.'
       )
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleSpy.mockRestore()
     })
@@ -147,18 +143,18 @@ describe('SearchPage', () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
       mockDomUtils.waitElement.mockRejectedValue(new Error('Element not found'))
       mockDomUtils.isFailedPage.mockReturnValue(false)
-      mockLocation.search = '?q=test&f=live'
+      window.location.search = '?q=test&f=live'
 
       const consoleLogSpy = jest
         .spyOn(console, 'log')
         .mockImplementation(() => {})
 
       const runPromise = SearchPage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleLogSpy.mockRestore()
     })

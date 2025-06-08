@@ -16,12 +16,8 @@ jest.mock('../../core/config')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = { href: '', reload: jest.fn() }
-Object.defineProperty(globalThis, 'location', {
-  value: mockLocation,
-  writable: true,
-  configurable: true,
-})
+delete (window as any).location
+window.location = { href: '', reload: jest.fn() } as any
 
 const mockDomUtils = DomUtils as jest.Mocked<typeof DomUtils>
 const mockStateService = StateService as jest.Mocked<typeof StateService>
@@ -36,7 +32,7 @@ describe('HomePage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     document.body.innerHTML = ''
-    mockLocation.href = ''
+    window.location.href = ''
 
     // Default mock implementations
     mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
@@ -75,7 +71,7 @@ describe('HomePage', () => {
       mockTab.setAttribute('role', 'tab')
       mockTab.click = jest.fn()
 
-      jest.spyOn(document, 'querySelectorAll').mockReturnValue([mockTab] as any)
+      document.querySelectorAll = jest.fn().mockReturnValue([mockTab])
 
       await HomePage.run()
 
@@ -105,12 +101,12 @@ describe('HomePage', () => {
         .mockImplementation(() => {})
 
       const runPromise = HomePage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleSpy).toHaveBeenCalledWith('runHome: failed page.')
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleSpy.mockRestore()
       consoleLogSpy.mockRestore()
@@ -127,11 +123,11 @@ describe('HomePage', () => {
         .mockImplementation(() => {})
 
       const runPromise = HomePage.run()
-      jest.advanceTimersByTime(60_000)
+      jest.advanceTimersByTime(60000)
       await runPromise
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(mockLocation.reload).toHaveBeenCalled()
+      expect(window.location.reload).toHaveBeenCalled()
 
       consoleLogSpy.mockRestore()
     })
@@ -147,13 +143,13 @@ describe('HomePage', () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
       mockConfigManager.getIsOnlyHome.mockReturnValue(true)
 
-      jest.spyOn(document, 'querySelectorAll').mockReturnValue([] as any)
+      document.querySelectorAll = jest.fn().mockReturnValue([])
 
       const runPromise = HomePage.run()
       jest.advanceTimersByTime(3000)
       await runPromise
 
-      expect(mockLocation.href).toBe('https://x.com/home')
+      expect(window.location.href).toBe('https://x.com/home')
     })
 
     /** isOnlyHomeがfalseの場合にExploreページに遷移することを検証 */
@@ -161,13 +157,13 @@ describe('HomePage', () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
       mockConfigManager.getIsOnlyHome.mockReturnValue(false)
 
-      jest.spyOn(document, 'querySelectorAll').mockReturnValue([] as any)
+      document.querySelectorAll = jest.fn().mockReturnValue([])
 
       const runPromise = HomePage.run()
       jest.advanceTimersByTime(3000)
       await runPromise
 
-      expect(mockLocation.href).toBe('https://x.com/explore')
+      expect(window.location.href).toBe('https://x.com/explore')
     })
   })
 })
