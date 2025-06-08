@@ -43,11 +43,11 @@ export const ErrorHandler = {
                 `ErrorHandler: Callback failed for ${selector}:`,
                 error
               )
-              reject(
-                new Error(
-                  error instanceof Error ? error.message : String(error)
-                )
-              )
+              if (error instanceof Error) {
+                reject(error)
+              } else {
+                reject(new Error(String(error)))
+              }
             })
         }
       }, 100)
@@ -94,11 +94,11 @@ export const ErrorHandler = {
                 `ErrorHandler: Callback failed for ${selector}:`,
                 error
               )
-              reject(
-                new Error(
-                  error instanceof Error ? error.message : String(error)
-                )
-              )
+              if (error instanceof Error) {
+                reject(error)
+              } else {
+                reject(new Error(String(error)))
+              }
             })
         }
       }, 100)

@@ -18,6 +18,11 @@ describe('ErrorHandler', () => {
   })
 
   afterEach(() => {
+    // Clean up DOM elements after each test
+    document.body.innerHTML = ''
+  })
+
+  afterEach(() => {
     jest.runOnlyPendingTimers()
   })
 
