@@ -12,7 +12,11 @@ jest.mock('../../services/state-service')
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = { href: '', reload: jest.fn() }
+const mockLocation = {
+  href: '',
+  reload: jest.fn(),
+  assign: jest.fn(),
+}
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 delete (globalThis as any).location
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -89,9 +93,14 @@ describe('ExplorePage', () => {
         .spyOn(console, 'log')
         .mockImplementation(() => {})
 
-      const runPromise = ExplorePage.run()
+      ExplorePage.run()
+
+      // Wait for microtasks to complete
+      await Promise.resolve()
+
+      // Advance timers and flush promises
       jest.advanceTimersByTime(60_000)
-      await runPromise
+      await jest.runAllTimersAsync()
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'runExplore: failed page. Wait 1 minute and reload.'
@@ -113,9 +122,14 @@ describe('ExplorePage', () => {
         .spyOn(console, 'log')
         .mockImplementation(() => {})
 
-      const runPromise = ExplorePage.run()
+      ExplorePage.run()
+
+      // Wait for microtasks to complete
+      await Promise.resolve()
+
+      // Advance timers and flush promises
       jest.advanceTimersByTime(60_000)
-      await runPromise
+      await jest.runAllTimersAsync()
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
       expect(mockLocation.reload).toHaveBeenCalled()

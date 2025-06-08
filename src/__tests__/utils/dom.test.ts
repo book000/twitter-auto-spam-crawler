@@ -7,7 +7,10 @@ import '../../__mocks__/userscript'
 jest.useFakeTimers()
 
 // Mock location
-const mockLocation = { href: '' }
+const mockLocation = {
+  href: '',
+  assign: jest.fn(),
+}
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 delete (globalThis as any).location
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -372,7 +375,7 @@ describe('DomUtils', () => {
       const result = DomUtils.checkAndNavigateToLogin()
 
       expect(result).toBe(true)
-      expect(mockLocation.href).toBe(URLS.LOGIN)
+      expect(mockLocation.assign).toHaveBeenCalledWith(URLS.LOGIN)
       expect(consoleSpy).toHaveBeenCalledWith(
         'checkAndNavigateToLogin: Login required detected, navigating to login page'
       )

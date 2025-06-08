@@ -19,6 +19,7 @@ const mockLocation = {
   href: '',
   search: '',
   reload: jest.fn(),
+  assign: jest.fn(),
 }
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 delete (globalThis as any).location
@@ -93,9 +94,7 @@ describe('SearchPage', () => {
       mockDomUtils.checkAndNavigateToLogin.mockReturnValue(false)
       mockLocation.search = '?q=test'
 
-      const runPromise = SearchPage.run()
-      jest.advanceTimersByTime(1000)
-      await runPromise
+      await SearchPage.run()
 
       expect(mockLocation.search).toBe('?q=test&f=live')
       expect(mockCrawlerService.startCrawling).not.toHaveBeenCalled()
@@ -129,9 +128,14 @@ describe('SearchPage', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      const runPromise = SearchPage.run()
+      SearchPage.run()
+
+      // Wait for microtasks to complete
+      await Promise.resolve()
+
+      // Advance timers and flush promises
       jest.advanceTimersByTime(60_000)
-      await runPromise
+      await jest.runAllTimersAsync()
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'runSearch: failed page. Wait 1 minute and reload.'
@@ -152,9 +156,14 @@ describe('SearchPage', () => {
         .spyOn(console, 'log')
         .mockImplementation(() => {})
 
-      const runPromise = SearchPage.run()
+      SearchPage.run()
+
+      // Wait for microtasks to complete
+      await Promise.resolve()
+
+      // Advance timers and flush promises
       jest.advanceTimersByTime(60_000)
-      await runPromise
+      await jest.runAllTimersAsync()
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
       expect(mockLocation.reload).toHaveBeenCalled()
