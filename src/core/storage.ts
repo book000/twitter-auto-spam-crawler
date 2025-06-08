@@ -159,7 +159,10 @@ export const Storage = {
     for (const tweet of tweets) {
       savedTweetsMap.set(tweet.tweetId, tweet)
     }
-    this.setSavedTweets([...savedTweetsMap.values()])
+    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+      a.tweetId.localeCompare(b.tweetId)
+    )
+    this.setSavedTweets(sortedTweets)
   },
 
   /**

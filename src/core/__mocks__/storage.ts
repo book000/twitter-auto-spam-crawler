@@ -175,7 +175,10 @@ const mockStorage: MockStorage = {
     for (const tweet of tweets) {
       savedTweetsMap.set(tweet.tweetId, tweet)
     }
-    mockStorage.setSavedTweets([...savedTweetsMap.values()])
+    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+      a.tweetId.localeCompare(b.tweetId)
+    )
+    mockStorage.setSavedTweets(sortedTweets)
   }),
 
   getTweetStatus: jest.fn(

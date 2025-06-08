@@ -100,8 +100,11 @@ export const TweetService = {
       savedTweetsMap.set(newTweet.tweetId, newTweet)
     }
 
-    // Mapを配列に変換して保存
-    Storage.setSavedTweets([...savedTweetsMap.values()])
+    // ツイートIDでソートして順序の一貫性を保証
+    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+      a.tweetId.localeCompare(b.tweetId)
+    )
+    Storage.setSavedTweets(sortedTweets)
   },
 
   /**
