@@ -1,5 +1,177 @@
 # 開発パターンガイド
 
+## JSDoc ドキュメンテーション標準
+
+### ドキュメント品質レベル
+
+#### ✅ 優秀な JSDoc 実装例
+- **CrawlerService**: 包括的なJSDocと詳細な使用例
+- **TweetService**: 完全なAPI ドキュメントと使用パターン
+- **QueueService**: 完全なパラメータと戻り値のドキュメント
+- **Storage**: 型安全なドキュメントとエラーハンドリング
+- **DomUtils**: 詳細な使用例とエッジケース
+- **ScrollUtils**: 包括的な動作説明
+
+#### 🟢 最近改善済み（Issue #24 対応）
+- **ConfigManager**: 包括的なJSDocを新規追加
+- **NotificationService**: 完全なAPI ドキュメントを追加
+- **VersionService**: エラーハンドリング例を含む強化ドキュメント
+
+### JSDoc 要件
+
+#### 必須要素
+すべてのパブリックメソッドに含める必要がある要素：
+
+```typescript
+/**
+ * メソッドが何をするかの簡潔な説明
+ * 
+ * メソッドの目的、動作、重要な注意点の詳細説明。
+ * 副作用、依存関係、使用コンテキストの情報を含める。
+ * 
+ * @param {Type} paramName - パラメータの説明
+ * @param {Type} [optionalParam=defaultValue] - オプションパラメータの説明
+ * @returns {ReturnType} 戻り値の説明
+ * 
+ * @throws {ErrorType} このエラーがスローされる条件の説明
+ * 
+ * @example
+ * ```typescript
+ * // 実用的な使用例
+ * const result = SomeService.methodName('parameter')
+ * if (result) {
+ *   // 成功ケースの処理
+ * }
+ * ```
+ */
+```
+
+#### パラメータ ドキュメント
+- **型注釈**: 明確性のために `{Type}` 形式を使用
+- **オプションパラメータ**: `[paramName]` または `[paramName=default]` でマーク
+- **複合型**: インターフェースとユニオン型を明示的に参照
+- **コールバック関数**: コールバックシグネチャと目的をドキュメント
+
+#### 戻り値ドキュメント
+- **常に戻り値型をドキュメント**: `void` メソッドでも副作用を説明
+- **Promise 処理**: Promise が何に解決されるかを指定
+- **条件付き戻り値**: 異なる戻り値シナリオをドキュメント
+
+#### エラー ドキュメント
+- **すべてのスローされるエラーをリスト**: カスタムと組み込みエラー型を含む
+- **エラー条件**: 各エラーが発生する条件を説明
+- **エラーハンドリング例**: 適切な try-catch 使用方法を表示
+
+#### 使用例
+- **実用的なシナリオ**: 実世界の使用パターンを表示
+- **エッジケース**: 重要な制限や特別な動作をドキュメント
+- **統合例**: メソッドがどのように連携するかを表示
+
+### クラスレベル ドキュメント
+
+サービスクラスとユーティリティの場合：
+
+```typescript
+/**
+ * クラスの目的の簡潔な説明
+ * 
+ * アプリケーションにおけるクラスの役割、依存関係、
+ * 全体アーキテクチャでの位置づけの詳細説明。
+ * 
+ * @example
+ * ```typescript
+ * // 一般的な使用パターン
+ * ServiceClass.mainMethod()
+ * ```
+ */
+export const ServiceClass = {
+  // メソッド...
+}
+```
+
+### 更新されたドキュメント例（Issue #24 修正）
+
+#### ConfigManager ドキュメントパターン
+```typescript
+/**
+ * アプリケーション設定の管理を行うクラス
+ * 
+ * Tampermonkey の GM_config を使用してユーザー設定の読み書きを行い、
+ * メニューコマンドの登録とユーザーインターフェースを提供する。
+ */
+export const ConfigManager = {
+  /**
+   * Tampermonkey にユーザー設定メニューを登録する
+   * 
+   * GM_config を使用して「設定」メニューを追加し、
+   * ユーザーがブラウザ上で設定を変更できるUIを提供する。
+   * 
+   * @throws {Error} GM_config が利用できない場合
+   * @example
+   * ```typescript
+   * ConfigManager.registerMenuCommand()
+   * ```
+   */
+  registerMenuCommand(): void
+}
+```
+
+#### NotificationService ドキュメントパターン
+```typescript
+/**
+ * 外部サービスへの通知機能を提供するクラス
+ * 
+ * Discord Webhook を使用したメッセージ送信機能を提供し、
+ * スパムツイート検出時やシステム更新時の通知に使用される。
+ */
+export const NotificationService = {
+  /**
+   * Discord Webhook を使用してメッセージを送信する
+   * 
+   * @param {string} message - 送信するメッセージ内容
+   * @param {(_response: Response) => void} [callback] - レスポンス受信時のコールバック関数
+   * @param {boolean} [withReply=false] - true の場合、メッセージにメンションを付加
+   * @returns {Promise<void>} 送信完了を表すPromise
+   * 
+   * @throws {Error} ネットワークエラーまたはDiscord API エラー
+   * 
+   * @example
+   * ```typescript
+   * // 基本的な通知
+   * await NotificationService.notifyDiscord('新しいスパムツイートを検出しました')
+   * 
+   * // メンション付き通知
+   * await NotificationService.notifyDiscord('緊急：大量のスパムを検出', undefined, true)
+   * ```
+   */
+  notifyDiscord(message: string, callback?: (_response: Response) => void, withReply = false): Promise<void>
+}
+```
+
+### ドキュメント保守
+
+#### ドキュメント更新が必要な場合
+1. **新しいメソッド追加**: 常に包括的なJSDocを含める
+2. **API 変更**: パラメータ型と説明を更新
+3. **動作変更**: メソッド説明と例を修正
+4. **エラーハンドリング変更**: `@throws` ドキュメントを更新
+5. **新しい使用パターン**: 関連する例を追加
+
+#### 品質チェックリスト
+- [ ] 明確で簡潔な説明
+- [ ] すべてのパラメータが型付きでドキュメント化
+- [ ] 戻り値が明確に説明
+- [ ] エラー条件がドキュメント化
+- [ ] 実用的な使用例が含まれる
+- [ ] 日本語コメントが適切（プロジェクトスタイルに一致）
+- [ ] 既存ドキュメントと一貫した書式
+
+#### レビュープロセス
+1. **セルフレビュー**: 品質チェックリストで確認
+2. **例の検証**: コード例が機能することを確認
+3. **型の一貫性**: 型が実装と一致することを確認
+4. **言語の一貫性**: プロジェクト慣例に従った日本語/英語バランスを維持
+
 ## ユーザースクリプト API使用
 
 ### ストレージ操作

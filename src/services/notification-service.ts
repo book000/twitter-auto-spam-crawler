@@ -1,7 +1,41 @@
 import { DISCORD_MENTION_ID } from '@/core/constants'
 import { ConfigManager } from '@/core/config'
 
+/**
+ * 外部サービスへの通知機能を提供するクラス
+ *
+ * Discord Webhook を使用したメッセージ送信機能を提供し、
+ * スパムツイート検出時やシステム更新時の通知に使用される。
+ */
 export const NotificationService = {
+  /**
+   * Discord Webhook を使用してメッセージを送信する
+   *
+   * 指定されたメッセージをDiscord Webhookを通じて送信する。
+   * メンション付きオプション、ユーザー設定コメントの自動追加、
+   * エラーハンドリングを含む包括的な通知機能を提供する。
+   *
+   * @param {string} message - 送信するメッセージ内容
+   * @param {(_response: Response) => void} [callback] - レスポンス受信時のコールバック関数
+   * @param {boolean} [withReply=false] - true の場合、メッセージにメンションを付加
+   * @returns {Promise<void>} 送信完了を表すPromise
+   *
+   * @throws {Error} ネットワークエラーまたはDiscord API エラー
+   *
+   * @example
+   * ```typescript
+   * // 基本的な通知
+   * await NotificationService.notifyDiscord('新しいスパムツイートを検出しました')
+   *
+   * // メンション付き通知
+   * await NotificationService.notifyDiscord('緊急：大量のスパムを検出', undefined, true)
+   *
+   * // コールバック付き通知
+   * NotificationService.notifyDiscord('メッセージ', (response) => {
+   *   console.log('送信ステータス:', response.status)
+   * })
+   * ```
+   */
   notifyDiscord(
     message: string,
     callback?: (_response: Response) => void,

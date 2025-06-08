@@ -39,8 +39,22 @@ export const VersionService = {
 
   /**
    * バージョン更新をDiscordに通知する（example.com経由）
-   * @param oldVersion 以前のバージョン
-   * @param newVersion 新しいバージョン
+   *
+   * バージョン更新時に新しいウィンドウを開いてexample.comに通知情報を送信する。
+   * ポップアップブロッカーにより失敗する可能性があるため、エラーハンドリングを含む。
+   *
+   * @param {string} oldVersion - 以前のバージョン
+   * @param {string} newVersion - 新しいバージョン
+   * @throws {Error} ポップアップブロックまたはウィンドウオープンに失敗した場合
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   VersionService.notifyVersionUpdate('1.0.0', '1.1.0')
+   * } catch (error) {
+   *   console.error('バージョン更新通知に失敗:', error)
+   * }
+   * ```
    */
   notifyVersionUpdate(oldVersion: string, newVersion: string): void {
     const notifyUrl = `https://example.com/?update-notify&old=${encodeURIComponent(oldVersion)}&new=${encodeURIComponent(newVersion)}`

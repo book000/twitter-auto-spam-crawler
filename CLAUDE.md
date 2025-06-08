@@ -235,6 +235,66 @@ git checkout -b feature/new-feature origin/master
 4. **rebase continue**: `git rebase --continue`
 5. **force push**: `git push --force-with-lease origin HEAD`
 
+## Pull Request 作成ガイドライン
+
+### Issue 自動クローズ機能
+
+Pull Request 作成時、元の GitHub Issue が PR マージと同時に自動クローズされるように、本文に適切なキーワードを含める：
+
+#### 自動クローズキーワード
+以下のキーワードのいずれかを PR 本文に含める：
+- `closes #<issue番号>`
+- `fixes #<issue番号>`
+- `resolves #<issue番号>`
+
+#### PR 本文テンプレート
+```markdown
+## Summary
+- [実装内容の1-3行での要約]
+
+## Changes
+- [主要な変更点のリスト]
+- [新機能・修正・改善の詳細]
+
+## Test Plan
+- [x] テスト実行: `pnpm test`
+- [x] リンティング: `pnpm run lint`
+- [x] [その他の検証項目]
+
+Closes #<issue番号>
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+```
+
+#### 使用例（Issue #24対応）
+```markdown
+## Summary
+- JSDoc ドキュメントが不足していた ConfigManager、NotificationService、VersionService に包括的な JSDoc を追加
+- 開発パターンガイドにJSDoc標準を追加してドキュメント品質の一貫性を確保
+
+## Changes
+- ConfigManager: 全メソッドに詳細なJSDoc追加（パラメータ、戻り値、使用例を含む）
+- NotificationService: notifyDiscord メソッドに包括的なJSDoc追加
+- VersionService: notifyVersionUpdate メソッドのJSDoc強化
+- `.claude/development-patterns.md`: JSDoc標準とベストプラクティスを追加
+
+## Test Plan
+- [x] テスト実行: `pnpm test` - 全テスト通過
+- [x] リンティング: `pnpm run lint` - コード品質チェック通過
+- [x] JSDoc構文確認: TypeScriptコンパイル成功
+
+Closes #24
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+```
+
+### 重要な注意点
+
+1. **Issue番号の正確性**: 対応する Issue 番号を正確に記載
+2. **キーワードの配置**: `Closes #24` は本文の任意の場所に配置可能
+3. **複数Issue対応**: `Closes #24, closes #25` のように複数指定可能
+4. **大文字小文字**: `closes`, `Closes`, `CLOSES` いずれも有効
+
 ## 重要：ファイル変更時の必須事項
 
 **ファイルを変更した場合は必ずコミットすること！**
