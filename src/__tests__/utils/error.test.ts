@@ -18,6 +18,11 @@ describe('ErrorHandler', () => {
   })
 
   afterEach(() => {
+    // Clean up DOM elements after each test
+    document.body.innerHTML = ''
+  })
+
+  afterEach(() => {
     jest.runOnlyPendingTimers()
   })
 
@@ -445,6 +450,206 @@ describe('ErrorHandler', () => {
       expect(consoleSpy).toHaveBeenCalled()
 
       consoleSpy.mockRestore()
+    })
+  })
+
+  /**
+   * waitForElementAndCallbackメソッドのテスト
+   * 指定要素の出現を待機し、コールバックを実行する機能を検証
+   */
+  describe('waitForElementAndCallback', () => {
+    /** 要素が見つかった時にコールバックが呼び出されることを検証 */
+    it('should call callback when element is found', async () => {
+      const mockCallback = jest.fn().mockResolvedValue(undefined)
+
+      // Add element to DOM
+      const element = document.createElement('div')
+      element.id = 'test-element'
+      document.body.append(element)
+
+      const promise = ErrorHandler.waitForElementAndCallback(
+        '#test-element',
+        mockCallback
+      )
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).toHaveBeenCalledWith(element)
+    })
+
+    /** コールバックエラーが適切に伝播されることを検証 */
+    it('should propagate callback errors properly', async () => {
+      const callbackError = new Error('Callback failed')
+      const mockCallback = jest.fn().mockRejectedValue(callbackError)
+
+      // Add element to DOM
+      const element = document.createElement('div')
+      element.id = 'test-element'
+      document.body.append(element)
+
+      const promise = ErrorHandler.waitForElementAndCallback(
+        '#test-element',
+        mockCallback
+      )
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).rejects.toThrow('Callback failed')
+      expect(mockCallback).toHaveBeenCalledWith(element)
+    })
+
+    /** タイムアウト時にエラーが発生することを検証 */
+    it('should timeout and reject when element not found', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.waitForElementAndCallback(
+        '#nonexistent',
+        mockCallback,
+        1000
+      )
+
+      jest.advanceTimersByTime(1100)
+
+      await expect(promise).rejects.toThrow(
+        'Element not found within 1000ms: #nonexistent'
+      )
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ErrorHandler timeout:',
+        'Element not found within 1000ms: #nonexistent'
+      )
+
+      consoleSpy.mockRestore()
+    })
+
+    /** 要素が遅れて出現した場合の適切な処理を検証 */
+    it('should wait for element to appear', async () => {
+      const mockCallback = jest.fn().mockResolvedValue(undefined)
+
+      const promise = ErrorHandler.waitForElementAndCallback(
+        '#delayed-element',
+        mockCallback
+      )
+
+      // Advance timer without element
+      jest.advanceTimersByTime(500)
+
+      // Add element after delay
+      const element = document.createElement('div')
+      element.id = 'delayed-element'
+      document.body.append(element)
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).toHaveBeenCalledWith(element)
+    })
+  })
+
+  /**
+   * waitForAllElementsAndCallbackメソッドのテスト
+   * 指定要素群の出現を待機し、コールバックを実行する機能を検証
+   */
+  describe('waitForAllElementsAndCallback', () => {
+    /** 要素群が見つかった時にコールバックが呼び出されることを検証 */
+    it('should call callback when elements are found', async () => {
+      const mockCallback = jest.fn().mockResolvedValue(undefined)
+
+      // Add elements to DOM
+      const element1 = document.createElement('div')
+      element1.className = 'test-class'
+      const element2 = document.createElement('div')
+      element2.className = 'test-class'
+      document.body.append(element1, element2)
+
+      const promise = ErrorHandler.waitForAllElementsAndCallback(
+        '.test-class',
+        mockCallback
+      )
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(NodeList))
+      expect(
+        (mockCallback.mock.calls[0] as unknown[])[0] as NodeList
+      ).toHaveLength(2)
+    })
+
+    /** コールバックエラーが適切に伝播されることを検証 */
+    it('should propagate callback errors properly', async () => {
+      const callbackError = new Error('Elements callback failed')
+      const mockCallback = jest.fn().mockRejectedValue(callbackError)
+
+      // Add elements to DOM
+      const element1 = document.createElement('div')
+      element1.className = 'test-class'
+      document.body.append(element1)
+
+      const promise = ErrorHandler.waitForAllElementsAndCallback(
+        '.test-class',
+        mockCallback
+      )
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).rejects.toThrow('Elements callback failed')
+      expect(mockCallback).toHaveBeenCalled()
+    })
+
+    /** タイムアウト時にエラーが発生することを検証 */
+    it('should timeout and reject when elements not found', async () => {
+      const mockCallback = jest.fn()
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+      const promise = ErrorHandler.waitForAllElementsAndCallback(
+        '.nonexistent',
+        mockCallback,
+        1000
+      )
+
+      jest.advanceTimersByTime(1100)
+
+      await expect(promise).rejects.toThrow(
+        'Elements not found within 1000ms: .nonexistent'
+      )
+      expect(mockCallback).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ErrorHandler timeout:',
+        'Elements not found within 1000ms: .nonexistent'
+      )
+
+      consoleSpy.mockRestore()
+    })
+
+    /** 要素群が遅れて出現した場合の適切な処理を検証 */
+    it('should wait for elements to appear', async () => {
+      const mockCallback = jest.fn().mockResolvedValue(undefined)
+
+      const promise = ErrorHandler.waitForAllElementsAndCallback(
+        '.delayed-class',
+        mockCallback
+      )
+
+      // Advance timer without elements
+      jest.advanceTimersByTime(500)
+
+      // Add elements after delay
+      const element1 = document.createElement('div')
+      element1.className = 'delayed-class'
+      const element2 = document.createElement('div')
+      element2.className = 'delayed-class'
+      document.body.append(element1, element2)
+
+      jest.advanceTimersByTime(100)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(NodeList))
+      expect(
+        (mockCallback.mock.calls[0] as unknown[])[0] as NodeList
+      ).toHaveLength(2)
     })
   })
 })
