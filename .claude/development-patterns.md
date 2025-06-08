@@ -131,6 +131,44 @@ async function waitForNewContent(): Promise<void> {
 
 ## エラーハンドリング
 
+### ErrorHandlerによるDOM要素監視とタイムアウト
+
+```typescript
+// ErrorHandlerクラスの使用例（メモリリーク防止のタイムアウト機能付き）
+import { ErrorHandler } from '@/utils/error'
+
+// エラーダイアログの監視（デフォルト30秒タイムアウト）
+ErrorHandler.handleErrorDialog(async (dialog) => {
+  const dialogMessage = dialog.textContent
+  console.error('Error dialog detected:', dialogMessage)
+  
+  if (dialogMessage?.includes('削除') || dialogMessage?.includes('deleted')) {
+    console.error('Tweet deleted. Skip this tweet.')
+    await handleDeletedTweet()
+  }
+}).catch((error: unknown) => {
+  console.error('Error in handleErrorDialog:', error)
+})
+
+// カスタムタイムアウト値での使用
+ErrorHandler.handleErrorDialog(async (dialog) => {
+  // ダイアログ処理
+}, 10000) // 10秒タイムアウト
+
+// 削除・違反投稿の検出（デフォルト30秒タイムアウト）
+ErrorHandler.detectCantProcessingPost(async (element) => {
+  console.error('Problematic post detected:', element)
+  await skipProblematicPost()
+}).catch((error: unknown) => {
+  console.error('Error in detectCantProcessingPost:', error)
+})
+```
+
+**重要な注意点:**
+- ErrorHandlerメソッドは自動的にタイムアウトするため、メモリリークを防ぎます
+- タイムアウト時には警告ログが出力されます
+- 既存のコールバック処理は変更不要（後方互換性あり）
+
 ### 包括的なエラーキャッチ
 
 ```typescript
@@ -153,22 +191,23 @@ try {
 }
 ```
 
-### サービス層でのエラーハンドリング
+### 型安全なエラーハンドリング
 
 ```typescript
+// TypeScript推奨のerror: unknown型を使用
 // サービスメソッドでのエラーハンドリング例
 async function crawlTweets(): Promise<Tweet[]> {
   try {
     const tweets = await extractTweetsFromDOM()
     return tweets.filter(tweet => isValidTweet(tweet))
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to crawl tweets:', error)
     
     // エラー状態をストレージに記録
     GM_setValue('lastCrawlError', {
       timestamp: Date.now(),
-      message: error.message,
-      stack: error.stack
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
     })
     
     // 空の配列を返して処理継続
@@ -199,10 +238,10 @@ async function processQueuedTweets(): Promise<void> {
 }
 ```
 
-### タイマー管理
+### タイマー管理とメモリリーク防止
 
 ```typescript
-// 定期実行の管理
+// 定期実行の管理（メモリリーク防止のタイムアウト付き）
 class CrawlingScheduler {
   private intervalId: number | null = null
   
@@ -214,7 +253,7 @@ class CrawlingScheduler {
     this.intervalId = setInterval(async () => {
       try {
         await this.executeCrawling()
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Scheduled crawling failed:', error)
       }
     }, intervalMs)
@@ -231,6 +270,54 @@ class CrawlingScheduler {
     // クロール処理の実装
   }
 }
+
+// メモリリークを防ぐためのタイムアウト付きsetIntervalパターン
+function createTimeoutInterval(
+  callback: () => void | Promise<void>,
+  intervalMs: number,
+  timeoutMs: number = 30000
+): { clear: () => void } {
+  const startTime = Date.now()
+  let intervalId: number | null = null
+  
+  const execute = async () => {
+    if (Date.now() - startTime > timeoutMs) {
+      console.warn(`Interval timeout after ${timeoutMs}ms`)
+      clear()
+      return
+    }
+    
+    try {
+      await callback()
+    } catch (error: unknown) {
+      console.error('Interval callback error:', error)
+    }
+  }
+  
+  intervalId = setInterval(execute, intervalMs)
+  
+  const clear = () => {
+    if (intervalId) {
+      clearInterval(intervalId)
+      intervalId = null
+    }
+  }
+  
+  return { clear }
+}
+
+// 使用例
+const scheduler = createTimeoutInterval(
+  async () => {
+    // 定期実行処理
+    await performCrawling()
+  },
+  5000,  // 5秒間隔
+  60000  // 60秒タイムアウト
+)
+
+// クリーンアップ
+scheduler.clear()
 ```
 
 ## TypeScript型定義パターン
