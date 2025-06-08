@@ -93,8 +93,8 @@ gh api repos/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER/requested_reviewers \
 ### 2.2 レビュー結果確認
 
 ```bash
-# 2分待機
-sleep 120
+# 1分待機
+sleep 60
 
 # 新しいレビュー確認
 TIMESTAMP=$(date -u -d '5 minutes ago' +"%Y-%m-%dT%H:%M:%SZ")
@@ -104,6 +104,8 @@ gh api repos/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER/reviews \
 # 個別コメント確認
 gh api repos/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER/comments \
   --jq ".[] | select(.created_at > \"$TIMESTAMP\") | {body: .body, line: .line, path: .path}"
+
+# まだレビュー結果が出ていなかったら、再度1分待機する。最低5回は確認を繰り返す
 ```
 
 ### 2.3 コメント分析と対応
@@ -239,6 +241,9 @@ mutation {
 gh api repos/$REPO_OWNER/$REPO_NAME/pulls/$PR_NUMBER/requested_reviewers \
   -X POST --field "reviewers[]=copilot-pull-request-reviewer[bot]"
 ```
+
+再レビュー依頼後、またレビュー内容が上がってくるまで待機する。「2.2 レビュー結果確認」に戻る。  
+対応必要なものがなくなった場合は、完了とする。完了条件チェックリストで確認すること。
 
 ## 🔧 3. CI/CD 対応
 
