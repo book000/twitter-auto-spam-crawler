@@ -2,6 +2,7 @@ import { TweetService } from '../../services/tweet-service'
 import { Storage } from '../../core/storage'
 import { THRESHOLDS } from '../../core/constants'
 import type { Tweet } from '../../types'
+import '../../__mocks__/userscript'
 
 // Mock Storage
 jest.mock('../../core/storage')
@@ -44,6 +45,7 @@ describe('TweetService', () => {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     document.createElement = originalCreateElement
     document.body.append = originalAppend
+    Storage.clearCache()
   })
 
   /**
