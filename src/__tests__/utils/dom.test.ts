@@ -7,8 +7,12 @@ import '../../__mocks__/userscript'
 jest.useFakeTimers()
 
 // Mock location
-delete (globalThis as any).location
-;(globalThis as any).location = { href: '' }
+const mockLocation = { href: '' }
+Object.defineProperty(globalThis, 'location', {
+  value: mockLocation,
+  writable: true,
+  configurable: true,
+})
 
 /**
  * DomUtilsクラスのテストスイート
@@ -350,7 +354,7 @@ describe('DomUtils', () => {
    */
   describe('checkAndNavigateToLogin', () => {
     beforeEach(() => {
-      globalThis.location.href = ''
+      mockLocation.href = ''
     })
 
     /** BottomBarログイン要素が存在する場合にログイン画面に遷移することを検証 */
@@ -369,7 +373,7 @@ describe('DomUtils', () => {
       const result = DomUtils.checkAndNavigateToLogin()
 
       expect(result).toBe(true)
-      expect(globalThis.location.href).toBe(URLS.LOGIN)
+      expect(mockLocation.href).toBe(URLS.LOGIN)
       expect(consoleSpy).toHaveBeenCalledWith(
         'checkAndNavigateToLogin: Login required detected, navigating to login page'
       )
@@ -388,7 +392,7 @@ describe('DomUtils', () => {
       const result = DomUtils.checkAndNavigateToLogin()
 
       expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
+      expect(mockLocation.href).toBe('')
       expect(consoleSpy).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
@@ -410,7 +414,7 @@ describe('DomUtils', () => {
       const result = DomUtils.checkAndNavigateToLogin()
 
       expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
+      expect(mockLocation.href).toBe('')
       expect(consoleSpy).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
@@ -421,7 +425,7 @@ describe('DomUtils', () => {
       const result = DomUtils.checkAndNavigateToLogin()
 
       expect(result).toBe(false)
-      expect(globalThis.location.href).toBe('')
+      expect(mockLocation.href).toBe('')
     })
   })
 })
