@@ -1,4 +1,4 @@
-import { TIMEOUTS } from '@/core/constants'
+import { TIMEOUTS, URLS } from '@/core/constants'
 
 /**
  * DOM操作とページ状態検出のためのユーティリティ関数群。
@@ -89,5 +89,26 @@ export const DomUtils = {
         ;(moreRepliesAggressiveButton as HTMLElement).click()
       }
     }
+  },
+
+  /**
+   * BottomBarにログインボタンが表示されているかどうかを確認し、
+   * 表示されている場合はログイン画面に自動遷移する。
+   * @returns ログイン要素が検出され遷移が実行された場合true
+   */
+  checkAndNavigateToLogin(): boolean {
+    const loginElement = document.querySelector(
+      'div[data-testid="BottomBar"]:has(a[data-testid="login"])'
+    )
+
+    if (loginElement) {
+      console.log(
+        'checkAndNavigateToLogin: Login required detected, navigating to login page'
+      )
+      location.href = URLS.LOGIN
+      return true
+    }
+
+    return false
   },
 }

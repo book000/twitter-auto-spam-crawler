@@ -6,6 +6,10 @@ import { DomUtils } from '@/utils/dom'
 
 export const HomePage = {
   async run(): Promise<void> {
+    if (DomUtils.checkAndNavigateToLogin()) {
+      return
+    }
+
     StateService.resetState()
 
     CrawlerService.startCrawling()

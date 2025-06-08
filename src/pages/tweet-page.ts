@@ -10,6 +10,10 @@ import { ErrorHandler } from '@/utils/error'
 
 export const TweetPage = {
   async run(onlyOpen = false): Promise<void> {
+    if (DomUtils.checkAndNavigateToLogin()) {
+      return
+    }
+
     StateService.resetState()
 
     if (onlyOpen) {

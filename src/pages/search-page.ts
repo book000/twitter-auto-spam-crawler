@@ -6,6 +6,10 @@ import { TweetPage } from './tweet-page'
 
 export const SearchPage = {
   async run(): Promise<void> {
+    if (DomUtils.checkAndNavigateToLogin()) {
+      return
+    }
+
     StateService.resetState()
 
     if (!location.search.includes('f=live')) {

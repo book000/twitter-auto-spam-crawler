@@ -4,6 +4,10 @@ import { DomUtils } from '@/utils/dom'
 
 export const ExplorePage = {
   async run(): Promise<void> {
+    if (DomUtils.checkAndNavigateToLogin()) {
+      return
+    }
+
     StateService.resetState()
 
     try {
