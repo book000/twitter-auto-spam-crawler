@@ -169,10 +169,58 @@ ErrorHandler.detectUnprocessablePost(async (element) => {
 - **デフォルト**: 30秒は一般的なユースケース向け
 ```
 
+### ErrorHandlerの新しい要素待機メソッド
+
+Issue #21で修正されたメソッドによる要素待機とエラー伝播：
+
+```typescript
+// 単一要素待機とコールバック実行（エラー適切伝播）
+try {
+  await ErrorHandler.waitForElementAndCallback('#target-element', async (element) => {
+    // 要素が見つかった時の処理
+    console.log('Element found:', element)
+    await processElement(element)
+    
+    // コールバック内でエラーが発生した場合、適切に伝播される
+    if (errorCondition) {
+      throw new Error('Processing failed')  // このエラーは呼び出し元に伝播
+    }
+  }, 30000)
+  
+  console.log('Element processing completed successfully')
+} catch (error) {
+  // タイムアウトエラーまたはコールバックエラーをキャッチ
+  console.error('Element processing failed:', error)
+  // 適切なフォールバック処理
+}
+
+// 複数要素待機とコールバック実行（エラー適切伝播）
+try {
+  await ErrorHandler.waitForAllElementsAndCallback('.tweet-elements', async (elements) => {
+    console.log(`Found ${elements.length} elements`)
+    
+    for (const element of elements) {
+      await processIndividualElement(element)
+    }
+  }, 60000)
+  
+  console.log('All elements processed successfully')
+} catch (error) {
+  console.error('Elements processing failed:', error)
+  // エラー処理とフォールバック
+}
+```
+
+**修正内容（Issue #21対応）**:
+- **以前**: コールバック内エラーが隠蔽され、デバッグが困難
+- **現在**: コールバック内エラーが適切に呼び出し元に伝播
+- **互換性**: 既存コードは修正不要（メソッド自体を新規追加）
+
 **重要な注意点:**
 - ErrorHandlerメソッドは自動的にタイムアウトするため、メモリリークを防ぎます
 - タイムアウト時には警告ログが出力されます
-- 既存のコールバック処理は変更不要（後方互換性あり）
+- 新しいメソッドはコールバックエラーを適切に伝播します
+- エラー情報は詳細なログと共に出力されます
 
 ### 包括的なエラーキャッチ
 
