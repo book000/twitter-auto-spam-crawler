@@ -137,7 +137,7 @@ async function waitForNewContent(): Promise<void> {
 // ErrorHandlerクラスの使用例（メモリリーク防止のタイムアウト機能付き）
 import { ErrorHandler } from '@/utils/error'
 
-// エラーダイアログの監視（デフォルト30秒タイムアウト）
+// エラーダイアログの監視（実際の使用例: 5分タイムアウト）
 ErrorHandler.handleErrorDialog(async (dialog) => {
   const dialogMessage = dialog.textContent
   console.error('Error dialog detected:', dialogMessage)
@@ -146,22 +146,27 @@ ErrorHandler.handleErrorDialog(async (dialog) => {
     console.error('Tweet deleted. Skip this tweet.')
     await handleDeletedTweet()
   }
-}).catch((error: unknown) => {
+}, 300_000).catch((error: unknown) => {
   console.error('Error in handleErrorDialog:', error)
 })
 
-// カスタムタイムアウト値での使用
+// 短いタイムアウトでの使用例（テスト等）
 ErrorHandler.handleErrorDialog(async (dialog) => {
   // ダイアログ処理
 }, 10000) // 10秒タイムアウト
 
-// 削除・違反投稿の検出（デフォルト30秒タイムアウト）
+// 削除・違反投稿の検出（実際の使用例: 5分タイムアウト）
 ErrorHandler.detectUnprocessablePost(async (element) => {
   console.error('Problematic post detected:', element)
   await skipProblematicPost()
-}).catch((error: unknown) => {
+}, 300_000).catch((error: unknown) => {
   console.error('Error in detectUnprocessablePost:', error)
 })
+
+**重要なタイムアウト設定指針**:
+- **本番環境**: ページ読み込み待ちは300秒（5分）程度の長いタイムアウトを設定
+- **テスト環境**: 10秒程度の短いタイムアウトで迅速テスト
+- **デフォルト**: 30秒は一般的なユースケース向け
 ```
 
 **重要な注意点:**
