@@ -1,4 +1,4 @@
-import { URLS, DELAYS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { AsyncUtils } from '@/utils/async'
 
@@ -38,7 +38,7 @@ export const OtherPages = {
           toastElements.length
         )
       }
-    }, TIMEOUTS.CRAWL_INTERVAL)
+    }, DELAYS.CRAWL_INTERVAL)
   },
 
   runLogin(): void {
@@ -63,7 +63,7 @@ export const OtherPages = {
       )
 
       location.href = URLS.BOOKMARK
-    }, TIMEOUTS.LOCKED_CHECK_INTERVAL)
+    }, DELAYS.LOCKED_CHECK_INTERVAL)
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {

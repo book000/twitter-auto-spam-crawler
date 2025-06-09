@@ -115,13 +115,16 @@ export const AsyncUtils = {
     timeoutMs: number,
     timeoutMessage = 'Operation timed out'
   ): Promise<T> {
+    let timeoutId: NodeJS.Timeout
     const timeoutPromise = new Promise<never>((_resolve, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         reject(new Error(timeoutMessage))
       }, timeoutMs)
     })
 
-    return Promise.race([promise, timeoutPromise])
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      clearTimeout(timeoutId)
+    })
   },
 
   /**

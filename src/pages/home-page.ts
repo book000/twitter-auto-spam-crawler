@@ -29,7 +29,7 @@ export const HomePage = {
       return
     }
 
-    await AsyncUtils.delay(3000)
+    await AsyncUtils.delay(DELAYS.LONG * 3)
 
     const tabs = document.querySelectorAll(
       'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'

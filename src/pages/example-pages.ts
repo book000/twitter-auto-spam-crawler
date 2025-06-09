@@ -1,4 +1,4 @@
-import { URLS, DELAYS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
@@ -95,7 +95,7 @@ export const ExamplePages = {
 
     setTimeout(() => {
       location.href = URLS.HOME
-    }, TIMEOUTS.RESET_REDIRECT_WAIT)
+    }, DELAYS.RESET_REDIRECT_WAIT)
   },
 
   runUpdateNotify(): void {
