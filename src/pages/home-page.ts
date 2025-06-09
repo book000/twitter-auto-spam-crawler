@@ -1,8 +1,9 @@
-import { URLS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS } from '@/core/constants'
 import { ConfigManager } from '@/core/config'
 import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
 import { DomUtils } from '@/utils/dom'
+import { AsyncUtils } from '@/utils/async'
 
 export const HomePage = {
   async run(): Promise<void> {
@@ -23,14 +24,12 @@ export const HomePage = {
         console.error('runHome: failed page.')
       }
       console.log('Wait 1 minute and reload.')
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.ERROR_RELOAD_WAIT)
-      )
+      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
       location.reload()
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await AsyncUtils.delay(3000)
 
     const tabs = document.querySelectorAll(
       'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
@@ -42,17 +41,13 @@ export const HomePage = {
       console.log(`runHome: open tab=${tabIndex}`)
       tab.click()
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL)
-      )
+      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
       try {
         await DomUtils.waitElement('article[data-testid="tweet"]')
       } catch {
         if (DomUtils.isFailedPage()) {
           console.error('runHome: failed page. Wait 1 minute and reload.')
-          await new Promise((resolve) =>
-            setTimeout(resolve, TIMEOUTS.ERROR_RELOAD_WAIT)
-          )
+          await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
           location.reload()
           return
         }
@@ -66,9 +61,7 @@ export const HomePage = {
           top: window.innerHeight,
           behavior: 'smooth',
         })
-        await new Promise((resolve) =>
-          setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL)
-        )
+        await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
       }
     }
 

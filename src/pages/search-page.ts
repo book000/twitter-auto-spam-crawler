@@ -1,7 +1,8 @@
-import { TIMEOUTS } from '@/core/constants'
+import { DELAYS } from '@/core/constants'
 import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
 import { DomUtils } from '@/utils/dom'
+import { AsyncUtils } from '@/utils/async'
 import { TweetPage } from './tweet-page'
 
 export const SearchPage = {
@@ -13,9 +14,7 @@ export const SearchPage = {
     StateService.resetState()
 
     if (!location.search.includes('f=live')) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL)
-      )
+      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
       location.search = location.search + '&f=live'
       return
     }
@@ -29,9 +28,7 @@ export const SearchPage = {
         console.error('runSearch: failed page. Wait 1 minute and reload.')
       }
       console.log('Wait 1 minute and reload.')
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.ERROR_RELOAD_WAIT)
-      )
+      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
       location.reload()
       return
     }
@@ -41,9 +38,7 @@ export const SearchPage = {
         top: window.innerHeight,
         behavior: 'smooth',
       })
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL)
-      )
+      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
     }
 
     TweetPage.run(true).catch((error: unknown) => {

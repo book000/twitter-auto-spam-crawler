@@ -1,8 +1,9 @@
-import { URLS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS, TIMEOUTS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
 import { NotificationService } from '@/services/notification-service'
+import { AsyncUtils } from '@/utils/async'
 import { TweetPage } from './tweet-page'
 
 export const ExamplePages = {
@@ -12,9 +13,7 @@ export const ExamplePages = {
     if (ifNeeded) {
       console.log('runDownloadJson: download needed. Wait 5 seconds.')
       TweetService.downloadTweets()
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.DOWNLOAD_WAIT)
-      )
+      await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
     }
 
     TweetPage.run(true).catch((error: unknown) => {

@@ -1,6 +1,7 @@
 import { TweetService } from './tweet-service'
 import { QueueService } from './queue-service'
 import { Storage } from '@/core/storage'
+import { DELAYS } from '@/core/constants'
 
 /**
  * 自動ツイートクローリングワークフローのメインオーケストレーターサービス。
@@ -60,7 +61,7 @@ export class CrawlerService {
       this.crawlTweets().catch((error: unknown) => {
         console.error('crawlTweets failed', error)
       })
-    }, 1000)
+    }, DELAYS.CRAWL_INTERVAL)
   }
 
   /**

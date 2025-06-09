@@ -42,6 +42,26 @@ export const TIMEOUTS = {
   PROCESSING_WAIT: 60_000,
 } as const
 
+export const DELAYS = {
+  // 基本的な遅延時間
+  SHORT: 100,
+  MEDIUM: 500,
+  LONG: 1000,
+
+  // 機能固有の遅延時間
+  CRAWL_INTERVAL: TIMEOUTS.CRAWL_INTERVAL,
+  SCROLL_INTERVAL: TIMEOUTS.SCROLL_INTERVAL,
+  ERROR_RELOAD_WAIT: TIMEOUTS.ERROR_RELOAD_WAIT,
+  DOM_WAIT: TIMEOUTS.ELEMENT_WAIT,
+  PROCESS_WAIT: 1000,
+  DOWNLOAD_WAIT: TIMEOUTS.DOWNLOAD_WAIT,
+  PROCESSING_WAIT: TIMEOUTS.PROCESSING_WAIT,
+
+  // リトライ関連
+  RETRY_BASE: 1000,
+  RETRY_MAX: 30_000,
+} as const
+
 export const SELECTORS = {
   BOTTOM_BAR_LOGIN: 'div[data-testid="BottomBar"]:has(a[data-testid="login"])',
 } as const

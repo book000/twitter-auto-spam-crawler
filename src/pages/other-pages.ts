@@ -1,5 +1,6 @@
-import { URLS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS, TIMEOUTS } from '@/core/constants'
 import { Storage } from '@/core/storage'
+import { AsyncUtils } from '@/utils/async'
 
 export const OtherPages = {
   runComposePost(): void {
@@ -18,9 +19,7 @@ export const OtherPages = {
     console.log(
       'runProcessBlueBlockerQueue: waiting for 60 seconds to process queue.'
     )
-    await new Promise((resolve) =>
-      setTimeout(resolve, TIMEOUTS.PROCESSING_WAIT)
-    )
+    await AsyncUtils.delay(DELAYS.PROCESSING_WAIT)
 
     console.log(
       'runProcessBlueBlockerQueue: checking for #injected-blue-block-toasts > div.toast'

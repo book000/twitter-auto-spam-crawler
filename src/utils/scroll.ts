@@ -1,5 +1,6 @@
-import { TIMEOUTS, THRESHOLDS } from '@/core/constants'
+import { DELAYS, THRESHOLDS } from '@/core/constants'
 import { DomUtils } from './dom'
+import { AsyncUtils } from './async'
 
 /**
  * ページの自動スクロールと無限スクロール処理を管理するクラス。
@@ -59,7 +60,7 @@ export class ScrollUtils {
           this.scrollPageInterval = null
           resolve()
         }
-      }, TIMEOUTS.SCROLL_INTERVAL)
+      }, DELAYS.SCROLL_INTERVAL)
     })
   }
 
@@ -73,9 +74,7 @@ export class ScrollUtils {
         top: window.innerHeight,
         behavior: 'smooth',
       })
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL)
-      )
+      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
     }
   }
 }
