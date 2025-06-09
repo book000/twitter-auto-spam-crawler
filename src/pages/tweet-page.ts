@@ -1,4 +1,4 @@
-import { URLS, TIMEOUTS, TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
+import { URLS, DELAYS, TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
@@ -7,6 +7,7 @@ import { TweetService } from '@/services/tweet-service'
 import { DomUtils } from '@/utils/dom'
 import { ScrollUtils } from '@/utils/scroll'
 import { ErrorHandler } from '@/utils/error'
+import { AsyncUtils } from '@/utils/async'
 
 export const TweetPage = {
   async run(onlyOpen = false): Promise<void> {
@@ -106,9 +107,7 @@ export const TweetPage = {
       }
       console.log(`Wait 1 minute and reload. (Retry count: ${retryCount + 1})`)
       Storage.setRetryCount(retryCount + 1)
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.ERROR_RELOAD_WAIT)
-      )
+      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
       location.reload()
       return
     }

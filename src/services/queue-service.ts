@@ -1,5 +1,6 @@
 import { Storage } from '@/core/storage'
-import { TIMEOUTS } from '@/core/constants'
+import { DELAYS } from '@/core/constants'
+import { AsyncUtils } from '@/utils/async'
 
 /**
  * ツイート処理キューと状態遷移を管理するサービス。
@@ -35,7 +36,7 @@ export const QueueService = {
     waitingTweets.push(...tweetIds)
     Storage.setWaitingTweets(waitingTweets)
 
-    await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL))
+    await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
 
   /**
@@ -68,7 +69,7 @@ export const QueueService = {
       Storage.setWaitingTweets(waitingTweets)
     }
 
-    await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL))
+    await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
 
   /**

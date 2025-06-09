@@ -1,5 +1,6 @@
-import { URLS, TIMEOUTS } from '@/core/constants'
+import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
+import { AsyncUtils } from '@/utils/async'
 
 export const OtherPages = {
   runComposePost(): void {
@@ -18,9 +19,7 @@ export const OtherPages = {
     console.log(
       'runProcessBlueBlockerQueue: waiting for 60 seconds to process queue.'
     )
-    await new Promise((resolve) =>
-      setTimeout(resolve, TIMEOUTS.PROCESSING_WAIT)
-    )
+    await AsyncUtils.delay(DELAYS.PROCESSING_WAIT)
 
     console.log(
       'runProcessBlueBlockerQueue: checking for #injected-blue-block-toasts > div.toast'
@@ -39,7 +38,7 @@ export const OtherPages = {
           toastElements.length
         )
       }
-    }, TIMEOUTS.CRAWL_INTERVAL)
+    }, DELAYS.CRAWL_INTERVAL)
   },
 
   runLogin(): void {
@@ -64,7 +63,7 @@ export const OtherPages = {
       )
 
       location.href = URLS.BOOKMARK
-    }, TIMEOUTS.LOCKED_CHECK_INTERVAL)
+    }, DELAYS.LOCKED_CHECK_INTERVAL)
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
