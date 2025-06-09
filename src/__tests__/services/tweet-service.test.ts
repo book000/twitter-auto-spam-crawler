@@ -1,4 +1,4 @@
-import { TweetService } from '../../services/tweet-service'
+import { TweetService, TweetElementCache } from '../../services/tweet-service'
 import { Storage } from '../../core/storage'
 import { THRESHOLDS } from '../../core/constants'
 import type { Tweet } from '../../types'
@@ -612,6 +612,272 @@ describe('TweetService', () => {
       const result = TweetService.getTargetTweets(tweets)
 
       expect(result).toHaveLength(1)
+    })
+  })
+
+  /**
+   * TweetElementCacheのテスト
+   * DOM要素のキャッシュ機能とパフォーマンス最適化を検証
+   * - WeakMapベースのキャッシュシステム
+   * - DOM クエリ回数の削減
+   * - キャッシュの適切な管理
+   */
+  describe('TweetElementCache', () => {
+    /**
+     * DOM要素の適切なキャッシュ動作をテスト
+     * - 初回アクセス時の要素取得と保存
+     * - 二回目以降のキャッシュからの取得
+     * - 全必要要素の適切な抽出
+     */
+    it('should cache DOM elements correctly', () => {
+      const article = document.createElement('article')
+      article.dataset.testid = 'tweet'
+
+      // Create mock elements
+      const link = document.createElement('a')
+      link.setAttribute('role', 'link')
+      const time = document.createElement('time')
+      time.setAttribute('datetime', '2024-01-01T12:00:00Z')
+      link.append(time)
+
+      const textDiv = document.createElement('div')
+      textDiv.setAttribute('lang', 'ja')
+      textDiv.setAttribute('dir', 'ltr')
+      textDiv.dataset.testid = 'tweetText'
+
+      const replyButton = document.createElement('button')
+      replyButton.setAttribute('role', 'button')
+      replyButton.dataset.testid = 'reply'
+
+      const retweetButton = document.createElement('button')
+      retweetButton.setAttribute('role', 'button')
+      retweetButton.dataset.testid = 'retweet'
+
+      const likeButton = document.createElement('button')
+      likeButton.setAttribute('role', 'button')
+      likeButton.dataset.testid = 'like'
+
+      article.append(link, textDiv, replyButton, retweetButton, likeButton)
+
+      // First access should populate cache
+      const firstResult = TweetElementCache.getElements(article)
+      expect(firstResult.tweetElement).toBe(link)
+      expect(firstResult.textElement).toBe(textDiv)
+      expect(firstResult.replyButton).toBe(replyButton)
+      expect(firstResult.retweetButton).toBe(retweetButton)
+      expect(firstResult.likeButton).toBe(likeButton)
+
+      // Second access should return cached results
+      const secondResult = TweetElementCache.getElements(article)
+      expect(secondResult).toBe(firstResult) // Same object reference
+    })
+
+    /**
+     * DOM クエリ回数削減の性能検証をテスト
+     * - querySelector呼び出し回数の測定
+     * - キャッシュ使用による大幅な削減確認
+     * - 複数回アクセス時の最適化効果
+     */
+    it('should reduce DOM query count significantly', () => {
+      const article = document.createElement('article')
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const originalQuerySelector = article.querySelector.bind(article)
+      let queryCount = 0
+
+      // Mock querySelector to count calls
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      article.querySelector = jest.fn((...args) => {
+        queryCount++
+        return originalQuerySelector(...args)
+      })
+
+      article.dataset.testid = 'tweet'
+
+      // Create mock elements
+      const link = document.createElement('a')
+      link.setAttribute('role', 'link')
+      const time = document.createElement('time')
+      link.append(time)
+      article.append(link)
+
+      TweetElementCache.clearCache()
+
+      // First access - should make DOM queries
+      queryCount = 0
+      TweetElementCache.getElements(article)
+      const firstQueryCount = queryCount
+
+      // Second access - should use cache (no additional queries)
+      queryCount = 0
+      TweetElementCache.getElements(article)
+      const secondQueryCount = queryCount
+
+      expect(firstQueryCount).toBeGreaterThan(0)
+      expect(secondQueryCount).toBe(0) // No queries on cached access
+    })
+
+    /**
+     * キャッシュクリア機能をテスト
+     * - clearCache呼び出しによるキャッシュ消去
+     * - クリア後の新規クエリ実行確認
+     * - WeakMapの適切なリセット
+     */
+    it('should clear cache when requested', () => {
+      const article = document.createElement('article')
+      article.dataset.testid = 'tweet'
+
+      // First access to populate cache
+      const firstResult = TweetElementCache.getElements(article)
+
+      // Clear cache
+      TweetElementCache.clearCache()
+
+      // Access after clear should create new cache entry
+      const secondResult = TweetElementCache.getElements(article)
+
+      // Should be different object references (new cache entry)
+      expect(secondResult).not.toBe(firstResult)
+    })
+  })
+
+  /**
+   * パフォーマンステスト
+   * 最適化による処理速度向上とDOM クエリ削減を検証
+   * - 大量ツイート処理の時間測定
+   * - DOM クエリ回数の削減確認
+   * - メモリ使用量の最適化
+   */
+  describe('Performance Tests', () => {
+    /**
+     * 大量ツイート処理の性能をテスト
+     * - 100件ツイートの処理時間測定
+     * - キャッシュ使用による性能向上確認
+     * - 実用的な処理時間内での完了
+     */
+    it('should process large number of tweets efficiently', () => {
+      // Create 100 mock tweet articles
+      const articles: Element[] = []
+      for (let i = 0; i < 100; i++) {
+        const article = document.createElement('article')
+        article.dataset.testid = 'tweet'
+
+        const link = document.createElement('a')
+        link.setAttribute('role', 'link')
+        link.href = `https://x.com/user${i}/status/${i}`
+        const time = document.createElement('time')
+        time.setAttribute('datetime', '2024-01-01T12:00:00Z')
+        link.append(time)
+
+        const textDiv = document.createElement('div')
+        textDiv.setAttribute('lang', 'ja')
+        textDiv.setAttribute('dir', 'ltr')
+        textDiv.dataset.testid = 'tweetText'
+        textDiv.textContent = `Tweet content ${i}`
+
+        const replyButton = document.createElement('button')
+        replyButton.setAttribute('role', 'button')
+        replyButton.dataset.testid = 'reply'
+        replyButton.setAttribute('aria-label', `${i} replies`)
+
+        const retweetButton = document.createElement('button')
+        retweetButton.setAttribute('role', 'button')
+        retweetButton.dataset.testid = 'retweet'
+        retweetButton.setAttribute('aria-label', `${i * 2} retweets`)
+
+        const likeButton = document.createElement('button')
+        likeButton.setAttribute('role', 'button')
+        likeButton.dataset.testid = 'like'
+        likeButton.setAttribute('aria-label', `${i * 3} likes`)
+
+        article.append(link, textDiv, replyButton, retweetButton, likeButton)
+        articles.push(article)
+      }
+
+      // Mock querySelectorAll to return our test articles
+      const mockQuerySelectorAll = jest.fn().mockReturnValue(articles)
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      document.querySelectorAll = mockQuerySelectorAll
+
+      const startTime = performance.now()
+      const result = TweetService.getTweets()
+      const endTime = performance.now()
+
+      const processingTime = endTime - startTime
+
+      expect(result).toHaveLength(100)
+      expect(processingTime).toBeLessThan(1000) // Should complete within 1 second
+    })
+
+    /**
+     * DOM クエリ最適化の効果をテスト
+     * - 従来のクエリ方式との比較
+     * - キャッシュによるクエリ回数削減の確認
+     * - 処理効率の大幅な向上
+     */
+    it('should demonstrate query optimization benefits', () => {
+      const article = document.createElement('article')
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const originalQuerySelector = article.querySelector.bind(article)
+      let queryCount = 0
+
+      // Mock querySelector to count calls
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      article.querySelector = jest.fn((...args) => {
+        queryCount++
+        return originalQuerySelector(...args)
+      })
+
+      article.dataset.testid = 'tweet'
+
+      // Create complete mock tweet structure
+      const link = document.createElement('a')
+      link.setAttribute('role', 'link')
+      link.href = 'https://x.com/testuser/status/123'
+      const time = document.createElement('time')
+      time.setAttribute('datetime', '2024-01-01T12:00:00Z')
+      link.append(time)
+
+      const textDiv = document.createElement('div')
+      textDiv.setAttribute('lang', 'ja')
+      textDiv.setAttribute('dir', 'ltr')
+      textDiv.dataset.testid = 'tweetText'
+      textDiv.textContent = 'Test tweet'
+
+      const replyButton = document.createElement('button')
+      replyButton.setAttribute('role', 'button')
+      replyButton.dataset.testid = 'reply'
+      replyButton.setAttribute('aria-label', '5 replies')
+
+      const retweetButton = document.createElement('button')
+      retweetButton.setAttribute('role', 'button')
+      retweetButton.dataset.testid = 'retweet'
+      retweetButton.setAttribute('aria-label', '10 retweets')
+
+      const likeButton = document.createElement('button')
+      likeButton.setAttribute('role', 'button')
+      likeButton.dataset.testid = 'like'
+      likeButton.setAttribute('aria-label', '20 likes')
+
+      article.append(link, textDiv, replyButton, retweetButton, likeButton)
+
+      // Mock document.querySelectorAll to return single article
+      const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      document.querySelectorAll = mockQuerySelectorAll
+
+      TweetElementCache.clearCache()
+      queryCount = 0
+
+      // Process tweet with optimized service
+      const result = TweetService.getTweets()
+
+      expect(result).toHaveLength(1)
+      expect(result![0].tweetId).toBe('123')
+
+      // Should make significantly fewer queries than the old approach
+      // Old approach would make 6+ queries per element (tweetElement, textElement, 3 buttons, potential duplicates)
+      // Optimized approach makes exactly 5 queries per element (cached after first access)
+      expect(queryCount).toBeLessThanOrEqual(5)
     })
   })
 })
