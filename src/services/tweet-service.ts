@@ -65,37 +65,41 @@ export const TweetService = {
     const tweets: Tweet[] = []
 
     for (const element of tweetArticleElements) {
-      const cached = TweetElementCache.getElements(element)
+      const cachedElements = TweetElementCache.getElements(element)
 
-      if (!cached.tweetElement) {
+      if (!cachedElements.tweetElement) {
         console.warn('getTweets: tweetElement not found')
         return null
       }
 
-      const tweetUrl = (cached.tweetElement as HTMLAnchorElement).href
+      const tweetUrl = (cachedElements.tweetElement as HTMLAnchorElement).href
       const tweetUrlMatch = TWEET_URL_REGEX.exec(tweetUrl)
       if (!tweetUrlMatch) continue
 
       const screenName = tweetUrlMatch[1]
       const tweetId = tweetUrlMatch[2]
 
-      const tweetHtml = cached.textElement ? cached.textElement.innerHTML : null
-      const tweetText = cached.textElement
-        ? cached.textElement.textContent
+      const tweetHtml = cachedElements.textElement
+        ? cachedElements.textElement.innerHTML
+        : null
+      const tweetText = cachedElements.textElement
+        ? cachedElements.textElement.textContent
         : null
       const elementHtml = (element as HTMLElement).innerHTML
 
-      const replyCountRaw = cached.replyButton?.getAttribute('aria-label')
+      const replyCountRaw =
+        cachedElements.replyButton?.getAttribute('aria-label')
       const replyCount = replyCountRaw
         ? (numberRegex.exec(replyCountRaw)?.[0] ?? '0')
         : '0'
 
-      const retweetCountRaw = cached.retweetButton?.getAttribute('aria-label')
+      const retweetCountRaw =
+        cachedElements.retweetButton?.getAttribute('aria-label')
       const retweetCount = retweetCountRaw
         ? (numberRegex.exec(retweetCountRaw)?.[0] ?? '0')
         : '0'
 
-      const likeCountRaw = cached.likeButton?.getAttribute('aria-label')
+      const likeCountRaw = cachedElements.likeButton?.getAttribute('aria-label')
       const likeCount = likeCountRaw
         ? (numberRegex.exec(likeCountRaw)?.[0] ?? '0')
         : '0'
