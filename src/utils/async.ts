@@ -56,8 +56,8 @@ export const AsyncUtils = {
     maxMs: number,
     signal?: AbortSignal
   ): Promise<void> {
-    const delay = Math.random() * (maxMs - minMs) + minMs
-    return this.delay(delay, signal)
+    const durationMs = Math.random() * (maxMs - minMs) + minMs
+    return this.delay(durationMs, signal)
   },
 
   /**
@@ -89,8 +89,8 @@ export const AsyncUtils = {
     maxMs = 30_000,
     signal?: AbortSignal
   ): Promise<void> {
-    const delay = Math.min(baseMs * Math.pow(2, attempt), maxMs)
-    return this.delay(delay, signal)
+    const backoffMs = Math.min(baseMs * Math.pow(2, attempt), maxMs)
+    return this.delay(backoffMs, signal)
   },
 
   /**
