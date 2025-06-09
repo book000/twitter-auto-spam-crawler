@@ -170,12 +170,14 @@ describe('HomePage', () => {
       setupTwitterDOM()
 
       // Mock waitElement to fail only for tweet elements
-      ;(DomUtils.waitElement as jest.Mock).mockImplementation((selector) => {
-        if (selector.includes('article[data-testid="tweet"]')) {
-          return Promise.reject(new Error('Tweet not found'))
+      ;(DomUtils.waitElement as jest.Mock).mockImplementation(
+        (selector: string) => {
+          if (selector.includes('article[data-testid="tweet"]')) {
+            return Promise.reject(new Error('Tweet not found'))
+          }
+          return Promise.resolve()
         }
-        return Promise.resolve()
-      })
+      )
 
       await HomePage.run()
 
@@ -189,12 +191,14 @@ describe('HomePage', () => {
      */
     it('should reload when tweet waiting fails on failed page', async () => {
       setupTwitterDOM()
-      ;(DomUtils.waitElement as jest.Mock).mockImplementation((selector) => {
-        if (selector.includes('article[data-testid="tweet"]')) {
-          return Promise.reject(new Error('Tweet not found'))
+      ;(DomUtils.waitElement as jest.Mock).mockImplementation(
+        (selector: string) => {
+          if (selector.includes('article[data-testid="tweet"]')) {
+            return Promise.reject(new Error('Tweet not found'))
+          }
+          return Promise.resolve()
         }
-        return Promise.resolve()
-      })
+      )
       ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await HomePage.run()

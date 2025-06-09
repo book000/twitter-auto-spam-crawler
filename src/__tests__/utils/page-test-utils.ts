@@ -58,16 +58,15 @@ export function setupFailedPageDOM(): void {
  * Mocks common userscript globals that are expected in page tests
  */
 export function setupUserscriptMocks(): void {
-  // Mock location methods
-  Object.defineProperty(globalThis, 'location', {
-    value: {
-      href: 'https://x.com/home',
-      search: '',
-      reload: jest.fn(),
-    },
-    writable: true,
-    configurable: true,
-  })
+  // Create a proper Jest mock for reload function
+  const reloadMock = jest.fn()
+  
+  // Mock location methods - use simple assignment for JSDOM
+  ;(globalThis as any).location = {
+    href: 'https://x.com/home',
+    search: '',
+    reload: reloadMock,
+  }
 
   // Mock window.scrollBy
   Object.defineProperty(globalThis, 'scrollBy', {
@@ -116,9 +115,7 @@ export function setupTweetPageDOM(): void {
 /**
  * Creates a mock error dialog for tweet page testing
  */
-export function setupErrorDialogDOM(
-  message = '削除されたツイート'
-): void {
+export function setupErrorDialogDOM(message = '削除されたツイート'): void {
   const dialog = document.createElement('div')
   dialog.setAttribute('role', 'dialog')
   dialog.textContent = message
@@ -153,14 +150,22 @@ export function setupConsoleMocks(): {
 /**
  * Restore all console mocks
  */
-export function restoreConsoleMocks(mocks: {
-  log: jest.SpyInstance
-  error: jest.SpyInstance
-  warn: jest.SpyInstance
-  info: jest.SpyInstance
-}): void {
-  mocks.log.mockRestore()
-  mocks.error.mockRestore()
-  mocks.warn.mockRestore()
-  mocks.info.mockRestore()
+export function restoreConsoleMocks(
+  mocks: {
+    log: jest.SpyInstance
+    error: jest.SpyInstance
+    warn: jest.SpyInstance
+    info: jest.SpyInstance
+  } | undefined
+): void {
+  if (!mocks) return
+  
+  try {
+    mocks.log?.mockRestore?.()
+    mocks.error?.mockRestore?.()
+    mocks.warn?.mockRestore?.()
+    mocks.info?.mockRestore?.()
+  } catch {
+    // Ignore restore errors in cleanup
+  }
 }

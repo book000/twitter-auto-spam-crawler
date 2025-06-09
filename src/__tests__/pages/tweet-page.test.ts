@@ -153,7 +153,11 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '123456789'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '123456789',
+        ] as unknown as RegExpExecArray)
 
       await TweetPage.run()
 
@@ -209,7 +213,11 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '987654321'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '987654321',
+        ] as unknown as RegExpExecArray)
 
       await TweetPage.run()
 
@@ -262,11 +270,17 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '111222333'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '111222333',
+        ] as unknown as RegExpExecArray)
 
       // Mock the error handler to call the callback
       ;(ErrorHandler.handleErrorDialog as jest.Mock).mockImplementation(
-        async (callback) => {
+        async (
+          callback: (dialog: { textContent: string }) => Promise<void>
+        ) => {
           const mockDialog = { textContent: 'このツイートは削除されました' }
           await callback(mockDialog)
         }
@@ -297,11 +311,15 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '444555666'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '444555666',
+        ] as unknown as RegExpExecArray)
 
       // Mock the unprocessable post handler to call the callback
       ;(ErrorHandler.detectUnprocessablePost as jest.Mock).mockImplementation(
-        async (callback) => {
+        async (callback: (article: HTMLElement) => Promise<void>) => {
           const mockArticle = document.createElement('article')
           await callback(mockArticle)
         }
@@ -329,7 +347,11 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '777888999'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '777888999',
+        ] as unknown as RegExpExecArray)
 
       await TweetPage.run()
 
@@ -347,11 +369,17 @@ describe('TweetPage', () => {
       // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue(['', 'user', '555666777'] as RegExpExecArray)
+        .mockReturnValue([
+          '',
+          'user',
+          '555666777',
+        ] as unknown as RegExpExecArray)
 
       // Mock the error handler with English message
       ;(ErrorHandler.handleErrorDialog as jest.Mock).mockImplementation(
-        async (callback) => {
+        async (
+          callback: (dialog: { textContent: string }) => Promise<void>
+        ) => {
           const mockDialog = { textContent: 'This tweet has been deleted' }
           await callback(mockDialog)
         }

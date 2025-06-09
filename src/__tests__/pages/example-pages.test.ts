@@ -133,7 +133,7 @@ describe('ExamplePages', () => {
     it('should send login notification successfully', async () => {
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
-        (_message, callback, _skipAlert) => {
+        (_message, callback) => {
           notificationCallback = callback
           return Promise.resolve()
         }
@@ -193,7 +193,7 @@ describe('ExamplePages', () => {
     it('should send login success notification', async () => {
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
-        (_message, callback, _skipAlert) => {
+        (_message, callback) => {
           notificationCallback = callback
           return Promise.resolve()
         }
@@ -250,7 +250,7 @@ describe('ExamplePages', () => {
     it('should send account locked notification', async () => {
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
-        (_message, callback, _skipAlert) => {
+        (_message, callback) => {
           notificationCallback = callback
           return Promise.resolve()
         }
@@ -308,7 +308,7 @@ describe('ExamplePages', () => {
     it('should send account unlocked notification', async () => {
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
-        (_message, callback, _skipAlert) => {
+        (_message, callback) => {
           notificationCallback = callback
           return Promise.resolve()
         }
@@ -376,7 +376,9 @@ describe('ExamplePages', () => {
       )
 
       // Execute the setTimeout callback
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const setTimeoutCallback = (globalThis.setTimeout as any).mock.calls[0][0]
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       setTimeoutCallback()
 
       expect(globalThis.location.href).toBe(URLS.HOME)
@@ -397,12 +399,11 @@ describe('ExamplePages', () => {
         },
         writable: true,
         configurable: true,
-        configurable: true,
       })
 
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
-        (_message, callback, _skipAlert) => {
+        (_message, callback) => {
           notificationCallback = callback
           return Promise.resolve()
         }
@@ -468,7 +469,6 @@ describe('ExamplePages', () => {
           search: '?old=1.0.0&new=1.1.0',
         },
         writable: true,
-        configurable: true,
         configurable: true,
       })
 

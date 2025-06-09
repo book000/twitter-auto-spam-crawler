@@ -147,12 +147,10 @@ describe('OtherPages', () => {
       let intervalCallback: (() => void) | undefined
 
         // Mock setInterval to capture the callback
-      ;(globalThis.setInterval as jest.Mock).mockImplementation(
-        (callback, _delay) => {
-          intervalCallback = callback
-          return 123 // Mock interval ID
-        }
-      )
+      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+        intervalCallback = callback
+        return 123 // Mock interval ID
+      })
 
       const promise = OtherPages.runProcessBlueBlockerQueue()
 
@@ -213,12 +211,10 @@ describe('OtherPages', () => {
       document.body.append(toastContainer)
 
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation(
-        (callback, _delay) => {
-          intervalCallback = callback
-          return 456
-        }
-      )
+      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+        intervalCallback = callback
+        return 456
+      })
 
       const promise = OtherPages.runProcessBlueBlockerQueue()
 
@@ -257,12 +253,10 @@ describe('OtherPages', () => {
       document.body.append(toastContainer)
 
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation(
-        (callback, _delay) => {
-          intervalCallback = callback
-          return 789
-        }
-      )
+      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+        intervalCallback = callback
+        return 789
+      })
 
       const promise = OtherPages.runProcessBlueBlockerQueue()
       await Promise.resolve()
@@ -277,7 +271,7 @@ describe('OtherPages', () => {
       )
 
       // Remove one toast
-      ;(toastContainer.firstChild!).remove()
+      toastContainer.firstChild!.remove()
 
       // Second check - 2 toasts
       if (intervalCallback) {
@@ -331,12 +325,10 @@ describe('OtherPages', () => {
       ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
 
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation(
-        (callback, _delay) => {
-          intervalCallback = callback
-          return 999
-        }
-      )
+      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+        intervalCallback = callback
+        return 999
+      })
 
       OtherPages.runLocked()
 
@@ -383,12 +375,10 @@ describe('OtherPages', () => {
      */
     it('should increment check count on each periodic check', () => {
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation(
-        (callback, _delay) => {
-          intervalCallback = callback
-          return 111
-        }
-      )
+      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+        intervalCallback = callback
+        return 111
+      })
 
       OtherPages.runLocked()
 
