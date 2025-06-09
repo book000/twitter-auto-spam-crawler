@@ -783,6 +783,101 @@ const scheduler = createTimeoutInterval(
 scheduler.clear()
 ```
 
+### AsyncUtils による統一的な遅延処理（Issue #26対応）
+
+Promise遅延パターンの重複を解消し、可読性とメンテナンス性を向上させるための統一的なユーティリティ：
+
+```typescript
+import { AsyncUtils } from '@/utils/async'
+import { DELAYS } from '@/core/constants'
+
+// 基本的な遅延処理
+await AsyncUtils.delay(1000)  // 1秒待機
+await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)  // 定義済み定数を使用
+
+// キャンセル可能な遅延処理
+const controller = new AbortController()
+try {
+  await AsyncUtils.delay(5000, controller.signal)
+} catch (error) {
+  if (error.message === 'Delay was aborted') {
+    console.log('遅延がキャンセルされました')
+  }
+}
+
+// ランダム遅延（ヒューマンライクな動作）
+await AsyncUtils.randomDelay(500, 1500)  // 500ms〜1500ms間でランダム
+
+// 指数バックオフ（リトライ処理）
+for (let attempt = 0; attempt < maxRetries; attempt++) {
+  try {
+    await performOperation()
+    break
+  } catch (error) {
+    if (attempt === maxRetries - 1) throw error
+    await AsyncUtils.exponentialBackoff(1000, attempt, 10000)
+  }
+}
+
+// タイムアウト付きPromise
+const result = await AsyncUtils.withTimeout(
+  fetchData(),
+  5000,
+  'データ取得がタイムアウトしました'
+)
+
+// リトライヘルパー
+const data = await AsyncUtils.retry(
+  () => unstableApiCall(),
+  {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    useExponentialBackoff: true,
+    signal: controller.signal
+  }
+)
+```
+
+**改善前後の比較**:
+```typescript
+// 改善前（重複パターン）
+await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL))
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+// 改善後（統一的で意図が明確）
+await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
+await AsyncUtils.delay(DELAYS.LONG)
+```
+
+**DELAYS定数の使用**:
+```typescript
+export const DELAYS = {
+  // 基本的な遅延時間
+  SHORT: 100,
+  MEDIUM: 500,
+  LONG: 1000,
+
+  // 機能固有の遅延時間
+  CRAWL_INTERVAL: TIMEOUTS.CRAWL_INTERVAL,
+  SCROLL_INTERVAL: TIMEOUTS.SCROLL_INTERVAL,
+  ERROR_RELOAD_WAIT: TIMEOUTS.ERROR_RELOAD_WAIT,
+  DOM_WAIT: TIMEOUTS.ELEMENT_WAIT,
+  DOWNLOAD_WAIT: TIMEOUTS.DOWNLOAD_WAIT,
+  PROCESSING_WAIT: TIMEOUTS.PROCESSING_WAIT,
+
+  // リトライ関連
+  RETRY_BASE: 1000,
+  RETRY_MAX: 30_000,
+}
+```
+
+**重要な利点**:
+- **意図の明確化**: 遅延の目的が一目で分かる
+- **一貫性**: 全体で統一されたAPI使用
+- **テスタビリティ**: Jest フェイクタイマーとの優れた統合
+- **エラー処理**: キャンセル可能な遅延とタイムアウト処理
+- **保守性**: 遅延時間の一元管理
+
 ## TypeScript型定義パターン
 
 ### インターフェース設計

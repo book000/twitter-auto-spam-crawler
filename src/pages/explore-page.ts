@@ -1,6 +1,7 @@
-import { TIMEOUTS } from '@/core/constants'
+import { DELAYS } from '@/core/constants'
 import { StateService } from '@/services/state-service'
 import { DomUtils } from '@/utils/dom'
+import { AsyncUtils } from '@/utils/async'
 
 export const ExplorePage = {
   async run(): Promise<void> {
@@ -17,9 +18,7 @@ export const ExplorePage = {
         console.error('runExplore: failed page. Wait 1 minute and reload.')
       }
       console.log('Wait 1 minute and reload.')
-      await new Promise((resolve) =>
-        setTimeout(resolve, TIMEOUTS.ERROR_RELOAD_WAIT)
-      )
+      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
       location.reload()
       return
     }
