@@ -10,6 +10,7 @@ describe('Storage', () => {
   beforeEach(() => {
     clearMockStorage()
     jest.clearAllMocks()
+    Storage.clearCache()
   })
 
   /**
@@ -214,6 +215,142 @@ describe('Storage', () => {
       Storage.setRetryCount(5)
 
       expect(GM_setValue).toHaveBeenCalledWith('retryCount', 5)
+    })
+  })
+
+  /**
+   * 性能最適化機能のテスト
+   * Set/Map ベースの高速化されたデータアクセスを検証
+   */
+  describe('Performance Optimizations', () => {
+    /**
+     * Set ベースのチェック済みツイート検索が O(1) で動作することをテスト
+     * 大量データでも一定の処理時間を維持
+     */
+    it('should provide O(1) lookup for checked tweets', () => {
+      const testTweets = Array.from({ length: 10_000 }, (_, i) => `tweet${i}`)
+      Storage.setCheckedTweets(testTweets)
+
+      const startTime = performance.now()
+      const set = Storage.getCheckedTweetsSet()
+      const exists = set.has('tweet5000')
+      const endTime = performance.now()
+
+      expect(exists).toBe(true)
+      expect(endTime - startTime).toBeLessThan(10) // 10ms 以内
+    })
+
+    /**
+     * Set ベースの待機中ツイート検索が O(1) で動作することをテスト
+     * 線形検索からハッシュテーブル検索への改善を確認
+     */
+    it('should provide O(1) lookup for waiting tweets', () => {
+      const testTweets = Array.from({ length: 10_000 }, (_, i) => `waiting${i}`)
+      Storage.setWaitingTweets(testTweets)
+
+      const startTime = performance.now()
+      const set = Storage.getWaitingTweetsSet()
+      const exists = set.has('waiting7500')
+      const endTime = performance.now()
+
+      expect(exists).toBe(true)
+      expect(endTime - startTime).toBeLessThan(10) // 10ms 以内
+    })
+
+    /**
+     * Map ベースの保存済みツイート検索が O(1) で動作することをテスト
+     * 大量のツイートデータでも高速アクセスを実現
+     */
+    it('should provide O(1) lookup for saved tweets', () => {
+      const testTweets: Tweet[] = Array.from({ length: 1000 }, (_, i) => ({
+        url: `https://x.com/user/status/${i}`,
+        tweetText: `Test tweet ${i}`,
+        tweetHtml: `<span>Test tweet ${i}</span>`,
+        elementHtml: `<article>Element ${i}</article>`,
+        screenName: 'testuser',
+        tweetId: `${i}`,
+        replyCount: '1',
+        retweetCount: '2',
+        likeCount: '3',
+      }))
+      Storage.setSavedTweets(testTweets)
+
+      const startTime = performance.now()
+      const map = Storage.getSavedTweetsMap()
+      const tweet = map.get('500')
+      const endTime = performance.now()
+
+      expect(tweet).toBeDefined()
+      expect(tweet?.tweetId).toBe('500')
+      expect(endTime - startTime).toBeLessThan(10) // 10ms 以内
+    })
+
+    /**
+     * バッチ処理機能のテスト
+     * 複数操作の効率的な一括処理を確認
+     */
+    it('should handle batch operations efficiently', () => {
+      const tweetIds = Array.from({ length: 1000 }, (_, i) => `batch${i}`)
+
+      const startTime = performance.now()
+      Storage.addCheckedTweetsBatch(tweetIds)
+      const endTime = performance.now()
+
+      const checkedSet = Storage.getCheckedTweetsSet()
+      expect(checkedSet.size).toBe(1000)
+      expect(checkedSet.has('batch500')).toBe(true)
+      expect(endTime - startTime).toBeLessThan(100) // 100ms 以内
+    })
+
+    /**
+     * ツイート状態の一括取得テスト
+     * 複数の状態チェックを効率的に実行
+     */
+    it('should provide efficient tweet status checking', () => {
+      Storage.setCheckedTweets(['checked1', 'checked2'])
+      Storage.setWaitingTweets(['waiting1', 'waiting2'])
+
+      const startTime = performance.now()
+      const status1 = Storage.getTweetStatus('checked1')
+      const status2 = Storage.getTweetStatus('waiting1')
+      const status3 = Storage.getTweetStatus('nonexistent')
+      const endTime = performance.now()
+
+      expect(status1).toEqual({ isChecked: true, isWaiting: false })
+      expect(status2).toEqual({ isChecked: false, isWaiting: true })
+      expect(status3).toEqual({ isChecked: false, isWaiting: false })
+      expect(endTime - startTime).toBeLessThan(5) // 5ms 以内
+    })
+
+    /**
+     * ストレージ統計情報の取得テスト
+     * メモリ使用量とデータ量の監視機能を確認
+     */
+    it('should provide storage statistics', () => {
+      Storage.setCheckedTweets(['stat1', 'stat2'])
+      Storage.setWaitingTweets(['wait1'])
+      Storage.setSavedTweets([
+        {
+          url: 'https://x.com/test/status/1',
+          tweetText: 'Test',
+          tweetHtml: '<span>Test</span>',
+          elementHtml: '<article>Test</article>',
+          screenName: 'test',
+          tweetId: '1',
+          replyCount: '0',
+          retweetCount: '0',
+          likeCount: '0',
+        },
+      ])
+
+      const stats = Storage.getStorageStats()
+
+      expect(stats.checkedTweetsCount).toBe(2)
+      expect(stats.waitingTweetsCount).toBe(1)
+      expect(stats.savedTweetsCount).toBe(1)
+      expect(stats.memoryUsage.checkedTweetsSetSize).toBe(2)
+      expect(stats.memoryUsage.waitingTweetsSetSize).toBe(1)
+      expect(stats.memoryUsage.savedTweetsMapSize).toBe(1)
     })
   })
 })

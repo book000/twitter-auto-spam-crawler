@@ -21,6 +21,7 @@ describe('QueueService', () => {
     clearMockStorage()
     jest.clearAllMocks()
     jest.clearAllTimers()
+    Storage.clearCache()
   })
 
   afterEach(() => {

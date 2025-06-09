@@ -12,8 +12,9 @@ export const QueueService = {
    * @returns ツイートが処理済みの場合true
    */
   isCheckedTweet(tweetId: string): boolean {
-    const checkedTweets = Storage.getCheckedTweets()
-    return checkedTweets.includes(tweetId)
+    // O(1)ルックアップのためにSetを使用
+    const checkedTweetsSet = Storage.getCheckedTweetsSet()
+    return checkedTweetsSet.has(tweetId)
   },
 
   /**
@@ -22,8 +23,9 @@ export const QueueService = {
    * @returns ツイートが処理待ちの場合true
    */
   isWaitingTweet(tweetId: string): boolean {
-    const waitingTweets = Storage.getWaitingTweets()
-    return waitingTweets.includes(tweetId)
+    // O(1)ルックアップのためにSetを使用
+    const waitingTweetsSet = Storage.getWaitingTweetsSet()
+    return waitingTweetsSet.has(tweetId)
   },
 
   /**
@@ -31,9 +33,13 @@ export const QueueService = {
    * @param tweetIds - キューに追加するツイートIDの配列
    */
   async addWaitingTweets(tweetIds: string[]): Promise<void> {
-    const waitingTweets = Storage.getWaitingTweets()
-    waitingTweets.push(...tweetIds)
-    Storage.setWaitingTweets(waitingTweets)
+    const waitingTweetsSet = Storage.getWaitingTweetsSet()
+    // 重複を自動的に除去して追加
+    for (const tweetId of tweetIds) {
+      waitingTweetsSet.add(tweetId)
+    }
+    // Setを配列に変換して保存
+    Storage.setWaitingTweets([...waitingTweetsSet])
 
     await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL))
   },
@@ -57,15 +63,17 @@ export const QueueService = {
    */
   async checkedTweet(tweetId: string): Promise<void> {
     console.log(`checkedTweet: ${tweetId}`)
-    const checkedTweets = Storage.getCheckedTweets()
-    checkedTweets.push(tweetId)
-    Storage.setCheckedTweets(checkedTweets)
 
-    const waitingTweets = Storage.getWaitingTweets()
-    const index = waitingTweets.indexOf(tweetId)
-    if (index !== -1) {
-      waitingTweets.splice(index, 1)
-      Storage.setWaitingTweets(waitingTweets)
+    // チェック済みに追加
+    const checkedTweetsSet = Storage.getCheckedTweetsSet()
+    checkedTweetsSet.add(tweetId)
+    Storage.setCheckedTweets([...checkedTweetsSet])
+
+    // 待機中から削除
+    const waitingTweetsSet = Storage.getWaitingTweetsSet()
+    if (waitingTweetsSet.has(tweetId)) {
+      waitingTweetsSet.delete(tweetId)
+      Storage.setWaitingTweets([...waitingTweetsSet])
     }
 
     await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.CRAWL_INTERVAL))

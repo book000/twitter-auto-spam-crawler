@@ -92,18 +92,19 @@ export const TweetService = {
    * @param tweets - 保存するツイートの配列
    */
   saveTweets(tweets: Tweet[]): void {
-    const savedTweets = Storage.getSavedTweets()
-    const savedTweetIds = savedTweets.map((tweet) => tweet.tweetId)
+    // O(1)ルックアップと更新のためにMapを使用
+    const savedTweetsMap = Storage.getSavedTweetsMap()
 
+    // バッチ更新
     for (const newTweet of tweets) {
-      const index = savedTweetIds.indexOf(newTweet.tweetId)
-      if (index === -1) {
-        savedTweets.push(newTweet)
-      } else {
-        savedTweets[index] = newTweet
-      }
+      savedTweetsMap.set(newTweet.tweetId, newTweet)
     }
-    Storage.setSavedTweets(savedTweets)
+
+    // ツイートIDでソートして順序の一貫性を保証
+    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+      a.tweetId.localeCompare(b.tweetId)
+    )
+    Storage.setSavedTweets(sortedTweets)
   },
 
   /**
