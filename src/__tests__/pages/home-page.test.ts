@@ -157,8 +157,9 @@ describe('HomePage', () => {
         'article[data-testid="tweet"]'
       )
 
-      // Verify scrolling was performed
-      expect(window.scrollBy).toHaveBeenCalledTimes(10 * tabs.length) // 10 scrolls per tab
+      // Verify scrolling was performed (implementation uses 10 scrolls per tab)
+      const SCROLLS_PER_TAB = 10
+      expect(window.scrollBy).toHaveBeenCalledTimes(SCROLLS_PER_TAB * tabs.length)
     })
 
     /**

@@ -39,8 +39,9 @@ export function setupTwitterDOM(): void {
  * Creates a Twitter failed page structure (with reload icon)
  */
 export function setupFailedPageDOM(): void {
+  const FAILED_PAGE_CLASS = 'css-175oi2r' // Class for the failed page reload icon
   const div = document.createElement('div')
-  div.className = 'css-175oi2r'
+  div.className = FAILED_PAGE_CLASS
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')

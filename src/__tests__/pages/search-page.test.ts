@@ -210,7 +210,7 @@ describe('SearchPage', () => {
 
       await SearchPage.run()
 
-      expect(globalThis.location.search).toBe('&f=live')
+      expect(globalThis.location.search).toBe('?f=live')
     })
 
     /**
