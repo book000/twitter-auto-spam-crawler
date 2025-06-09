@@ -2,6 +2,50 @@ import type { Tweet } from '@/types'
 import { TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 
+interface CachedTweetElements {
+  tweetElement?: Element | null
+  textElement?: Element | null
+  replyButton?: Element | null
+  retweetButton?: Element | null
+  likeButton?: Element | null
+}
+
+class TweetElementCache {
+  private static cache = new WeakMap<Element, CachedTweetElements>()
+
+  static getElements(articleElement: Element): CachedTweetElements {
+    let cached = this.cache.get(articleElement)
+
+    if (!cached) {
+      cached = {
+        tweetElement: articleElement.querySelector(
+          'a[role="link"]:has(time[datetime])'
+        ),
+        textElement: articleElement.querySelector(
+          'div[lang][dir][data-testid="tweetText"]'
+        ),
+        replyButton: articleElement.querySelector(
+          'button[role="button"][data-testid="reply"]'
+        ),
+        retweetButton: articleElement.querySelector(
+          'button[role="button"][data-testid="retweet"]'
+        ),
+        likeButton: articleElement.querySelector(
+          'button[role="button"][data-testid="like"]'
+        ),
+      }
+
+      this.cache.set(articleElement, cached)
+    }
+
+    return cached
+  }
+
+  static clearCache(): void {
+    this.cache = new WeakMap<Element, CachedTweetElements>()
+  }
+}
+
 /**
  * DOMからツイートを抽出、フィルタリング、管理するサービス。
  * ツイートデータの抽出、エンゲージメント指標の解析、ストレージ操作を処理。
@@ -21,51 +65,37 @@ export const TweetService = {
     const tweets: Tweet[] = []
 
     for (const element of tweetArticleElements) {
-      const tweetElement = element.querySelector(
-        'a[role="link"]:has(time[datetime])'
-      )
-      if (!tweetElement) {
+      const cached = TweetElementCache.getElements(element)
+
+      if (!cached.tweetElement) {
         console.warn('getTweets: tweetElement not found')
         return null
       }
 
-      const tweetUrl = (tweetElement as HTMLAnchorElement).href
+      const tweetUrl = (cached.tweetElement as HTMLAnchorElement).href
       const tweetUrlMatch = TWEET_URL_REGEX.exec(tweetUrl)
       if (!tweetUrlMatch) continue
 
       const screenName = tweetUrlMatch[1]
       const tweetId = tweetUrlMatch[2]
 
-      const textElement = element.querySelector(
-        'div[lang][dir][data-testid="tweetText"]'
-      )
-      const tweetHtml = textElement ? textElement.innerHTML : null
-      const tweetText = textElement ? textElement.textContent : null
+      const tweetHtml = cached.textElement ? cached.textElement.innerHTML : null
+      const tweetText = cached.textElement
+        ? cached.textElement.textContent
+        : null
       const elementHtml = (element as HTMLElement).innerHTML
 
-      const replyCountRaw = element
-
-        .querySelector('button[role="button"][data-testid="reply"]')
-
-        ?.getAttribute('aria-label')
+      const replyCountRaw = cached.replyButton?.getAttribute('aria-label')
       const replyCount = replyCountRaw
         ? (numberRegex.exec(replyCountRaw)?.[0] ?? '0')
         : '0'
 
-      const retweetCountRaw = element
-
-        .querySelector('button[role="button"][data-testid="retweet"]')
-
-        ?.getAttribute('aria-label')
+      const retweetCountRaw = cached.retweetButton?.getAttribute('aria-label')
       const retweetCount = retweetCountRaw
         ? (numberRegex.exec(retweetCountRaw)?.[0] ?? '0')
         : '0'
 
-      const likeCountRaw = element
-
-        .querySelector('button[role="button"][data-testid="like"]')
-
-        ?.getAttribute('aria-label')
+      const likeCountRaw = cached.likeButton?.getAttribute('aria-label')
       const likeCount = likeCountRaw
         ? (numberRegex.exec(likeCountRaw)?.[0] ?? '0')
         : '0'
@@ -156,3 +186,5 @@ export const TweetService = {
     )
   },
 }
+
+export { TweetElementCache }
