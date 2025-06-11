@@ -59,16 +59,13 @@ export function setupFailedPageDOM(): void {
  * Mocks common userscript globals that are expected in page tests
  */
 export function setupUserscriptMocks(): void {
-  // Create a proper Jest mock for reload function
-  const reloadMock = jest.fn()
-
-  // Mock location methods - use simple assignment for JSDOM
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  ;(globalThis as any).location = {
-    href: 'https://x.com/home',
-    search: '',
-    reload: reloadMock,
-  }
+  // IMPORTANT: In JSDOM, the location object is immutable and cannot be replaced or modified
+  // This is a known limitation when testing code that uses location
+  // Tests should focus on verifying the behavior around location changes,
+  // not the actual location changes themselves
+  
+  // We'll create a minimal mock that doesn't interfere with JSDOM
+  // Individual tests can mock location properties as needed using Object.defineProperty
 
   // Mock window.scrollBy
   Object.defineProperty(globalThis, 'scrollBy', {
