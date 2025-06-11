@@ -205,7 +205,7 @@ describe('ExplorePage', () => {
       // Mock Math.random to return a valid index (0)
       const mockMathRandom = jest.spyOn(Math, 'random').mockReturnValue(0)
 
-      // Since ExplorePage doesn't handle empty trends gracefully, this test will 
+      // Since ExplorePage doesn't handle empty trends gracefully, this test will
       // demonstrate the current behavior (error on undefined trend.click())
       await expect(ExplorePage.run()).rejects.toThrow()
 

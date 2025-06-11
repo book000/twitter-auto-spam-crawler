@@ -159,7 +159,9 @@ describe('HomePage', () => {
 
       // Verify scrolling was performed (implementation uses 10 scrolls per tab)
       const SCROLLS_PER_TAB = 10
-      expect(window.scrollBy).toHaveBeenCalledTimes(SCROLLS_PER_TAB * tabs.length)
+      expect(window.scrollBy).toHaveBeenCalledTimes(
+        SCROLLS_PER_TAB * tabs.length
+      )
     })
 
     /**

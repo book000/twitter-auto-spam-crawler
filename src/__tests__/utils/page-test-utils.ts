@@ -61,8 +61,9 @@ export function setupFailedPageDOM(): void {
 export function setupUserscriptMocks(): void {
   // Create a proper Jest mock for reload function
   const reloadMock = jest.fn()
-  
+
   // Mock location methods - use simple assignment for JSDOM
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   ;(globalThis as any).location = {
     href: 'https://x.com/home',
     search: '',
@@ -152,20 +153,22 @@ export function setupConsoleMocks(): {
  * Restore all console mocks
  */
 export function restoreConsoleMocks(
-  mocks: {
-    log: jest.SpyInstance
-    error: jest.SpyInstance
-    warn: jest.SpyInstance
-    info: jest.SpyInstance
-  } | undefined
+  mocks:
+    | {
+        log: jest.SpyInstance
+        error: jest.SpyInstance
+        warn: jest.SpyInstance
+        info: jest.SpyInstance
+      }
+    | undefined
 ): void {
   if (!mocks) return
-  
+
   try {
-    mocks.log?.mockRestore?.()
-    mocks.error?.mockRestore?.()
-    mocks.warn?.mockRestore?.()
-    mocks.info?.mockRestore?.()
+    mocks.log.mockRestore()
+    mocks.error.mockRestore()
+    mocks.warn.mockRestore()
+    mocks.info.mockRestore()
   } catch {
     // Ignore restore errors in cleanup
   }
