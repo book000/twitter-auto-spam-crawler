@@ -29,7 +29,7 @@ jest.useFakeTimers()
  * - ツイート要素の待機とスクロール処理
  * - エラーハンドリングとページリロード
  */
-describe.skip('SearchPage', () => {
+describe('SearchPage', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
   beforeEach(() => {
@@ -77,19 +77,22 @@ describe.skip('SearchPage', () => {
      * - location.searchにf=liveが含まれていない場合
      * - 待機後のURLパラメーター追加処理
      */
-    it('should add live filter when not present', async () => {
+    it.skip('should add live filter when not present', async () => {
       // Mock location.search to not include f=live
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test',
-        writable: true,
-        configurable: true,
-      })
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test',
+      }
 
       await SearchPage.run()
 
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // Since JSDOM doesn't allow location.search assignment, we can't test the actual change
       // Instead, we verify the behavior by checking that delay was called
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -99,13 +102,13 @@ describe.skip('SearchPage', () => {
      * - ツイート待機とスクロール処理
      * - TweetPageへの遷移
      */
-    it('should process search page when live filter is present', async () => {
+    it.skip('should process search page when live filter is present', async () => {
       setupSearchPageDOM()
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&f=live',
-        writable: true,
-        configurable: true,
-      })
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&f=live',
+      }
 
       await SearchPage.run()
 
@@ -115,6 +118,9 @@ describe.skip('SearchPage', () => {
         'article[data-testid="tweet"]'
       )
       expect(TweetPage.run).toHaveBeenCalledWith(true)
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -122,12 +128,13 @@ describe.skip('SearchPage', () => {
      * - DOM要素が見つからない場合の処理
      * - エラー待機時間後のページリロード
      */
-    it('should handle waitElement error and reload page', async () => {
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&f=live',
-        writable: true,
-        configurable: true,
-      })
+    it.skip('should handle waitElement error and reload page', async () => {
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&f=live',
+        reload: jest.fn(),
+      }
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
@@ -137,6 +144,9 @@ describe.skip('SearchPage', () => {
       expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
       expect(globalThis.location.reload).toHaveBeenCalled()
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -144,12 +154,12 @@ describe.skip('SearchPage', () => {
      * - DomUtils.isFailedPage()がtrueを返す場合
      * - 専用エラーメッセージの出力確認
      */
-    it('should log error when failed page is detected', async () => {
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&f=live',
-        writable: true,
-        configurable: true,
-      })
+    it.skip('should log error when failed page is detected', async () => {
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&f=live',
+      }
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
@@ -160,6 +170,9 @@ describe.skip('SearchPage', () => {
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'runSearch: failed page. Wait 1 minute and reload.'
       )
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -168,13 +181,13 @@ describe.skip('SearchPage', () => {
      * - 各スクロール後のクロール間隔待機
      * - 適切なスクロール設定値
      */
-    it('should perform scroll actions with correct intervals', async () => {
+    it.skip('should perform scroll actions with correct intervals', async () => {
       setupSearchPageDOM()
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&f=live',
-        writable: true,
-        configurable: true,
-      })
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&f=live',
+      }
 
       await SearchPage.run()
 
@@ -187,6 +200,9 @@ describe.skip('SearchPage', () => {
 
       // Verify delay was called for each scroll
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -194,13 +210,13 @@ describe.skip('SearchPage', () => {
      * - TweetPage.run()実行時のエラーハンドリング
      * - エラーが適切にcatchされることを確認
      */
-    it('should handle TweetPage.run errors gracefully', async () => {
+    it.skip('should handle TweetPage.run errors gracefully', async () => {
       setupSearchPageDOM()
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&f=live',
-        writable: true,
-        configurable: true,
-      })
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&f=live',
+      }
 
       const mockError = new Error('TweetPage error')
       ;(TweetPage.run as jest.Mock).mockRejectedValue(mockError)
@@ -211,6 +227,9 @@ describe.skip('SearchPage', () => {
         'Error in TweetPage.run:',
         mockError
       )
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -218,17 +237,20 @@ describe.skip('SearchPage', () => {
      * - 既存のクエリパラメーターがある場合
      * - &f=liveの適切な追加
      */
-    it('should append live filter to existing query parameters', async () => {
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '?q=test&src=typed_query',
-        writable: true,
-        configurable: true,
-      })
+    it.skip('should append live filter to existing query parameters', async () => {
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '?q=test&src=typed_query',
+      }
 
       await SearchPage.run()
 
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called, not the actual location change
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -236,17 +258,20 @@ describe.skip('SearchPage', () => {
      * - location.searchが空文字列の場合
      * - ?f=liveの追加
      */
-    it('should add live filter when no query parameters exist', async () => {
-      Object.defineProperty(globalThis.location, 'search', {
-        value: '',
-        writable: true,
-        configurable: true,
-      })
+    it.skip('should add live filter when no query parameters exist', async () => {
+      const originalLocation = globalThis.location
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: '',
+      }
 
       await SearchPage.run()
 
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -254,20 +279,23 @@ describe.skip('SearchPage', () => {
      * - f=liveが既に含まれている場合
      * - 重複追加されないことを確認
      */
-    it('should not modify search when live filter already exists', async () => {
+    it.skip('should not modify search when live filter already exists', async () => {
       setupSearchPageDOM()
+      const originalLocation = globalThis.location
       const originalSearch = '?q=spam&f=live&src=search'
-      Object.defineProperty(globalThis.location, 'search', {
-        value: originalSearch,
-        writable: true,
-        configurable: true,
-      })
+      delete (globalThis as any).location
+      ;(globalThis as any).location = {
+        search: originalSearch,
+      }
 
       await SearchPage.run()
 
       // Should proceed without delay since f=live already exists
       expect(StateService.resetState).toHaveBeenCalled()
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
+      
+      // Restore original location
+      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -275,7 +303,7 @@ describe.skip('SearchPage', () => {
      * - f=liveを含む他のパラメーターがある場合
      * - 正確な一致のみを検出することを確認
      */
-    it('should detect live filter in various parameter positions', async () => {
+    it.skip('should detect live filter in various parameter positions', async () => {
       setupSearchPageDOM()
 
       // Test various positions of f=live parameter
@@ -287,11 +315,11 @@ describe.skip('SearchPage', () => {
       ]
 
       for (const search of testCases) {
-        Object.defineProperty(globalThis.location, 'search', {
-          value: search,
-          writable: true,
-          configurable: true,
-        })
+        const originalLocation = globalThis.location
+        delete (globalThis as any).location
+        ;(globalThis as any).location = {
+          search: search,
+        }
         jest.clearAllMocks()
 
         await SearchPage.run()
@@ -299,6 +327,9 @@ describe.skip('SearchPage', () => {
         // Should proceed with normal processing, not redirect
         expect(StateService.resetState).toHaveBeenCalled()
         expect(CrawlerService.startCrawling).toHaveBeenCalled()
+        
+        // Restore original location
+        ;(globalThis as any).location = originalLocation
       }
     })
   })
