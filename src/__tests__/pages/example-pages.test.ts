@@ -405,9 +405,11 @@ describe('ExamplePages', () => {
         return null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
-        get: mockGet,
-      }))
+      ;(globalThis as any).URLSearchParams = jest
+        .fn()
+        .mockImplementation(() => ({
+          get: mockGet,
+        }))
 
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
@@ -458,9 +460,11 @@ describe('ExamplePages', () => {
         return null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
-        get: mockGet,
-      }))
+      ;(globalThis as any).URLSearchParams = jest
+        .fn()
+        .mockImplementation(() => ({
+          get: mockGet,
+        }))
 
       ExamplePages.runUpdateNotify()
 
@@ -483,9 +487,11 @@ describe('ExamplePages', () => {
         return null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
-        get: mockGet,
-      }))
+      ;(globalThis as any).URLSearchParams = jest
+        .fn()
+        .mockImplementation(() => ({
+          get: mockGet,
+        }))
 
       const mockError = new Error('Notification failed')
       ;(NotificationService.notifyDiscord as jest.Mock).mockRejectedValue(
@@ -514,9 +520,11 @@ describe('ExamplePages', () => {
         return null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
-        get: mockGet,
-      }))
+      ;(globalThis as any).URLSearchParams = jest
+        .fn()
+        .mockImplementation(() => ({
+          get: mockGet,
+        }))
 
       ExamplePages.runUpdateNotify()
 
