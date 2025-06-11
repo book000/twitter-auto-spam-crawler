@@ -175,8 +175,8 @@ describe('ExamplePages', () => {
 
       ExamplePages.runLoginNotify()
 
-      // Wait for the next tick to allow the promise rejection to be handled
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Flush all promises and timers
+      await jest.runAllTimersAsync()
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'Failed to notify login:',
         mockError
@@ -232,8 +232,8 @@ describe('ExamplePages', () => {
 
       ExamplePages.runLoginSuccessNotify()
 
-      // Wait for the next tick to allow the promise rejection to be handled
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Flush all promises and timers
+      await jest.runAllTimersAsync()
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'Failed to notify login success:',
         mockError
@@ -290,8 +290,8 @@ describe('ExamplePages', () => {
 
       ExamplePages.runLockedNotify()
 
-      // Wait for the next tick to allow the promise rejection to be handled
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Flush all promises and timers
+      await jest.runAllTimersAsync()
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'Failed to notify account locked:',
         mockError
@@ -347,8 +347,8 @@ describe('ExamplePages', () => {
 
       ExamplePages.runUnlockedNotify()
 
-      // Wait for the next tick to allow the promise rejection to be handled
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Flush all promises and timers
+      await jest.runAllTimersAsync()
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'Failed to notify account unlocked:',
         mockError
@@ -397,14 +397,17 @@ describe('ExamplePages', () => {
      * - Discord通知の送信
      */
     it('should send update notification with version info', async () => {
-      // Mock URLSearchParams by temporarily replacing location
-      const originalLocation = globalThis.location
+      // Mock URLSearchParams
+      const mockGet = jest.fn()
+      mockGet.mockImplementation((key: string) => {
+        if (key === 'old') return '1.0.0'
+        if (key === 'new') return '1.1.0'
+        return null
+      })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?old=1.0.0&new=1.1.0',
-      }
+      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
+        get: mockGet,
+      }))
 
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
@@ -439,10 +442,6 @@ describe('ExamplePages', () => {
       expect(consoleMocks.info).toHaveBeenCalledWith(
         'Update notification sent successfully'
       )
-
-      // Restore original location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
 
     /**
@@ -452,13 +451,16 @@ describe('ExamplePages', () => {
      */
     it('should handle missing version parameters', () => {
       // Mock URLSearchParams with missing parameters
-      const originalLocation = globalThis.location
+      const mockGet = jest.fn()
+      mockGet.mockImplementation((key: string) => {
+        if (key === 'old') return '1.0.0'
+        if (key === 'new') return null
+        return null
+      })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?old=1.0.0',
-      }
+      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
+        get: mockGet,
+      }))
 
       ExamplePages.runUpdateNotify()
 
@@ -467,23 +469,23 @@ describe('ExamplePages', () => {
       )
       expect(window.close).toHaveBeenCalled()
       expect(NotificationService.notifyDiscord).not.toHaveBeenCalled()
-
-      // Restore original location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
 
     /**
      * 更新通知失敗時のエラーハンドリングをテスト
      */
     it('should handle update notification error', async () => {
-      const originalLocation = globalThis.location
+      // Mock URLSearchParams
+      const mockGet = jest.fn()
+      mockGet.mockImplementation((key: string) => {
+        if (key === 'old') return '1.0.0'
+        if (key === 'new') return '1.1.0'
+        return null
+      })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?old=1.0.0&new=1.1.0',
-      }
+      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
+        get: mockGet,
+      }))
 
       const mockError = new Error('Notification failed')
       ;(NotificationService.notifyDiscord as jest.Mock).mockRejectedValue(
@@ -492,29 +494,29 @@ describe('ExamplePages', () => {
 
       ExamplePages.runUpdateNotify()
 
-      // Wait for promise rejection
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Flush all promises and timers
+      await jest.runAllTimersAsync()
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'Failed to notify update:',
         mockError
       )
-
-      // Restore original location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
 
     /**
      * 空のバージョンパラメーターの処理をテスト
      */
     it('should handle empty version parameters', () => {
-      const originalLocation = globalThis.location
+      // Mock URLSearchParams with empty parameters
+      const mockGet = jest.fn()
+      mockGet.mockImplementation((key: string) => {
+        if (key === 'old') return ''
+        if (key === 'new') return '1.1.0'
+        return null
+      })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?old=&new=1.1.0',
-      }
+      ;(globalThis as any).URLSearchParams = jest.fn().mockImplementation(() => ({
+        get: mockGet,
+      }))
 
       ExamplePages.runUpdateNotify()
 
@@ -522,10 +524,6 @@ describe('ExamplePages', () => {
         'runUpdateNotify: Missing version parameters'
       )
       expect(window.close).toHaveBeenCalled()
-
-      // Restore original location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
   })
 })
