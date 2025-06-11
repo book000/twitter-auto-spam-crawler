@@ -80,7 +80,9 @@ describe('SearchPage', () => {
     it.skip('should add live filter when not present', async () => {
       // Mock location.search to not include f=live
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test',
       }
@@ -90,8 +92,9 @@ describe('SearchPage', () => {
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // Since JSDOM doesn't allow location.search assignment, we can't test the actual change
       // Instead, we verify the behavior by checking that delay was called
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -105,7 +108,9 @@ describe('SearchPage', () => {
     it.skip('should process search page when live filter is present', async () => {
       setupSearchPageDOM()
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
       }
@@ -118,8 +123,9 @@ describe('SearchPage', () => {
         'article[data-testid="tweet"]'
       )
       expect(TweetPage.run).toHaveBeenCalledWith(true)
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -130,7 +136,9 @@ describe('SearchPage', () => {
      */
     it.skip('should handle waitElement error and reload page', async () => {
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
         reload: jest.fn(),
@@ -144,8 +152,9 @@ describe('SearchPage', () => {
       expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
       expect(globalThis.location.reload).toHaveBeenCalled()
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -156,7 +165,9 @@ describe('SearchPage', () => {
      */
     it.skip('should log error when failed page is detected', async () => {
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
       }
@@ -170,8 +181,9 @@ describe('SearchPage', () => {
       expect(consoleMocks.error).toHaveBeenCalledWith(
         'runSearch: failed page. Wait 1 minute and reload.'
       )
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -184,7 +196,9 @@ describe('SearchPage', () => {
     it.skip('should perform scroll actions with correct intervals', async () => {
       setupSearchPageDOM()
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
       }
@@ -200,8 +214,9 @@ describe('SearchPage', () => {
 
       // Verify delay was called for each scroll
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -213,7 +228,9 @@ describe('SearchPage', () => {
     it.skip('should handle TweetPage.run errors gracefully', async () => {
       setupSearchPageDOM()
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
       }
@@ -227,8 +244,9 @@ describe('SearchPage', () => {
         'Error in TweetPage.run:',
         mockError
       )
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -239,7 +257,9 @@ describe('SearchPage', () => {
      */
     it.skip('should append live filter to existing query parameters', async () => {
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '?q=test&src=typed_query',
       }
@@ -248,8 +268,9 @@ describe('SearchPage', () => {
 
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called, not the actual location change
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -260,7 +281,9 @@ describe('SearchPage', () => {
      */
     it.skip('should add live filter when no query parameters exist', async () => {
       const originalLocation = globalThis.location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: '',
       }
@@ -269,8 +292,9 @@ describe('SearchPage', () => {
 
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -283,7 +307,9 @@ describe('SearchPage', () => {
       setupSearchPageDOM()
       const originalLocation = globalThis.location
       const originalSearch = '?q=spam&f=live&src=search'
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       delete (globalThis as any).location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = {
         search: originalSearch,
       }
@@ -293,8 +319,9 @@ describe('SearchPage', () => {
       // Should proceed without delay since f=live already exists
       expect(StateService.resetState).toHaveBeenCalled()
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
-      
+
       // Restore original location
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).location = originalLocation
     })
 
@@ -316,9 +343,11 @@ describe('SearchPage', () => {
 
       for (const search of testCases) {
         const originalLocation = globalThis.location
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         delete (globalThis as any).location
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ;(globalThis as any).location = {
-          search: search,
+          search,
         }
         jest.clearAllMocks()
 
@@ -327,8 +356,9 @@ describe('SearchPage', () => {
         // Should proceed with normal processing, not redirect
         expect(StateService.resetState).toHaveBeenCalled()
         expect(CrawlerService.startCrawling).toHaveBeenCalled()
-        
+
         // Restore original location
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ;(globalThis as any).location = originalLocation
       }
     })

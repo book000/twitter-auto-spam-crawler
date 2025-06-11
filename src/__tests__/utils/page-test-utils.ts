@@ -63,7 +63,7 @@ export function setupUserscriptMocks(): void {
   // This is a known limitation when testing code that uses location
   // Tests should focus on verifying the behavior around location changes,
   // not the actual location changes themselves
-  
+
   // We'll create a minimal mock that doesn't interfere with JSDOM
   // Individual tests can mock location properties as needed using Object.defineProperty
 
