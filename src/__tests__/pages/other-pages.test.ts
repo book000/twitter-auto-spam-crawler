@@ -157,12 +157,8 @@ describe('OtherPages', () => {
 
       const promise = OtherPages.runProcessBlueBlockerQueue()
 
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith('start')
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
-        'start'
-      )
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'waiting for 60 seconds to process queue.'
       )
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.PROCESSING_WAIT)
@@ -171,7 +167,6 @@ describe('OtherPages', () => {
       await Promise.resolve()
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'checking for #injected-blue-block-toasts > div.toast'
       )
       expect(globalThis.setInterval).toHaveBeenCalledWith(
@@ -185,7 +180,6 @@ describe('OtherPages', () => {
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'still waiting for toasts: 2'
       )
 
@@ -198,7 +192,6 @@ describe('OtherPages', () => {
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'all toasts are gone.'
       )
       expect(globalThis.clearInterval).toHaveBeenCalledWith(123)
@@ -236,7 +229,6 @@ describe('OtherPages', () => {
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'all toasts are gone.'
       )
       expect(globalThis.clearInterval).toHaveBeenCalledWith(456)
@@ -278,7 +270,6 @@ describe('OtherPages', () => {
         intervalCallback()
       }
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'still waiting for toasts: 3'
       )
 
@@ -290,7 +281,6 @@ describe('OtherPages', () => {
         intervalCallback()
       }
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue',
         'still waiting for toasts: 2'
       )
 
@@ -345,7 +335,6 @@ describe('OtherPages', () => {
       OtherPages.runLocked()
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLocked',
         'Account is locked, starting continuous unlock detection'
       )
       expect(globalThis.setInterval).toHaveBeenCalledWith(
@@ -363,7 +352,6 @@ describe('OtherPages', () => {
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLocked',
         'Periodic check 1 - navigating to bookmark page to test unlock status'
       )
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
@@ -403,7 +391,6 @@ describe('OtherPages', () => {
         intervalCallback()
       }
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLocked',
         'Periodic check 1 - navigating to bookmark page to test unlock status'
       )
 
@@ -412,7 +399,6 @@ describe('OtherPages', () => {
         intervalCallback()
       }
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLocked',
         'Periodic check 2 - navigating to bookmark page to test unlock status'
       )
 
@@ -421,7 +407,6 @@ describe('OtherPages', () => {
         intervalCallback()
       }
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLocked',
         'Periodic check 3 - navigating to bookmark page to test unlock status'
       )
     })

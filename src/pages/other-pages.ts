@@ -15,16 +15,12 @@ export const OtherPages = {
   },
 
   async runProcessBlueBlockerQueue(): Promise<void> {
-    PageErrorHandler.logAction('runProcessBlueBlockerQueue', 'start')
+    PageErrorHandler.logAction('start')
 
-    PageErrorHandler.logAction(
-      'runProcessBlueBlockerQueue',
-      'waiting for 60 seconds to process queue.'
-    )
+    PageErrorHandler.logAction('waiting for 60 seconds to process queue.')
     await AsyncUtils.delay(DELAYS.PROCESSING_WAIT)
 
     PageErrorHandler.logAction(
-      'runProcessBlueBlockerQueue',
       'checking for #injected-blue-block-toasts > div.toast'
     )
     const interval = setInterval(() => {
@@ -32,15 +28,11 @@ export const OtherPages = {
         '#injected-blue-block-toasts > div.toast'
       )
       if (toastElements.length === 0) {
-        PageErrorHandler.logAction(
-          'runProcessBlueBlockerQueue',
-          'all toasts are gone.'
-        )
+        PageErrorHandler.logAction('all toasts are gone.')
         clearInterval(interval)
         location.href = URLS.HOME
       } else {
         PageErrorHandler.logAction(
-          'runProcessBlueBlockerQueue',
           `still waiting for toasts: ${toastElements.length}`
         )
       }
@@ -57,7 +49,6 @@ export const OtherPages = {
 
   runLocked(): void {
     PageErrorHandler.logAction(
-      'runLocked',
       'Account is locked, starting continuous unlock detection'
     )
 
@@ -66,7 +57,6 @@ export const OtherPages = {
     setInterval(() => {
       checkCount++
       PageErrorHandler.logAction(
-        'runLocked',
         `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
       )
 

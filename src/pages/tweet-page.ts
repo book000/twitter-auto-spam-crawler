@@ -38,13 +38,13 @@ export const TweetPage = {
 
     ErrorHandler.handleErrorDialog(async (dialog) => {
       const dialogMessage = dialog.textContent
-      PageErrorHandler.logError('runTweet', 'found error dialog', dialogMessage)
+      PageErrorHandler.logError('found error dialog', dialogMessage)
 
       if (
         dialogMessage?.includes('削除') ||
         dialogMessage?.includes('deleted')
       ) {
-        PageErrorHandler.logError('runTweet', 'tweet deleted. Skip this tweet.')
+        PageErrorHandler.logError('tweet deleted. Skip this tweet.')
 
         const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
         if (tweetUrlMatch) {
@@ -54,16 +54,15 @@ export const TweetPage = {
         }
 
         TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('runTweet', 'Error in TweetPage.run', error)
+          PageErrorHandler.logError('Error in TweetPage.run', error)
         })
       }
     }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError('runTweet', 'Error in handleErrorDialog', error)
+      PageErrorHandler.logError('Error in handleErrorDialog', error)
     })
 
     ErrorHandler.detectUnprocessablePost(async (tweetArticleElement) => {
       PageErrorHandler.logError(
-        'runTweet',
         "found can't processing post",
         tweetArticleElement
       )
@@ -76,14 +75,10 @@ export const TweetPage = {
       }
 
       TweetPage.run(true).catch((error: unknown) => {
-        PageErrorHandler.logError('runTweet', 'Error in TweetPage.run', error)
+        PageErrorHandler.logError('Error in TweetPage.run', error)
       })
     }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError(
-        'runTweet',
-        'Error in detectUnprocessablePost',
-        error
-      )
+      PageErrorHandler.logError('Error in detectUnprocessablePost', error)
     })
 
     const retryCount = Storage.getRetryCount()
@@ -92,7 +87,6 @@ export const TweetPage = {
     } catch (error) {
       if (retryCount >= THRESHOLDS.MAX_RETRY_COUNT) {
         PageErrorHandler.logError(
-          'runTweet',
           'failed to load tweet after 3 retries. Resetting retry count and moving to next tweet.'
         )
         Storage.setRetryCount(0)
@@ -103,7 +97,7 @@ export const TweetPage = {
           await QueueService.checkedTweet(tweetId)
         }
         TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('runTweet', 'Error in TweetPage.run', error)
+          PageErrorHandler.logError('Error in TweetPage.run', error)
         })
         return
       }
@@ -132,7 +126,7 @@ export const TweetPage = {
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('runTweet', 'Error in TweetPage.run', error)
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 }

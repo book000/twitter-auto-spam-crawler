@@ -199,10 +199,7 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runHome',
-        'Next tab'
-      )
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith('Next tab')
     })
 
     /**
@@ -246,7 +243,6 @@ describe('HomePage', () => {
       await HomePage.run()
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runHome',
         'isOnlyHome is true. Go to home page.'
       )
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
@@ -287,20 +283,15 @@ describe('HomePage', () => {
       await HomePage.run()
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runHome',
         `tabs=${tabs.length}`
       )
 
       // Check individual tab logs
       for (let i = 0; i < tabs.length; i++) {
-        expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-          'runHome',
-          `open tab=${i}`
-        )
+        expect(PageErrorHandler.logAction).toHaveBeenCalledWith(`open tab=${i}`)
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runHome',
         'all tabs are opened. Go to explore page.'
       )
     })

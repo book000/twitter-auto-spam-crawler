@@ -190,37 +190,89 @@ export const PageErrorHandler = {
   /**
    * Log page action with consistent format
    *
-   * @param methodName - Name of the method
+   * Automatically detects the calling function name from the stack trace.
+   * You can optionally provide a custom method name to override the detection.
+   *
    * @param action - Description of the action
+   * @param methodName - Optional custom method name (auto-detected if not provided)
    *
    * @example
    * ```typescript
-   * PageErrorHandler.logAction('runHome', 'Found 10 new tweets')
-   * // Logs: "runHome: Found 10 new tweets"
+   * // Auto-detection (recommended)
+   * PageErrorHandler.logAction('Found 10 new tweets')
+   * // Logs: "runHome: Found 10 new tweets" (auto-detected from stack)
+   *
+   * // Manual override
+   * PageErrorHandler.logAction('Found 10 new tweets', 'customMethod')
+   * // Logs: "customMethod: Found 10 new tweets"
    * ```
    */
-  logAction(methodName: string, action: string): void {
-    console.log(`${methodName}: ${action}`)
+  logAction(action: string, methodName?: string): void {
+    const callerName = methodName ?? this._getCallerName()
+    console.log(`${callerName}: ${action}`)
   },
 
   /**
    * Log error with consistent format
    *
-   * @param methodName - Name of the method
+   * Automatically detects the calling function name from the stack trace.
+   * You can optionally provide a custom method name to override the detection.
+   *
    * @param errorMessage - Error message to log
    * @param error - Optional error object for additional details
+   * @param methodName - Optional custom method name (auto-detected if not provided)
    *
    * @example
    * ```typescript
-   * PageErrorHandler.logError('runHome', 'Failed to process timeline', error)
-   * // Logs: "runHome: Failed to process timeline"
+   * // Auto-detection (recommended)
+   * PageErrorHandler.logError('Failed to process timeline', error)
+   * // Logs: "runHome: Failed to process timeline" (auto-detected from stack)
+   *
+   * // Manual override
+   * PageErrorHandler.logError('Failed to process timeline', error, 'customMethod')
+   * // Logs: "customMethod: Failed to process timeline"
    * ```
    */
-  logError(methodName: string, errorMessage: string, error?: unknown): void {
-    console.error(`${methodName}: ${errorMessage}`)
+  logError(errorMessage: string, error?: unknown, methodName?: string): void {
+    const callerName = methodName ?? this._getCallerName()
+    console.error(`${callerName}: ${errorMessage}`)
 
     if (error && process.env.NODE_ENV === 'development') {
-      console.error(`${methodName}: Error details:`, error)
+      console.error(`${callerName}: Error details:`, error)
+    }
+  },
+
+  /**
+   * Extract caller function name from stack trace
+   *
+   * @returns The name of the calling function, or 'unknown' if not detectable
+   * @private
+   */
+  _getCallerName(): string {
+    try {
+      const stack = new Error('Stack trace generation').stack
+      if (!stack) return 'unknown'
+
+      // Split stack trace into lines
+      const stackLines = stack.split('\n')
+
+      // Look for the caller (skip Error(), this method, and logAction/logError)
+      for (let i = 3; i < stackLines.length; i++) {
+        const line = stackLines[i]
+
+        // Match function names in various formats:
+        // - "at functionName (...)"
+        // - "at Object.functionName (...)"
+        // - "at ClassName.functionName (...)"
+        const match = /at (?:(?:Object|[A-Z]\w*)\.)?(\w+)\s*\(/.exec(line)
+        if (match?.[1] && match[1] !== 'logAction' && match[1] !== 'logError') {
+          return match[1]
+        }
+      }
+
+      return 'unknown'
+    } catch {
+      return 'unknown'
     }
   },
 }

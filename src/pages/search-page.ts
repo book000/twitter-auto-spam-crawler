@@ -42,7 +42,7 @@ export const SearchPage = {
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('runSearch', 'Error in TweetPage.run', error)
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 }

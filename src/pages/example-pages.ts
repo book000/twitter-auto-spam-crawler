@@ -12,20 +12,13 @@ export const ExamplePages = {
     const ifNeeded = TweetService.isNeedDownload()
 
     if (ifNeeded) {
-      PageErrorHandler.logAction(
-        'runDownloadJson',
-        'download needed. Wait 5 seconds.'
-      )
+      PageErrorHandler.logAction('download needed. Wait 5 seconds.')
       TweetService.downloadTweets()
       await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError(
-        'runDownloadJson',
-        'Error in TweetPage.run',
-        error
-      )
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 
@@ -39,17 +32,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        PageErrorHandler.logAction(
-          'runLoginNotify',
-          'Notification sent successfully'
-        )
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        PageErrorHandler.logError(
-          'runLoginNotify',
-          'Failed to notify login',
-          error
-        )
+        PageErrorHandler.logError('Failed to notify login', error)
       })
   },
 
@@ -62,17 +48,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        PageErrorHandler.logAction(
-          'runLoginSuccessNotify',
-          'Notification sent successfully'
-        )
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        PageErrorHandler.logError(
-          'runLoginSuccessNotify',
-          'Failed to notify login success',
-          error
-        )
+        PageErrorHandler.logError('Failed to notify login success', error)
       })
   },
 
@@ -86,17 +65,10 @@ export const ExamplePages = {
       true
     )
       .then(() => {
-        PageErrorHandler.logAction(
-          'runLockedNotify',
-          'Notification sent successfully'
-        )
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        PageErrorHandler.logError(
-          'runLockedNotify',
-          'Failed to notify account locked',
-          error
-        )
+        PageErrorHandler.logError('Failed to notify account locked', error)
       })
   },
 
@@ -109,17 +81,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        PageErrorHandler.logAction(
-          'runUnlockedNotify',
-          'Notification sent successfully'
-        )
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        PageErrorHandler.logError(
-          'runUnlockedNotify',
-          'Failed to notify account unlocked',
-          error
-        )
+        PageErrorHandler.logError('Failed to notify account unlocked', error)
       })
   },
 
@@ -140,7 +105,7 @@ export const ExamplePages = {
     const newVersion = params.get('new')
 
     if (!oldVersion || !newVersion) {
-      PageErrorHandler.logError('runUpdateNotify', 'Missing version parameters')
+      PageErrorHandler.logError('Missing version parameters')
       window.close()
       return
     }
@@ -155,17 +120,10 @@ export const ExamplePages = {
       true
     )
       .then(() => {
-        PageErrorHandler.logAction(
-          'runUpdateNotify',
-          'Update notification sent successfully'
-        )
+        PageErrorHandler.logAction('Update notification sent successfully')
       })
       .catch((error: unknown) => {
-        PageErrorHandler.logError(
-          'runUpdateNotify',
-          'Failed to notify update',
-          error
-        )
+        PageErrorHandler.logError('Failed to notify update', error)
       })
   },
 }

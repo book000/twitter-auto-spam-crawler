@@ -30,11 +30,11 @@ export const HomePage = {
     const tabs = document.querySelectorAll(
       'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
     )
-    PageErrorHandler.logAction('runHome', `tabs=${tabs.length}`)
+    PageErrorHandler.logAction(`tabs=${tabs.length}`)
 
     for (const [tabIndex, tab_] of [...tabs].entries()) {
       const tab = tab_ as HTMLAnchorElement
-      PageErrorHandler.logAction('runHome', `open tab=${tabIndex}`)
+      PageErrorHandler.logAction(`open tab=${tabIndex}`)
       tab.click()
 
       await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
@@ -48,7 +48,7 @@ export const HomePage = {
           return
         }
 
-        PageErrorHandler.logAction('runHome', 'Next tab')
+        PageErrorHandler.logAction('Next tab')
         continue
       }
 
@@ -63,18 +63,12 @@ export const HomePage = {
 
     const isOnlyHome = ConfigManager.getIsOnlyHome()
     if (isOnlyHome) {
-      PageErrorHandler.logAction(
-        'runHome',
-        'isOnlyHome is true. Go to home page.'
-      )
+      PageErrorHandler.logAction('isOnlyHome is true. Go to home page.')
       location.href = URLS.HOME
       return
     }
 
-    PageErrorHandler.logAction(
-      'runHome',
-      'all tabs are opened. Go to explore page.'
-    )
+    PageErrorHandler.logAction('all tabs are opened. Go to explore page.')
     location.href = URLS.EXPLORE
   },
 }

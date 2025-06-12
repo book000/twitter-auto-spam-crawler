@@ -253,7 +253,7 @@ describe('PageErrorHandler', () => {
 
   describe('logAction', () => {
     it('should log action with method name prefix', () => {
-      PageErrorHandler.logAction('runTest', 'Processing 10 items')
+      PageErrorHandler.logAction('Processing 10 items', 'runTest')
 
       expect(consoleLogSpy).toHaveBeenCalledWith('runTest: Processing 10 items')
     })
@@ -261,7 +261,7 @@ describe('PageErrorHandler', () => {
 
   describe('logError', () => {
     it('should log error message', () => {
-      PageErrorHandler.logError('runTest', 'Failed to process items')
+      PageErrorHandler.logError('Failed to process items', undefined, 'runTest')
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'runTest: Failed to process items'
@@ -273,13 +273,13 @@ describe('PageErrorHandler', () => {
       process.env.NODE_ENV = 'development'
 
       const testError = new Error('Detailed error')
-      PageErrorHandler.logError('runTest', 'Failed to process items', testError)
+      PageErrorHandler.logError('Failed to process items', testError)
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'runTest: Failed to process items'
+        expect.stringMatching(/\w+: Failed to process items/)
       )
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'runTest: Error details:',
+        expect.stringMatching(/\w+: Error details:/),
         testError
       )
 
@@ -291,13 +291,13 @@ describe('PageErrorHandler', () => {
       process.env.NODE_ENV = 'production'
 
       const testError = new Error('Detailed error')
-      PageErrorHandler.logError('runTest', 'Failed to process items', testError)
+      PageErrorHandler.logError('Failed to process items', testError)
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'runTest: Failed to process items'
+        expect.stringMatching(/\w+: Failed to process items/)
       )
       expect(consoleErrorSpy).not.toHaveBeenCalledWith(
-        'runTest: Error details:',
+        expect.stringMatching(/\w+: Error details:/),
         testError
       )
 

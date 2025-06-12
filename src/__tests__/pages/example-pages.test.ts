@@ -102,7 +102,6 @@ describe('ExamplePages', () => {
       await ExamplePages.runDownloadJson()
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runDownloadJson',
         'download needed. Wait 5 seconds.'
       )
       expect(TweetService.downloadTweets).toHaveBeenCalled()
@@ -122,7 +121,6 @@ describe('ExamplePages', () => {
       await ExamplePages.runDownloadJson()
 
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runDownloadJson',
         'Error in TweetPage.run',
         mockError
       )
@@ -164,7 +162,6 @@ describe('ExamplePages', () => {
       // Wait for promise resolution
       await Promise.resolve()
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLoginNotify',
         'Notification sent successfully'
       )
     })
@@ -185,7 +182,6 @@ describe('ExamplePages', () => {
       // Flush all promises and timers
       await jest.runAllTimersAsync()
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runLoginNotify',
         'Failed to notify login',
         mockError
       )
@@ -225,7 +221,6 @@ describe('ExamplePages', () => {
       // Wait for promise resolution
       await Promise.resolve()
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLoginSuccessNotify',
         'Notification sent successfully'
       )
     })
@@ -244,7 +239,6 @@ describe('ExamplePages', () => {
       // Flush all promises and timers
       await jest.runAllTimersAsync()
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runLoginSuccessNotify',
         'Failed to notify login success',
         mockError
       )
@@ -285,7 +279,6 @@ describe('ExamplePages', () => {
       // Wait for promise resolution
       await Promise.resolve()
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runLockedNotify',
         'Notification sent successfully'
       )
     })
@@ -304,7 +297,6 @@ describe('ExamplePages', () => {
       // Flush all promises and timers
       await jest.runAllTimersAsync()
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runLockedNotify',
         'Failed to notify account locked',
         mockError
       )
@@ -344,7 +336,6 @@ describe('ExamplePages', () => {
       // Wait for promise resolution
       await Promise.resolve()
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runUnlockedNotify',
         'Notification sent successfully'
       )
     })
@@ -363,7 +354,6 @@ describe('ExamplePages', () => {
       // Flush all promises and timers
       await jest.runAllTimersAsync()
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runUnlockedNotify',
         'Failed to notify account unlocked',
         mockError
       )
@@ -456,7 +446,6 @@ describe('ExamplePages', () => {
       // Wait for promise resolution
       await Promise.resolve()
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'runUpdateNotify',
         'Update notification sent successfully'
       )
     })
@@ -484,7 +473,6 @@ describe('ExamplePages', () => {
       ExamplePages.runUpdateNotify()
 
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runUpdateNotify',
         'Missing version parameters'
       )
       expect(window.close).toHaveBeenCalled()
@@ -519,7 +507,6 @@ describe('ExamplePages', () => {
       // Flush all promises and timers
       await jest.runAllTimersAsync()
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runUpdateNotify',
         'Failed to notify update',
         mockError
       )
@@ -546,7 +533,6 @@ describe('ExamplePages', () => {
       ExamplePages.runUpdateNotify()
 
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runUpdateNotify',
         'Missing version parameters'
       )
       expect(window.close).toHaveBeenCalled()

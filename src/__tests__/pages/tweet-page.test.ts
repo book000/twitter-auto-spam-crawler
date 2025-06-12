@@ -230,7 +230,6 @@ describe('TweetPage', () => {
       await TweetPage.run()
 
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
-        'runTweet',
         'failed to load tweet after 3 retries. Resetting retry count and moving to next tweet.'
       )
       expect(Storage.setRetryCount).toHaveBeenCalledWith(0)
