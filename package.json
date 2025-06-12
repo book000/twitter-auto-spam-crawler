@@ -102,7 +102,6 @@
       "src/**/*.ts",
       "!src/main.ts",
       "!src/types/**/*",
-      "!src/pages/**/*",
       "!src/**/*.test.ts",
       "!src/__mocks__/**/*",
       "!src/__tests__/**/*"
