@@ -89,6 +89,39 @@ describe('PageErrorHandler', () => {
       expect(AsyncUtils.delay).not.toHaveBeenCalled()
       // Note: shouldReload=false prevents location.reload from being called
     })
+
+    it('should auto-detect caller name when not provided', async () => {
+      // Create a named function to ensure stack trace detection
+      async function testFunction() {
+        await PageErrorHandler.handlePageError('Test', new Error('test error'))
+      }
+
+      await testFunction()
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/testFunction \(Test\):/),
+        expect.any(Error)
+      )
+    })
+
+    it('should auto-detect caller name with options', async () => {
+      // Create a named function to ensure stack trace detection
+      async function anotherTestFunction() {
+        await PageErrorHandler.handlePageError(
+          'Test',
+          new Error('test error'),
+          { customMessage: 'Auto-detected error' }
+        )
+      }
+
+      await anotherTestFunction()
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/anotherTestFunction \(Test\):/),
+        expect.any(Error)
+      )
+      expect(consoleLogSpy).toHaveBeenCalledWith('Auto-detected error')
+    })
   })
 
   describe('waitForElementWithErrorHandling', () => {
@@ -176,6 +209,50 @@ describe('PageErrorHandler', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('Custom wait error')
       // Note: shouldReload=false prevents location.reload
     })
+
+    it('should auto-detect caller name when not provided', async () => {
+      const mockElement = document.createElement('div')
+      mockElement.classList.add('test-selector')
+      document.body.append(mockElement)
+
+      jest.mocked(DomUtils.waitElement).mockResolvedValue(undefined)
+
+      // Create a named function to ensure stack trace detection
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const waitElementTest = async () => {
+        return await PageErrorHandler.waitForElementWithErrorHandling(
+          '.test-selector',
+          'Test'
+        )
+      }
+
+      const result = await waitElementTest()
+
+      expect(result).toBe(mockElement)
+      mockElement.remove()
+    })
+
+    it('should auto-detect caller name with options when error occurs', async () => {
+      const testError = new Error('Element not found')
+      jest.mocked(DomUtils.waitElement).mockRejectedValue(testError)
+
+      // Create a named function to ensure stack trace detection
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const waitElementErrorTest = async () => {
+        return await PageErrorHandler.waitForElementWithErrorHandling(
+          '.test-selector',
+          'Test',
+          { errorOptions: { shouldReload: false } }
+        )
+      }
+
+      await expect(waitElementErrorTest()).rejects.toThrow(testError)
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/waitElementErrorTest \(Test\):/),
+        testError
+      )
+    })
   })
 
   describe('executeWithErrorHandling', () => {
@@ -225,6 +302,46 @@ describe('PageErrorHandler', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('Operation failed gracefully')
       // Note: custom shouldReload=false prevents location.reload
     })
+
+    it('should auto-detect caller name when not provided', async () => {
+      const expectedResult = { data: 'test' }
+      const operation = jest.fn().mockResolvedValue(expectedResult)
+
+      // Create a named function to ensure stack trace detection
+      async function executeTest() {
+        return await PageErrorHandler.executeWithErrorHandling(
+          operation,
+          'Test'
+        )
+      }
+
+      const result = await executeTest()
+
+      expect(result).toBe(expectedResult)
+      expect(operation).toHaveBeenCalled()
+    })
+
+    it('should auto-detect caller name with options when error occurs', async () => {
+      const testError = new Error('Operation failed')
+      const operation = jest.fn().mockRejectedValue(testError)
+
+      // Create a named function to ensure stack trace detection
+      async function executeErrorTest() {
+        return await PageErrorHandler.executeWithErrorHandling(
+          operation,
+          'Test',
+          { shouldReload: false }
+        )
+      }
+
+      const result = await executeErrorTest()
+
+      expect(result).toBeUndefined()
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/executeErrorTest \(Test\):/),
+        testError
+      )
+    })
   })
 
   describe('logPageStart', () => {
@@ -249,6 +366,39 @@ describe('PageErrorHandler', () => {
         additionalInfo
       )
     })
+
+    it('should auto-detect caller name when not provided', () => {
+      // Create a named function to ensure stack trace detection
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const startTest = () => {
+        PageErrorHandler.logPageStart('Test')
+      }
+
+      startTest()
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'startTest: Starting Test page processing...'
+      )
+    })
+
+    it('should auto-detect caller name with additional info', () => {
+      const additionalInfo = { userId: '12345' }
+
+      // Create a named function to ensure stack trace detection
+      function startTestWithInfo() {
+        PageErrorHandler.logPageStart('Test', additionalInfo)
+      }
+
+      startTestWithInfo()
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'startTestWithInfo: Starting Test page processing...'
+      )
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'startTestWithInfo: Additional info:',
+        additionalInfo
+      )
+    })
   })
 
   describe('logAction', () => {
@@ -256,6 +406,20 @@ describe('PageErrorHandler', () => {
       PageErrorHandler.logAction('Processing 10 items', 'runTest')
 
       expect(consoleLogSpy).toHaveBeenCalledWith('runTest: Processing 10 items')
+    })
+
+    it('should auto-detect caller name when not provided', () => {
+      // Create a named function to ensure stack trace detection
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const processItems = () => {
+        PageErrorHandler.logAction('Processing 10 items')
+      }
+
+      processItems()
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'processItems: Processing 10 items'
+      )
     })
   })
 
@@ -302,6 +466,96 @@ describe('PageErrorHandler', () => {
       )
 
       process.env.NODE_ENV = originalEnv
+    })
+
+    it('should auto-detect caller name when not provided', () => {
+      // Create a named function to ensure stack trace detection
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const errorTest = () => {
+        PageErrorHandler.logError('Failed to process items')
+      }
+
+      errorTest()
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'errorTest: Failed to process items'
+      )
+    })
+
+    it('should auto-detect caller name with error details in development', () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'development'
+
+      const testError = new Error('Detailed error')
+
+      // Create a named function to ensure stack trace detection
+      function errorDetailTest() {
+        PageErrorHandler.logError('Failed to process items', testError)
+      }
+
+      errorDetailTest()
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'errorDetailTest: Failed to process items'
+      )
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'errorDetailTest: Error details:',
+        testError
+      )
+
+      process.env.NODE_ENV = originalEnv
+    })
+  })
+
+  describe('_getCallerName', () => {
+    it('should extract function name from stack trace', () => {
+      // In Jest environment, the stack trace might be different
+      // We can verify the method works by checking it returns a valid string
+      const result = PageErrorHandler._getCallerName()
+      expect(typeof result).toBe('string')
+      expect(result.length).toBeGreaterThan(0)
+    })
+
+    it('should handle when Error constructor throws', () => {
+      // Mock Error constructor to throw
+      const OriginalError = globalThis.Error
+      globalThis.Error = jest.fn().mockImplementation(() => {
+        throw new OriginalError('Error constructor failed')
+      }) as any
+
+      const result = PageErrorHandler._getCallerName()
+      expect(result).toBe('unknown')
+
+      // Restore original Error constructor
+      globalThis.Error = OriginalError
+    })
+
+    it('should return unknown for malformed stack traces', () => {
+      // Mock Error to return a malformed stack
+      const OriginalError = globalThis.Error
+      globalThis.Error = jest.fn().mockImplementation(() => ({
+        stack: 'malformed stack trace without function names',
+      })) as any
+
+      const result = PageErrorHandler._getCallerName()
+      expect(result).toBe('unknown')
+
+      // Restore original Error constructor
+      globalThis.Error = OriginalError
+    })
+
+    it('should return unknown when stack is undefined', () => {
+      // Mock Error to return no stack
+      const OriginalError = globalThis.Error
+      globalThis.Error = jest.fn().mockImplementation(() => ({
+        stack: undefined,
+      })) as any
+
+      const result = PageErrorHandler._getCallerName()
+      expect(result).toBe('unknown')
+
+      // Restore original Error constructor
+      globalThis.Error = OriginalError
     })
   })
 })

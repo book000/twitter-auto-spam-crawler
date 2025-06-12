@@ -25,13 +25,22 @@ export const PageErrorHandler = {
    * Handle page errors with standard logging and reload behavior
    *
    * @param pageName - Name of the page for logging (e.g., 'Home', 'Search')
-   * @param methodName - Name of the method where error occurred
+   * @param methodName - Name of the method where error occurred (auto-detected if not provided)
    * @param error - The error that was caught
    * @param options - Error handling options
    * @returns Promise that resolves after handling the error
    *
    * @example
    * ```typescript
+   * // With auto-detection (recommended)
+   * try {
+   *   await DomUtils.waitElement('.timeline')
+   * } catch (error) {
+   *   await PageErrorHandler.handlePageError('Home', error)
+   *   return
+   * }
+   *
+   * // With manual method name
    * try {
    *   await DomUtils.waitElement('.timeline')
    * } catch (error) {
@@ -42,10 +51,32 @@ export const PageErrorHandler = {
    */
   async handlePageError(
     pageName: string,
-    methodName: string,
-    error: unknown,
-    options: PageErrorOptions = {}
+    methodNameOrError: unknown,
+    errorOrOptions?: any,
+    optionsArg?: PageErrorOptions
   ): Promise<void> {
+    // Handle overloaded parameters
+    let methodName: string
+    let error: unknown
+    let options: PageErrorOptions
+
+    if (typeof methodNameOrError === 'string') {
+      // Old signature: handlePageError(pageName, methodName, error, options)
+      methodName = methodNameOrError
+      error = errorOrOptions
+      options = optionsArg ?? {}
+    } else {
+      // New signature: handlePageError(pageName, error, options)
+      methodName = this._getCallerName()
+      error = methodNameOrError
+      options =
+        errorOrOptions !== undefined &&
+        errorOrOptions !== null &&
+        typeof errorOrOptions === 'object'
+          ? (errorOrOptions as PageErrorOptions)
+          : {}
+    }
+
     const {
       shouldReload = true,
       waitTime = DELAYS.ERROR_RELOAD_WAIT,
@@ -78,13 +109,19 @@ export const PageErrorHandler = {
    *
    * @param selector - CSS selector for the element
    * @param pageName - Name of the page for logging
-   * @param methodName - Name of the method for logging
+   * @param methodName - Name of the method for logging (auto-detected if not provided)
    * @param options - Additional options including timeout and error handling
    * @returns Promise that resolves when element is found or rejects after handling error
    *
    * @example
    * ```typescript
-   * // This replaces the common try-catch pattern
+   * // With auto-detection (recommended)
+   * await PageErrorHandler.waitForElementWithErrorHandling(
+   *   '[role="main"]',
+   *   'Home'
+   * )
+   *
+   * // With manual method name
    * await PageErrorHandler.waitForElementWithErrorHandling(
    *   '[role="main"]',
    *   'Home',
@@ -95,12 +132,34 @@ export const PageErrorHandler = {
   async waitForElementWithErrorHandling(
     selector: string,
     pageName: string,
-    methodName: string,
-    options: {
+    methodNameOrOptions?:
+      | string
+      | {
+          timeout?: number
+          errorOptions?: PageErrorOptions
+        },
+    optionsArg?: {
       timeout?: number
       errorOptions?: PageErrorOptions
-    } = {}
+    }
   ): Promise<HTMLElement> {
+    // Handle overloaded parameters
+    let methodName: string
+    let options: {
+      timeout?: number
+      errorOptions?: PageErrorOptions
+    }
+
+    if (typeof methodNameOrOptions === 'string') {
+      // Old signature: waitForElementWithErrorHandling(selector, pageName, methodName, options)
+      methodName = methodNameOrOptions
+      options = optionsArg ?? {}
+    } else {
+      // New signature: waitForElementWithErrorHandling(selector, pageName, options)
+      methodName = this._getCallerName()
+      options = methodNameOrOptions ?? {}
+    }
+
     try {
       await DomUtils.waitElement(selector, options.timeout)
       // DomUtils.waitElement doesn't return the element, so we need to query for it
@@ -128,12 +187,23 @@ export const PageErrorHandler = {
    *
    * @param operation - The async operation to execute
    * @param pageName - Name of the page for logging
-   * @param methodName - Name of the method for logging
+   * @param methodName - Name of the method for logging (auto-detected if not provided)
    * @param options - Error handling options
    * @returns Promise that resolves with operation result or undefined after error handling
    *
    * @example
    * ```typescript
+   * // With auto-detection (recommended)
+   * await PageErrorHandler.executeWithErrorHandling(
+   *   async () => {
+   *     // Complex page operations
+   *     const element = await DomUtils.waitElement('.timeline')
+   *     await processElement(element)
+   *   },
+   *   'Home'
+   * )
+   *
+   * // With manual method name
    * await PageErrorHandler.executeWithErrorHandling(
    *   async () => {
    *     // Complex page operations
@@ -148,9 +218,23 @@ export const PageErrorHandler = {
   async executeWithErrorHandling<T>(
     operation: () => Promise<T>,
     pageName: string,
-    methodName: string,
-    options: PageErrorOptions = {}
+    methodNameOrOptions?: string | PageErrorOptions,
+    optionsArg?: PageErrorOptions
   ): Promise<T | undefined> {
+    // Handle overloaded parameters
+    let methodName: string
+    let options: PageErrorOptions
+
+    if (typeof methodNameOrOptions === 'string') {
+      // Old signature: executeWithErrorHandling(operation, pageName, methodName, options)
+      methodName = methodNameOrOptions
+      options = optionsArg ?? {}
+    } else {
+      // New signature: executeWithErrorHandling(operation, pageName, options)
+      methodName = this._getCallerName()
+      options = methodNameOrOptions ?? {}
+    }
+
     try {
       return await operation()
     } catch (error) {
@@ -165,11 +249,17 @@ export const PageErrorHandler = {
    * Provides consistent logging format across all pages.
    *
    * @param pageName - Name of the page
-   * @param methodName - Name of the method
+   * @param methodName - Name of the method (auto-detected if not provided)
    * @param additionalInfo - Optional additional information to log
    *
    * @example
    * ```typescript
+   * // With auto-detection (recommended)
+   * PageErrorHandler.logPageStart('Home', { userId: '12345' })
+   * // Logs: "runHome: Starting Home page processing..." (auto-detected from stack)
+   * // Logs: "runHome: Additional info: { userId: '12345' }"
+   *
+   * // With manual method name
    * PageErrorHandler.logPageStart('Home', 'runHome', { userId: '12345' })
    * // Logs: "runHome: Starting Home page processing..."
    * // Logs: "runHome: Additional info: { userId: '12345' }"
@@ -177,9 +267,23 @@ export const PageErrorHandler = {
    */
   logPageStart(
     pageName: string,
-    methodName: string,
-    additionalInfo?: Record<string, any>
+    methodNameOrAdditionalInfo?: string | Record<string, any>,
+    additionalInfoArg?: Record<string, any>
   ): void {
+    // Handle overloaded parameters
+    let methodName: string
+    let additionalInfo: Record<string, any> | undefined
+
+    if (typeof methodNameOrAdditionalInfo === 'string') {
+      // Old signature: logPageStart(pageName, methodName, additionalInfo)
+      methodName = methodNameOrAdditionalInfo
+      additionalInfo = additionalInfoArg
+    } else {
+      // New signature: logPageStart(pageName, additionalInfo)
+      methodName = this._getCallerName()
+      additionalInfo = methodNameOrAdditionalInfo
+    }
+
     console.log(`${methodName}: Starting ${pageName} page processing...`)
 
     if (additionalInfo) {
