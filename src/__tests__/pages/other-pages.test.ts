@@ -2,6 +2,7 @@ import { OtherPages } from '../../pages/other-pages'
 import { URLS, DELAYS } from '../../core/constants'
 import { Storage } from '../../core/storage'
 import { AsyncUtils } from '../../utils/async'
+import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
@@ -11,6 +12,7 @@ import {
 // Mock dependencies
 jest.mock('../../core/storage')
 jest.mock('../../utils/async')
+jest.mock('../../utils/page-error-handler')
 
 // Mock timers
 jest.useFakeTimers()
@@ -39,6 +41,8 @@ describe('OtherPages', () => {
     ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
     ;(Storage.isLoginNotified as jest.Mock).mockReturnValue(false)
     ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
+    ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
 
     // Mock history.back
     Object.defineProperty(globalThis, 'history', {
@@ -153,19 +157,22 @@ describe('OtherPages', () => {
 
       const promise = OtherPages.runProcessBlueBlockerQueue()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: start'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'start'
       )
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: waiting for 60 seconds to process queue.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'waiting for 60 seconds to process queue.'
       )
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.PROCESSING_WAIT)
 
       // Wait for the initial delay to complete
       await Promise.resolve()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: checking for #injected-blue-block-toasts > div.toast'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'checking for #injected-blue-block-toasts > div.toast'
       )
       expect(globalThis.setInterval).toHaveBeenCalledWith(
         expect.any(Function),
@@ -177,9 +184,9 @@ describe('OtherPages', () => {
         intervalCallback()
       }
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: still waiting for toasts',
-        2
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'still waiting for toasts: 2'
       )
 
       // Remove toasts
@@ -190,8 +197,9 @@ describe('OtherPages', () => {
         intervalCallback()
       }
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: all toasts are gone.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'all toasts are gone.'
       )
       expect(globalThis.clearInterval).toHaveBeenCalledWith(123)
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
@@ -227,8 +235,9 @@ describe('OtherPages', () => {
         intervalCallback()
       }
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: all toasts are gone.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'all toasts are gone.'
       )
       expect(globalThis.clearInterval).toHaveBeenCalledWith(456)
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
@@ -268,9 +277,9 @@ describe('OtherPages', () => {
       if (intervalCallback) {
         intervalCallback()
       }
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: still waiting for toasts',
-        3
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'still waiting for toasts: 3'
       )
 
       // Remove one toast
@@ -280,9 +289,9 @@ describe('OtherPages', () => {
       if (intervalCallback) {
         intervalCallback()
       }
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runProcessBlueBlockerQueue: still waiting for toasts',
-        2
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runProcessBlueBlockerQueue',
+        'still waiting for toasts: 2'
       )
 
       await promise
@@ -335,8 +344,9 @@ describe('OtherPages', () => {
 
       OtherPages.runLocked()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runLocked: Account is locked, starting continuous unlock detection'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLocked',
+        'Account is locked, starting continuous unlock detection'
       )
       expect(globalThis.setInterval).toHaveBeenCalledWith(
         expect.any(Function),
@@ -352,8 +362,9 @@ describe('OtherPages', () => {
         intervalCallback()
       }
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runLocked: Periodic check 1 - navigating to bookmark page to test unlock status'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLocked',
+        'Periodic check 1 - navigating to bookmark page to test unlock status'
       )
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that the periodic check was started
@@ -391,24 +402,27 @@ describe('OtherPages', () => {
       if (intervalCallback) {
         intervalCallback()
       }
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runLocked: Periodic check 1 - navigating to bookmark page to test unlock status'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLocked',
+        'Periodic check 1 - navigating to bookmark page to test unlock status'
       )
 
       // Second check
       if (intervalCallback) {
         intervalCallback()
       }
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runLocked: Periodic check 2 - navigating to bookmark page to test unlock status'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLocked',
+        'Periodic check 2 - navigating to bookmark page to test unlock status'
       )
 
       // Third check
       if (intervalCallback) {
         intervalCallback()
       }
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runLocked: Periodic check 3 - navigating to bookmark page to test unlock status'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLocked',
+        'Periodic check 3 - navigating to bookmark page to test unlock status'
       )
     })
   })

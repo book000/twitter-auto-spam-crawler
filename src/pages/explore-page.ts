@@ -1,7 +1,6 @@
-import { DELAYS } from '@/core/constants'
 import { StateService } from '@/services/state-service'
 import { DomUtils } from '@/utils/dom'
-import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const ExplorePage = {
   async run(): Promise<void> {
@@ -13,13 +12,12 @@ export const ExplorePage = {
 
     try {
       await DomUtils.waitElement('div[data-testid="trend"]')
-    } catch {
-      if (DomUtils.isFailedPage()) {
-        console.error('runExplore: failed page. Wait 1 minute and reload.')
-      }
-      console.log('Wait 1 minute and reload.')
-      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
-      location.reload()
+    } catch (error) {
+      await PageErrorHandler.handlePageError('Explore', 'runExplore', error, {
+        customMessage: DomUtils.isFailedPage()
+          ? 'runExplore: failed page. Wait 1 minute and reload.'
+          : 'Wait 1 minute and reload.',
+      })
       return
     }
 

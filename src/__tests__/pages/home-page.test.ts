@@ -5,6 +5,7 @@ import { StateService } from '../../services/state-service'
 import { CrawlerService } from '../../services/crawler-service'
 import { DomUtils } from '../../utils/dom'
 import { AsyncUtils } from '../../utils/async'
+import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupTwitterDOM,
   setupUserscriptMocks,
@@ -18,6 +19,7 @@ jest.mock('../../services/state-service')
 jest.mock('../../services/crawler-service')
 jest.mock('../../utils/dom')
 jest.mock('../../utils/async')
+jest.mock('../../utils/page-error-handler')
 
 // Mock timers
 jest.useFakeTimers()
@@ -52,6 +54,11 @@ describe('HomePage', () => {
     ;(ConfigManager.getIsOnlyHome as jest.Mock).mockReturnValue(false)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.startCrawling as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.handlePageError as jest.Mock).mockResolvedValue(
+      undefined
+    )
+    ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -109,19 +116,19 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
-      // Since we can't mock location.reload in JSDOM, we verify the behavior by checking
-      // that the error handling occurred (delay was called with ERROR_RELOAD_WAIT)
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Home',
+        'runHome',
+        expect.any(Error)
+      )
     })
 
     /**
-     * 失敗ページ検出時のエラーログ出力をテスト
+     * 失敗ページ検出時のエラーハンドリングをテスト
      * - DomUtils.isFailedPage()がtrueを返す場合
-     * - 専用エラーメッセージの出力確認
+     * - PageErrorHandler.handlePageError()の呼び出し確認
      */
-    it('should log error when failed page is detected', async () => {
+    it('should handle error when failed page is detected', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
@@ -129,7 +136,11 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith('runHome: failed page.')
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Home',
+        'runHome',
+        expect.any(Error)
+      )
     })
 
     /**
@@ -188,7 +199,10 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith('Next tab')
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runHome',
+        'Next tab'
+      )
     })
 
     /**
@@ -210,13 +224,14 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'runHome: failed page. Wait 1 minute and reload.'
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Home',
+        'runHome',
+        expect.any(Error),
+        {
+          customMessage: 'runHome: failed page. Wait 1 minute and reload.',
+        }
       )
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
-      // Since we can't mock location.reload in JSDOM, we verify the behavior by checking
-      // that the error handling occurred (delay was called with ERROR_RELOAD_WAIT)
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
     })
 
     /**
@@ -230,8 +245,9 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runHome: isOnlyHome is true. Go to home page.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runHome',
+        'isOnlyHome is true. Go to home page.'
       )
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that the isOnlyHome logic was executed
@@ -270,17 +286,22 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        `runHome: tabs=${tabs.length}`
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runHome',
+        `tabs=${tabs.length}`
       )
 
       // Check individual tab logs
       for (let i = 0; i < tabs.length; i++) {
-        expect(consoleMocks.log).toHaveBeenCalledWith(`runHome: open tab=${i}`)
+        expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+          'runHome',
+          `open tab=${i}`
+        )
       }
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runHome: all tabs are opened. Go to explore page.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runHome',
+        'all tabs are opened. Go to explore page.'
       )
     })
   })

@@ -4,6 +4,7 @@ import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
 import { DomUtils } from '@/utils/dom'
 import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const HomePage = {
   async run(): Promise<void> {
@@ -19,13 +20,8 @@ export const HomePage = {
       await DomUtils.waitElement(
         'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
       )
-    } catch {
-      if (DomUtils.isFailedPage()) {
-        console.error('runHome: failed page.')
-      }
-      console.log('Wait 1 minute and reload.')
-      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
-      location.reload()
+    } catch (error) {
+      await PageErrorHandler.handlePageError('Home', 'runHome', error)
       return
     }
 
@@ -34,25 +30,25 @@ export const HomePage = {
     const tabs = document.querySelectorAll(
       'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
     )
-    console.log(`runHome: tabs=${tabs.length}`)
+    PageErrorHandler.logAction('runHome', `tabs=${tabs.length}`)
 
     for (const [tabIndex, tab_] of [...tabs].entries()) {
       const tab = tab_ as HTMLAnchorElement
-      console.log(`runHome: open tab=${tabIndex}`)
+      PageErrorHandler.logAction('runHome', `open tab=${tabIndex}`)
       tab.click()
 
       await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
       try {
         await DomUtils.waitElement('article[data-testid="tweet"]')
-      } catch {
+      } catch (error) {
         if (DomUtils.isFailedPage()) {
-          console.error('runHome: failed page. Wait 1 minute and reload.')
-          await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
-          location.reload()
+          await PageErrorHandler.handlePageError('Home', 'runHome', error, {
+            customMessage: 'runHome: failed page. Wait 1 minute and reload.',
+          })
           return
         }
 
-        console.log('Next tab')
+        PageErrorHandler.logAction('runHome', 'Next tab')
         continue
       }
 
@@ -67,12 +63,18 @@ export const HomePage = {
 
     const isOnlyHome = ConfigManager.getIsOnlyHome()
     if (isOnlyHome) {
-      console.log('runHome: isOnlyHome is true. Go to home page.')
+      PageErrorHandler.logAction(
+        'runHome',
+        'isOnlyHome is true. Go to home page.'
+      )
       location.href = URLS.HOME
       return
     }
 
-    console.log('runHome: all tabs are opened. Go to explore page.')
+    PageErrorHandler.logAction(
+      'runHome',
+      'all tabs are opened. Go to explore page.'
+    )
     location.href = URLS.EXPLORE
   },
 }

@@ -6,6 +6,7 @@ import { QueueService } from '../../services/queue-service'
 import { NotificationService } from '../../services/notification-service'
 import { AsyncUtils } from '../../utils/async'
 import { TweetPage } from '../../pages/tweet-page'
+import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
@@ -19,6 +20,7 @@ jest.mock('../../services/queue-service')
 jest.mock('../../services/notification-service')
 jest.mock('../../utils/async')
 jest.mock('../../pages/tweet-page')
+jest.mock('../../utils/page-error-handler')
 
 // Mock timers
 jest.useFakeTimers()
@@ -54,6 +56,8 @@ describe('ExamplePages', () => {
     ;(QueueService.resetWaitingQueue as jest.Mock).mockImplementation(() => {})
     ;(Storage.setLoginNotified as jest.Mock).mockImplementation(() => {})
     ;(Storage.setLockedNotified as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
 
     // Mock window methods
     globalThis.alert = jest.fn()
@@ -97,8 +101,9 @@ describe('ExamplePages', () => {
 
       await ExamplePages.runDownloadJson()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith(
-        'runDownloadJson: download needed. Wait 5 seconds.'
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runDownloadJson',
+        'download needed. Wait 5 seconds.'
       )
       expect(TweetService.downloadTweets).toHaveBeenCalled()
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
@@ -116,8 +121,9 @@ describe('ExamplePages', () => {
 
       await ExamplePages.runDownloadJson()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Error in TweetPage.run:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runDownloadJson',
+        'Error in TweetPage.run',
         mockError
       )
     })
@@ -157,7 +163,8 @@ describe('ExamplePages', () => {
 
       // Wait for promise resolution
       await Promise.resolve()
-      expect(consoleMocks.info).toHaveBeenCalledWith(
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLoginNotify',
         'Notification sent successfully'
       )
     })
@@ -177,8 +184,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Failed to notify login:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runLoginNotify',
+        'Failed to notify login',
         mockError
       )
     })
@@ -216,7 +224,8 @@ describe('ExamplePages', () => {
 
       // Wait for promise resolution
       await Promise.resolve()
-      expect(consoleMocks.info).toHaveBeenCalledWith(
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLoginSuccessNotify',
         'Notification sent successfully'
       )
     })
@@ -234,8 +243,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Failed to notify login success:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runLoginSuccessNotify',
+        'Failed to notify login success',
         mockError
       )
     })
@@ -274,7 +284,8 @@ describe('ExamplePages', () => {
 
       // Wait for promise resolution
       await Promise.resolve()
-      expect(consoleMocks.info).toHaveBeenCalledWith(
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runLockedNotify',
         'Notification sent successfully'
       )
     })
@@ -292,8 +303,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Failed to notify account locked:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runLockedNotify',
+        'Failed to notify account locked',
         mockError
       )
     })
@@ -331,7 +343,8 @@ describe('ExamplePages', () => {
 
       // Wait for promise resolution
       await Promise.resolve()
-      expect(consoleMocks.info).toHaveBeenCalledWith(
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runUnlockedNotify',
         'Notification sent successfully'
       )
     })
@@ -349,8 +362,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Failed to notify account unlocked:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runUnlockedNotify',
+        'Failed to notify account unlocked',
         mockError
       )
     })
@@ -441,7 +455,8 @@ describe('ExamplePages', () => {
 
       // Wait for promise resolution
       await Promise.resolve()
-      expect(consoleMocks.info).toHaveBeenCalledWith(
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'runUpdateNotify',
         'Update notification sent successfully'
       )
     })
@@ -468,8 +483,9 @@ describe('ExamplePages', () => {
 
       ExamplePages.runUpdateNotify()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'runUpdateNotify: Missing version parameters'
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runUpdateNotify',
+        'Missing version parameters'
       )
       expect(window.close).toHaveBeenCalled()
       expect(NotificationService.notifyDiscord).not.toHaveBeenCalled()
@@ -502,8 +518,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Failed to notify update:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runUpdateNotify',
+        'Failed to notify update',
         mockError
       )
     })
@@ -528,8 +545,9 @@ describe('ExamplePages', () => {
 
       ExamplePages.runUpdateNotify()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'runUpdateNotify: Missing version parameters'
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'runUpdateNotify',
+        'Missing version parameters'
       )
       expect(window.close).toHaveBeenCalled()
     })

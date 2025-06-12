@@ -1,6 +1,7 @@
 import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const OtherPages = {
   runComposePost(): void {
@@ -14,28 +15,33 @@ export const OtherPages = {
   },
 
   async runProcessBlueBlockerQueue(): Promise<void> {
-    console.log('runProcessBlueBlockerQueue: start')
+    PageErrorHandler.logAction('runProcessBlueBlockerQueue', 'start')
 
-    console.log(
-      'runProcessBlueBlockerQueue: waiting for 60 seconds to process queue.'
+    PageErrorHandler.logAction(
+      'runProcessBlueBlockerQueue',
+      'waiting for 60 seconds to process queue.'
     )
     await AsyncUtils.delay(DELAYS.PROCESSING_WAIT)
 
-    console.log(
-      'runProcessBlueBlockerQueue: checking for #injected-blue-block-toasts > div.toast'
+    PageErrorHandler.logAction(
+      'runProcessBlueBlockerQueue',
+      'checking for #injected-blue-block-toasts > div.toast'
     )
     const interval = setInterval(() => {
       const toastElements = document.querySelectorAll(
         '#injected-blue-block-toasts > div.toast'
       )
       if (toastElements.length === 0) {
-        console.log('runProcessBlueBlockerQueue: all toasts are gone.')
+        PageErrorHandler.logAction(
+          'runProcessBlueBlockerQueue',
+          'all toasts are gone.'
+        )
         clearInterval(interval)
         location.href = URLS.HOME
       } else {
-        console.log(
-          'runProcessBlueBlockerQueue: still waiting for toasts',
-          toastElements.length
+        PageErrorHandler.logAction(
+          'runProcessBlueBlockerQueue',
+          `still waiting for toasts: ${toastElements.length}`
         )
       }
     }, DELAYS.CRAWL_INTERVAL)
@@ -50,16 +56,18 @@ export const OtherPages = {
   },
 
   runLocked(): void {
-    console.log(
-      'runLocked: Account is locked, starting continuous unlock detection'
+    PageErrorHandler.logAction(
+      'runLocked',
+      'Account is locked, starting continuous unlock detection'
     )
 
     let checkCount = 0
 
     setInterval(() => {
       checkCount++
-      console.log(
-        `runLocked: Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+      PageErrorHandler.logAction(
+        'runLocked',
+        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
       )
 
       location.href = URLS.BOOKMARK
