@@ -1,8 +1,7 @@
 import { ExplorePage } from '../../pages/explore-page'
-import { DELAYS } from '../../core/constants'
 import { StateService } from '../../services/state-service'
 import { DomUtils } from '../../utils/dom'
-import { AsyncUtils } from '../../utils/async'
+import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
@@ -12,7 +11,7 @@ import {
 // Mock dependencies
 jest.mock('../../services/state-service')
 jest.mock('../../utils/dom')
-jest.mock('../../utils/async')
+jest.mock('../../utils/page-error-handler')
 
 // Mock timers
 jest.useFakeTimers()
@@ -63,8 +62,12 @@ describe('ExplorePage', () => {
     ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
     ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
     ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.handlePageError as jest.Mock).mockResolvedValue(
+      undefined
+    )
+    ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -122,10 +125,14 @@ describe('ExplorePage', () => {
 
       await ExplorePage.run()
 
-      expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
-      // Since we can't mock location.reload in JSDOM, we verify the behavior by checking
-      // that the error handling occurred (delay was called with ERROR_RELOAD_WAIT, tested above)
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Explore',
+        'runExplore',
+        expect.any(Error),
+        {
+          customMessage: 'Wait 1 minute and reload.',
+        }
+      )
     })
 
     /**
@@ -141,8 +148,13 @@ describe('ExplorePage', () => {
 
       await ExplorePage.run()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'runExplore: failed page. Wait 1 minute and reload.'
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Explore',
+        'runExplore',
+        expect.any(Error),
+        {
+          customMessage: 'runExplore: failed page. Wait 1 minute and reload.',
+        }
       )
     })
 

@@ -4,6 +4,7 @@ import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
 import { NotificationService } from '@/services/notification-service'
 import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
 export const ExamplePages = {
@@ -11,13 +12,13 @@ export const ExamplePages = {
     const ifNeeded = TweetService.isNeedDownload()
 
     if (ifNeeded) {
-      console.log('runDownloadJson: download needed. Wait 5 seconds.')
+      PageErrorHandler.logAction('download needed. Wait 5 seconds.')
       TweetService.downloadTweets()
       await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      console.error('Error in TweetPage.run:', error)
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 
@@ -31,10 +32,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        console.info('Notification sent successfully')
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        console.error('Failed to notify login:', error)
+        PageErrorHandler.logError('Failed to notify login', error)
       })
   },
 
@@ -47,10 +48,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        console.info('Notification sent successfully')
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        console.error('Failed to notify login success:', error)
+        PageErrorHandler.logError('Failed to notify login success', error)
       })
   },
 
@@ -64,10 +65,10 @@ export const ExamplePages = {
       true
     )
       .then(() => {
-        console.info('Notification sent successfully')
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        console.error('Failed to notify account locked:', error)
+        PageErrorHandler.logError('Failed to notify account locked', error)
       })
   },
 
@@ -80,10 +81,10 @@ export const ExamplePages = {
       false
     )
       .then(() => {
-        console.info('Notification sent successfully')
+        PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        console.error('Failed to notify account unlocked:', error)
+        PageErrorHandler.logError('Failed to notify account unlocked', error)
       })
   },
 
@@ -104,7 +105,7 @@ export const ExamplePages = {
     const newVersion = params.get('new')
 
     if (!oldVersion || !newVersion) {
-      console.error('runUpdateNotify: Missing version parameters')
+      PageErrorHandler.logError('Missing version parameters')
       window.close()
       return
     }
@@ -119,10 +120,10 @@ export const ExamplePages = {
       true
     )
       .then(() => {
-        console.info('Update notification sent successfully')
+        PageErrorHandler.logAction('Update notification sent successfully')
       })
       .catch((error: unknown) => {
-        console.error('Failed to notify update:', error)
+        PageErrorHandler.logError('Failed to notify update', error)
       })
   },
 }

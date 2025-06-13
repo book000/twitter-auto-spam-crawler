@@ -3,6 +3,7 @@ import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
 import { DomUtils } from '@/utils/dom'
 import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
 export const SearchPage = {
@@ -23,13 +24,12 @@ export const SearchPage = {
 
     try {
       await DomUtils.waitElement('article[data-testid="tweet"]')
-    } catch {
-      if (DomUtils.isFailedPage()) {
-        console.error('runSearch: failed page. Wait 1 minute and reload.')
-      }
-      console.log('Wait 1 minute and reload.')
-      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
-      location.reload()
+    } catch (error) {
+      await PageErrorHandler.handlePageError('Search', 'runSearch', error, {
+        customMessage: DomUtils.isFailedPage()
+          ? 'runSearch: failed page. Wait 1 minute and reload.'
+          : 'Wait 1 minute and reload.',
+      })
       return
     }
 
@@ -42,7 +42,7 @@ export const SearchPage = {
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      console.error('Error in TweetPage.run:', error)
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 }

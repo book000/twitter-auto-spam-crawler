@@ -1,4 +1,4 @@
-import { URLS, DELAYS, TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
+import { URLS, TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
@@ -7,7 +7,7 @@ import { TweetService } from '@/services/tweet-service'
 import { DomUtils } from '@/utils/dom'
 import { ScrollUtils } from '@/utils/scroll'
 import { ErrorHandler } from '@/utils/error'
-import { AsyncUtils } from '@/utils/async'
+import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const TweetPage = {
   async run(onlyOpen = false): Promise<void> {
@@ -38,13 +38,13 @@ export const TweetPage = {
 
     ErrorHandler.handleErrorDialog(async (dialog) => {
       const dialogMessage = dialog.textContent
-      console.error('runTweet: found error dialog', dialogMessage)
+      PageErrorHandler.logError('found error dialog', dialogMessage)
 
       if (
         dialogMessage?.includes('削除') ||
         dialogMessage?.includes('deleted')
       ) {
-        console.error('runTweet: tweet deleted. Skip this tweet.')
+        PageErrorHandler.logError('tweet deleted. Skip this tweet.')
 
         const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
         if (tweetUrlMatch) {
@@ -54,16 +54,16 @@ export const TweetPage = {
         }
 
         TweetPage.run(true).catch((error: unknown) => {
-          console.error('Error in TweetPage.run:', error)
+          PageErrorHandler.logError('Error in TweetPage.run', error)
         })
       }
     }, 300_000).catch((error: unknown) => {
-      console.error('Error in handleErrorDialog:', error)
+      PageErrorHandler.logError('Error in handleErrorDialog', error)
     })
 
     ErrorHandler.detectUnprocessablePost(async (tweetArticleElement) => {
-      console.error(
-        "runTweet: found can't processing post",
+      PageErrorHandler.logError(
+        "found can't processing post",
         tweetArticleElement
       )
 
@@ -75,19 +75,19 @@ export const TweetPage = {
       }
 
       TweetPage.run(true).catch((error: unknown) => {
-        console.error('Error in TweetPage.run:', error)
+        PageErrorHandler.logError('Error in TweetPage.run', error)
       })
     }, 300_000).catch((error: unknown) => {
-      console.error('Error in detectUnprocessablePost:', error)
+      PageErrorHandler.logError('Error in detectUnprocessablePost', error)
     })
 
     const retryCount = Storage.getRetryCount()
     try {
       await DomUtils.waitElement('article[data-testid="tweet"]')
-    } catch {
+    } catch (error) {
       if (retryCount >= THRESHOLDS.MAX_RETRY_COUNT) {
-        console.error(
-          'runTweet: failed to load tweet after 3 retries. Resetting retry count and moving to next tweet.'
+        PageErrorHandler.logError(
+          'failed to load tweet after 3 retries. Resetting retry count and moving to next tweet.'
         )
         Storage.setRetryCount(0)
 
@@ -97,18 +97,15 @@ export const TweetPage = {
           await QueueService.checkedTweet(tweetId)
         }
         TweetPage.run(true).catch((error: unknown) => {
-          console.error('Error in TweetPage.run:', error)
+          PageErrorHandler.logError('Error in TweetPage.run', error)
         })
         return
       }
 
-      if (DomUtils.isFailedPage()) {
-        console.error('runTweet: failed page.')
-      }
-      console.log(`Wait 1 minute and reload. (Retry count: ${retryCount + 1})`)
+      await PageErrorHandler.handlePageError('Tweet', 'runTweet', error, {
+        customMessage: `Wait 1 minute and reload. (Retry count: ${retryCount + 1})`,
+      })
       Storage.setRetryCount(retryCount + 1)
-      await AsyncUtils.delay(DELAYS.ERROR_RELOAD_WAIT)
-      location.reload()
       return
     }
 
@@ -129,7 +126,7 @@ export const TweetPage = {
     }
 
     TweetPage.run(true).catch((error: unknown) => {
-      console.error('Error in TweetPage.run:', error)
+      PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },
 }

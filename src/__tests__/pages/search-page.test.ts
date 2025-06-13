@@ -5,6 +5,7 @@ import { CrawlerService } from '../../services/crawler-service'
 import { DomUtils } from '../../utils/dom'
 import { AsyncUtils } from '../../utils/async'
 import { TweetPage } from '../../pages/tweet-page'
+import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupSearchPageDOM,
   setupUserscriptMocks,
@@ -18,6 +19,7 @@ jest.mock('../../services/crawler-service')
 jest.mock('../../utils/dom')
 jest.mock('../../utils/async')
 jest.mock('../../pages/tweet-page')
+jest.mock('../../utils/page-error-handler')
 
 // Mock timers
 jest.useFakeTimers()
@@ -52,6 +54,11 @@ describe('SearchPage', () => {
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.startCrawling as jest.Mock).mockImplementation(() => {})
     ;(TweetPage.run as jest.Mock).mockResolvedValue(undefined)
+    ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
+    ;(PageErrorHandler.handlePageError as jest.Mock).mockResolvedValue(
+      undefined
+    )
   })
 
   afterEach(() => {
