@@ -9,14 +9,14 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 ### 重要な技術スタック
 
 - **TypeScript**: strict mode、ES2020 ターゲット
-- **ユーザースクリプト**: GM_* API（GM_getValue/GM_setValue等）を使用
-- **DOM操作**: X.com 固有のセレクターを使用
+- **ユーザースクリプト**: GM_* API（GM_getValue/GM_setValue 等）を使用
+- **DOM 操作**: X.com 固有のセレクターを使用
 - **Webpack**: ユーザースクリプトファイル（.user.js）の生成
-- **Jest**: テスト（120秒タイムアウト、jsdom環境）
+- **Jest**: テスト（120 秒タイムアウト、jsdom 環境）
 - **ESLint**: @book000/eslint-config 使用
-- **pnpm**: パッケージマネージャ（必須、npm/yarn不可）
+- **pnpm**: パッケージマネージャ（必須、npm/yarn 不可）
 
-## 🇯🇵 言語・コミュニケーション要件
+## 言語・コミュニケーション要件
 
 ### 必須ルール
 
@@ -48,12 +48,12 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
    - `test`: テスト関連
    - `chore`: その他の変更
 
-## 🏗️ アーキテクチャパターン
+## アーキテクチャパターン
 
 ### ページベースルーティング
 
 ```typescript
-// src/main.ts でURL基盤のルーティング
+// src/main.ts で URL 基盤のルーティング
 if (location.href.startsWith('https://x.com/home')) {
   // ホームページ処理
 } else if (/^https:\/\/x\.com\/[^/]+\/status\/\d+/.test(location.href)) {
@@ -94,7 +94,17 @@ const element = await PageErrorHandler.waitForElementWithErrorHandling(
 )
 ```
 
-## 🧪 テスト要件
+PageErrorHandler は全ページコンポーネントで発生していたエラーハンドリングコードの重複を解決するために導入された共通ユーティリティです。従来の 200 行以上の重複コードを削減し、一貫性のあるエラーハンドリングを提供します。
+
+#### 統一ログ出力
+
+```typescript
+PageErrorHandler.logPageStart('Home', 'runHome')
+PageErrorHandler.logAction('runHome', 'Found 10 tweets')
+PageErrorHandler.logError('runHome', 'Error occurred', error)
+```
+
+## テスト要件
 
 ### Jest 設定
 
@@ -103,7 +113,7 @@ const element = await PageErrorHandler.waitForElementWithErrorHandling(
 {
   "preset": "ts-jest",
   "testEnvironment": "jsdom",
-  "testTimeout": 120000, // 120秒タイムアウト
+  "testTimeout": 120000, // 120 秒タイムアウト
   "fakeTimers": { "enableGlobally": true }
 }
 ```
@@ -114,7 +124,7 @@ const element = await PageErrorHandler.waitForElementWithErrorHandling(
 // src/__mocks__/userscript.ts を使用
 import '@/__mocks__/userscript'
 
-// GM_getValue, GM_setValue等が自動的にモック化される
+// GM_getValue, GM_setValue 等が自動的にモック化される
 ```
 
 ### テストパターン
@@ -133,7 +143,48 @@ describe('ServiceName', () => {
 })
 ```
 
-## 🔧 ユーザースクリプト固有の考慮事項
+### テストファイル構造
+
+- **テストファイル**: `*.test.ts`
+- **配置場所**: `src/__tests__/` 配下
+- **構造**: 元のソースファイル構造を反映
+
+```text
+src/__tests__/
+├── core/
+│   ├── config.test.ts
+│   └── storage.test.ts
+├── services/
+│   ├── crawler-service.test.ts
+│   ├── tweet-service.test.ts
+│   └── queue-service.test.ts
+└── utils/
+    ├── dom.test.ts
+    └── error.test.ts
+```
+
+### ユーザースクリプト API モック詳細
+
+`src/__mocks__/userscript.ts` でユーザースクリプトグローバルをモック：
+
+```typescript
+// Map-based storage simulation
+const mockStorage = new Map<string, unknown>()
+
+;(globalThis as any).GM_getValue = jest.fn(
+  (key: string, defaultValue?: unknown) => {
+    return mockStorage.get(key) ?? defaultValue
+  }
+)
+;(globalThis as any).GM_setValue = jest.fn((key: string, value: unknown) => {
+  mockStorage.set(key, value)
+})
+;(globalThis as any).GM_config = jest.fn()
+;(globalThis as any).GM_config_event = 'GM_config_event'
+;(globalThis as any).addEventListener = jest.fn()
+```
+
+## ユーザースクリプト固有の考慮事項
 
 ### GM_* API 使用
 
@@ -144,7 +195,7 @@ GM_setValue('key', value)
 
 // メニュー登録
 GM_registerMenuCommand('設定', () => {
-  // 設定UI表示
+  // 設定 UI 表示
 })
 ```
 
@@ -167,7 +218,7 @@ const likes = tweet.querySelector('[data-testid="like"]')
 // dist/twitter-auto-spam-crawler.user.js が最終出力
 ```
 
-## 📋 開発ワークフロー
+## 開発ワークフロー
 
 ### 必須品質チェック
 
@@ -175,42 +226,10 @@ const likes = tweet.querySelector('[data-testid="like"]')
 
 ```bash
 pnpm run lint  # ESLint + Prettier + TypeScript
-pnpm test      # Jest テスト（120秒タイムアウト）
+pnpm test      # Jest テスト（120 秒タイムアウト）
 ```
 
-### Git ワークフロー
-
-```bash
-# ブランチ作成（必ず --no-track オプション）
-git checkout -b feature/your-feature origin/master --no-track
-
-# 品質チェック
-pnpm run lint && pnpm test
-
-# コミット（Conventional Commits）
-git commit -m "feat: add new feature
-
-新機能の詳細説明（日本語）"
-
-# プッシュ
-git push origin HEAD
-```
-
-### PR 自動クローズ
-
-```markdown
-## Summary
-- [実装内容の要約]
-
-## Changes
-- [変更点リスト]
-
-Closes #<issue番号>
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-```
-
-## 📝 JSDoc 標準
+## JSDoc 標準
 
 ```typescript
 /**
@@ -233,7 +252,7 @@ async function processTweets(
 }
 ```
 
-## ⚡ パフォーマンス・最適化
+## パフォーマンス・最適化
 
 ### タイマー管理
 
@@ -244,7 +263,7 @@ import { ErrorHandler } from '@/utils/error'
 // 安全な要素待機（タイムアウト付き）
 const element = await ErrorHandler.waitForElementWithTimeout(
   '.selector',
-  30000 // 30秒タイムアウト
+  30000 // 30 秒タイムアウト
 )
 
 // 安全なコールバック実行（タイムアウト付き）
@@ -253,21 +272,21 @@ await ErrorHandler.waitForElementAndCallbackWithTimeout(
   (element) => {
     // 処理
   },
-  30000 // 30秒タイムアウト
+  30000 // 30 秒タイムアウト
 )
 ```
 
-### DOM操作最適化
+### DOM 操作最適化
 
 ```typescript
-// バッチ処理でDOM操作を最適化
+// バッチ処理で DOM 操作を最適化
 const tweets = Array.from(document.querySelectorAll('[data-testid="tweet"]'))
 const processedTweets = tweets
   .filter(tweet => /* フィルター条件 */)
   .map(tweet => /* データ抽出 */)
 ```
 
-## 🚫 避けるべきパターン
+## 避けるべきパターン
 
 ### 重複エラーハンドリング
 
@@ -282,7 +301,7 @@ try {
   // 重複するエラー処理...
 }
 
-// ✅ 推奨: PageErrorHandler使用
+// ✅ 推奨: PageErrorHandler 使用
 try {
   await DomUtils.waitElement('.timeline')
 } catch (error) {
@@ -296,7 +315,7 @@ try {
 ```typescript
 // ❌ 避ける: 循環依存
 import { ServiceA } from './service-a'
-// ServiceA が現在のファイルをimportしている
+// ServiceA が現在のファイルを import している
 
 // ✅ 推奨: 単方向依存
 import { Utils } from '@/utils/dom'
@@ -314,17 +333,42 @@ setInterval(() => {
 await ErrorHandler.waitForElementWithTimeout('.selector', 30000)
 ```
 
-## 📚 参考ドキュメント
+## 開発環境とビルドシステム
 
-プロジェクトの詳細情報：
+### 開発環境要件
 
-- **CLAUDE.md**: 全体的な開発ガイド
-- **.claude/architecture.md**: アーキテクチャ詳細
-- **.claude/development-patterns.md**: 実装パターン詳細
-- **.claude/testing-guide.md**: テスト手法詳細
-- **.github/CONTRIBUTING.md**: コントリビューションガイド
+- **Node.js**: `24.1.0` (engines フィールドで指定)
+- **パッケージマネージャ**: `pnpm@9.15.4+` (必須)
 
-## 🎯 コード生成時の優先事項
+### 開発コマンド
+
+- `pnpm install` - 依存関係をインストール
+- `pnpm run build` - 本番用ユーザースクリプトをビルド
+- `pnpm run build:dev` - ソースマップ付き開発用ユーザースクリプトをビルド
+- `pnpm run watch` - 開発用のウォッチモードでビルド
+- `pnpm test` - カバレッジ付きで全テストを実行（120 秒タイムアウト）
+- `pnpm test -- <ファイル>` - 特定のテストファイルを実行
+- `pnpm run lint` - 全てのリンティング（prettier、eslint、typescript）を実行
+- `pnpm run fix` - リンティングエラーを自動修正
+- `pnpm run clean` - dist ディレクトリをクリーンアップ
+
+### ビルドシステム（Webpack）
+
+- **エントリーポイント**: `src/main.ts`
+- **出力**: `dist/twitter-auto-spam-crawler.user.js`
+- **TypeScript**: ES2020 ターゲット、ES2015 モジュール、strict モード
+- **パスエイリアス**: `@/` → `src/` マッピング
+- **最小化なし**: ユーザースクリプトの可読性とセキュリティ検証のため
+- **ソースマップ**: 開発モードでのみ有効
+
+package.json の `userscript` フィールドから以下を自動生成：
+
+- `@name`, `@namespace`, `@version`, `@description`
+- `@match`: x.com/*, example.com/*
+- `@grant`: GM_getValue, GM_setValue, GM_registerMenuCommand, GM_unregisterMenuCommand
+- `@require`: Tampermonkey Config 外部スクリプト
+
+## コード生成時の優先事項
 
 1. **最小限の変更**: 既存動作を壊さない
 2. **日本語コメント**: コード内説明は日本語
@@ -332,6 +376,6 @@ await ErrorHandler.waitForElementWithTimeout('.selector', 30000)
 4. **テスト追加**: 新機能には適切なテストを追加
 5. **PageErrorHandler 使用**: エラーハンドリングは統一パターン
 6. **ユーザースクリプト API**: GM_* 関数の適切な使用
-7. **パフォーマンス**: DOM操作とタイマー管理の最適化
+7. **パフォーマンス**: DOM 操作とタイマー管理の最適化
 
 これらのガイドラインに従って、効率的で保守可能なコードを生成してください。
