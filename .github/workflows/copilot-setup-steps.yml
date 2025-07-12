@@ -13,22 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Node.js の設定
-      # プロジェクトは Node.js 24.4.0 を要求（package.json engines フィールド）
-      # 注意: .node-version ファイルが古い可能性があるため、engines フィールドを優先
+      # 1. ソースコードのチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # 2. Node.js の設定
+      # .node-version ファイルを使用してNode.jsバージョンを指定
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.4.0'  # package.json engines フィールドで指定されたバージョン
+          node-version-file: '.node-version'
           
-      # 2. pnpm パッケージマネージャーの設定
-      # package.json の packageManager フィールドで pnpm@9.15.9+ が指定されている
+      # 3. pnpm パッケージマネージャーの設定
+      # package.json の packageManager フィールドから自動的にバージョンを取得
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: '9.15.9'
+          package_json_file: 'package.json'
           
-      # 3. 依存関係キャッシュの設定
+      # 4. 依存関係キャッシュの設定
       # pnpm の依存関係を効率的にキャッシュ
       - name: Get pnpm store directory
         id: pnpm-cache
@@ -44,39 +47,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
-      # 4. 依存関係のインストール
-      # すべての開発依存関係を含めてインストール
+      # 5. 依存関係のインストール
+      # 開発環境構築に必要な依存関係をインストール
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
-      # 5. TypeScript 設定の検証
-      # プロジェクトは strict モードの TypeScript を使用
-      - name: Verify TypeScript configuration
-        run: pnpm run lint:tsc
-        
-      # 6. コードスタイルの検証
-      # ESLint と Prettier による品質チェック
-      - name: Verify code style
-        run: pnpm run lint:prettier && pnpm run lint:eslint
-        
-      # 7. テスト環境の初期化
-      # Jest の jsdom 環境をテスト（120秒タイムアウト設定）
-      - name: Initialize test environment
-        run: pnpm test -- --passWithNoTests --bail
-        
-      # 8. ビルド環境の確認
-      # ユーザースクリプト（.user.js）生成の確認
-      - name: Verify build system
-        run: pnpm run build:dev
-        
-      # 9. 生成物の確認
-      # dist/twitter-auto-spam-crawler.user.js が正常に生成されることを確認
-      - name: Verify build output
-        run: |
-          if [ ! -f "dist/twitter-auto-spam-crawler.user.js" ]; then
-            echo "❌ ユーザースクリプトファイルが生成されませんでした"
-            exit 1
-          else
-            echo "✅ ユーザースクリプトファイルが正常に生成されました"
-            ls -la dist/
-          fi
