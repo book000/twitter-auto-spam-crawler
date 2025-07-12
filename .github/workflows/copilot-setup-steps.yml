@@ -15,10 +15,11 @@ jobs:
     steps:
       # 1. Node.js の設定
       # プロジェクトは Node.js 24.4.0 を要求（package.json engines フィールド）
+      # 注意: .node-version ファイルが古い可能性があるため、engines フィールドを優先
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'  # 24.4.0 が記載されたファイル
+          node-version: '24.4.0'  # package.json engines フィールドで指定されたバージョン
           
       # 2. pnpm パッケージマネージャーの設定
       # package.json の packageManager フィールドで pnpm@9.15.9+ が指定されている
