@@ -1,0 +1,81 @@
+# GitHub Copilot Code Agent 開発環境セットアップ手順
+# このファイルは GitHub Copilot Code Agent が効果的に開発環境を構築するための手順を定義します
+# 参考: https://docs.github.com/ja/copilot/how-tos/agents/copilot-coding-agent/customizing-the-development-environment-for-copilot-coding-agent
+
+name: Copilot Setup Steps
+
+on:
+  workflow_call:
+
+jobs:
+  setup:
+    name: Development Environment Setup
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Node.js の設定
+      # プロジェクトは Node.js 24.4.0 を要求（package.json engines フィールド）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'  # 24.4.0 が記載されたファイル
+          
+      # 2. pnpm パッケージマネージャーの設定
+      # package.json の packageManager フィールドで pnpm@9.15.9+ が指定されている
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.15.9'
+          
+      # 3. 依存関係キャッシュの設定
+      # pnpm の依存関係を効率的にキャッシュ
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      # 4. 依存関係のインストール
+      # すべての開発依存関係を含めてインストール
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      # 5. TypeScript 設定の検証
+      # プロジェクトは strict モードの TypeScript を使用
+      - name: Verify TypeScript configuration
+        run: pnpm run lint:tsc
+        
+      # 6. コードスタイルの検証
+      # ESLint と Prettier による品質チェック
+      - name: Verify code style
+        run: pnpm run lint:prettier && pnpm run lint:eslint
+        
+      # 7. テスト環境の初期化
+      # Jest の jsdom 環境をテスト（120秒タイムアウト設定）
+      - name: Initialize test environment
+        run: pnpm test -- --passWithNoTests --bail
+        
+      # 8. ビルド環境の確認
+      # ユーザースクリプト（.user.js）生成の確認
+      - name: Verify build system
+        run: pnpm run build:dev
+        
+      # 9. 生成物の確認
+      # dist/twitter-auto-spam-crawler.user.js が正常に生成されることを確認
+      - name: Verify build output
+        run: |
+          if [ ! -f "dist/twitter-auto-spam-crawler.user.js" ]; then
+            echo "❌ ユーザースクリプトファイルが生成されませんでした"
+            exit 1
+          else
+            echo "✅ ユーザースクリプトファイルが正常に生成されました"
+            ls -la dist/
+          fi
