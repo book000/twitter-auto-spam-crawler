@@ -1,0 +1,59 @@
+# GitHub Copilot Code Agent 開発環境セットアップ手順
+# このファイルは GitHub Copilot Code Agent が効果的に開発環境を構築するための手順を定義します
+# 参考: https://docs.github.com/ja/copilot/how-tos/agents/copilot-coding-agent/customizing-the-development-environment-for-copilot-coding-agent
+
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  setup:
+    name: Development Environment Setup
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. ソースコードのチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # 2. Node.js の設定
+      # .node-version ファイルを使用してNode.jsバージョンを指定
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          
+      # 3. pnpm パッケージマネージャーの設定
+      # package.json の packageManager フィールドから自動的にバージョンを取得
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: 'package.json'
+          
+      # 4. 依存関係キャッシュの設定
+      # pnpm の依存関係を効率的にキャッシュ
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      # 5. 依存関係のインストール
+      # 開発環境構築に必要な依存関係をインストール
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
