@@ -35,7 +35,12 @@ export const ConfigManager = {
     GM_config(
       {
         discordWebhookUrl: {
-          name: 'Discord Webhook URL',
+          name: 'Discord Webhook URL (Login notifications)',
+          value: '',
+          input: 'prompt',
+        },
+        lockWebhookUrl: {
+          name: 'Discord Webhook URL (Lock notifications)',
           value: '',
           input: 'prompt',
         },
@@ -77,6 +82,27 @@ export const ConfigManager = {
    */
   getDiscordWebhookUrl(): string {
     return GM_getValue('discordWebhookUrl', '')
+  },
+
+  /**
+   * ロック通知用Discord Webhook URL を取得する
+   *
+   * ユーザーが設定したロック通知用Discord Webhook URLを GM_getValue から取得する。
+   * 未設定の場合は空文字列を返す。
+   *
+   * @returns {string} ユーザーが設定したロック通知用Discord Webhook URL。
+   *                   未設定の場合は空文字列を返す。
+   *
+   * @example
+   * ```typescript
+   * const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
+   * if (lockWebhookUrl) {
+   *   await NotificationService.notifyDiscord('ロックメッセージ', undefined, false, lockWebhookUrl)
+   * }
+   * ```
+   */
+  getLockWebhookUrl(): string {
+    return GM_getValue('lockWebhookUrl', '')
   },
 
   /**

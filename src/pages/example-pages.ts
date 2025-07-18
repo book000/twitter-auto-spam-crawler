@@ -1,5 +1,6 @@
 import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
+import { ConfigManager } from '@/core/config'
 import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
 import { NotificationService } from '@/services/notification-service'
@@ -56,13 +57,15 @@ export const ExamplePages = {
   },
 
   runLockedNotify(): void {
+    const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
     NotificationService.notifyDiscord(
       ':lock: Account is locked!',
       () => {
         window.close()
         Storage.setLockedNotified(true)
       },
-      true
+      true,
+      lockWebhookUrl
     )
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')
@@ -73,12 +76,14 @@ export const ExamplePages = {
   },
 
   runUnlockedNotify(): void {
+    const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
     NotificationService.notifyDiscord(
       ':unlock: Account is unlocked.',
       () => {
         window.close()
       },
-      false
+      false,
+      lockWebhookUrl
     )
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')

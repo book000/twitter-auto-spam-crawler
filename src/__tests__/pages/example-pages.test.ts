@@ -12,6 +12,7 @@ import {
   setupConsoleMocks,
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
+import '../../__mocks__/userscript'
 
 // Mock dependencies
 jest.mock('../../core/storage')
@@ -265,7 +266,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':lock: Account is locked!',
         expect.any(Function),
-        true
+        true,
+        ''
       )
 
       // Execute the callback
@@ -323,7 +325,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':unlock: Account is unlocked.',
         expect.any(Function),
-        false
+        false,
+        ''
       )
 
       // Execute the callback

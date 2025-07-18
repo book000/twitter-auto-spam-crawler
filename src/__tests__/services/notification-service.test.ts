@@ -221,5 +221,122 @@ describe('NotificationService', () => {
 
       consoleWarnSpy.mockRestore()
     })
+
+    /**
+     * カスタムWebhook URLの使用をテスト
+     * - カスタムWebhook URLが指定された場合の動作を確認
+     */
+    it('should use custom webhook URL when provided', () => {
+      const customWebhookUrl = 'https://discord.com/api/webhooks/custom'
+      const testMessage = 'Test message with custom webhook'
+
+      NotificationService.notifyDiscord(
+        testMessage,
+        undefined,
+        false,
+        customWebhookUrl
+      )
+
+      expect(fetch).toHaveBeenCalledWith(
+        customWebhookUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      )
+    })
+
+    /**
+     * カスタムWebhook URLが空文字列の場合のフォールバック動作をテスト
+     * - デフォルトのWebhook URLが使用されることを確認
+     */
+    it('should fallback to default webhook URL when custom URL is empty string', () => {
+      const testWebhookUrl = 'https://discord.com/api/webhooks/test'
+      jest
+        .spyOn(ConfigManager, 'getDiscordWebhookUrl')
+        .mockReturnValue(testWebhookUrl)
+
+      const testMessage = 'Test message with empty custom webhook'
+
+      NotificationService.notifyDiscord(testMessage, undefined, false, '')
+
+      expect(fetch).toHaveBeenCalledWith(
+        testWebhookUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      )
+    })
+
+    /**
+     * カスタムWebhook URLがundefinedの場合のフォールバック動作をテスト
+     * - デフォルトのWebhook URLが使用されることを確認
+     */
+    it('should fallback to default webhook URL when custom URL is undefined', () => {
+      const testWebhookUrl = 'https://discord.com/api/webhooks/test'
+      jest
+        .spyOn(ConfigManager, 'getDiscordWebhookUrl')
+        .mockReturnValue(testWebhookUrl)
+
+      const testMessage = 'Test message with undefined custom webhook'
+
+      NotificationService.notifyDiscord(
+        testMessage,
+        undefined,
+        false,
+        undefined
+      )
+
+      expect(fetch).toHaveBeenCalledWith(
+        testWebhookUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      )
+    })
+
+    /**
+     * カスタムWebhook URLとメンション付きの通知をテスト
+     * - カスタムWebhook URLとwithReply=trueの組み合わせが正しく動作することを確認
+     */
+    it('should use custom webhook URL with mention enabled', () => {
+      const customWebhookUrl = 'https://discord.com/api/webhooks/custom-mention'
+      const testMessage = 'Test message with custom webhook and mention'
+
+      NotificationService.notifyDiscord(
+        testMessage,
+        undefined,
+        true,
+        customWebhookUrl
+      )
+
+      expect(fetch).toHaveBeenCalledWith(
+        customWebhookUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      )
+
+      // フェッチのボディを検証してメンションが含まれていることを確認
+      const callArgs = (fetch as jest.Mock).mock.calls[0] as [
+        string,
+        RequestInit,
+      ]
+      const requestBody = JSON.parse(callArgs[1].body as string) as {
+        content: string
+      }
+      expect(requestBody.content).toContain('<@')
+    })
   })
 })

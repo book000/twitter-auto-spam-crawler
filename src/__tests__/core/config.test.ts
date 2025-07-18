@@ -26,7 +26,12 @@ describe('ConfigManager', () => {
       expect(GM_config).toHaveBeenCalledWith(
         {
           discordWebhookUrl: {
-            name: 'Discord Webhook URL',
+            name: 'Discord Webhook URL (Login notifications)',
+            value: '',
+            input: 'prompt',
+          },
+          lockWebhookUrl: {
+            name: 'Discord Webhook URL (Lock notifications)',
             value: '',
             input: 'prompt',
           },
@@ -85,6 +90,35 @@ describe('ConfigManager', () => {
       const result = ConfigManager.getDiscordWebhookUrl()
       expect(result).toBe(testUrl)
       expect(GM_getValue).toHaveBeenCalledWith('discordWebhookUrl', '')
+    })
+  })
+
+  /**
+   * getLockWebhookUrlメソッドのテスト
+   * ロック通知用Discord Webhook URLの取得機能を検証
+   */
+  describe('getLockWebhookUrl', () => {
+    /**
+     * デフォルト値として空文字列が返されることをテスト
+     * 初期状態でのロック通知用Webhook URL取得の動作を確認
+     */
+    it('should return empty string by default', () => {
+      const result = ConfigManager.getLockWebhookUrl()
+      expect(result).toBe('')
+      expect(GM_getValue).toHaveBeenCalledWith('lockWebhookUrl', '')
+    })
+
+    /**
+     * 保存されたロック通知用Webhook URLが正しく返されることをテスト
+     * ストレージに保存された値の取得機能を確認
+     */
+    it('should return stored lock webhook URL', () => {
+      const testUrl = 'https://discord.com/api/webhooks/lock-test'
+      ;(GM_getValue as jest.Mock).mockReturnValueOnce(testUrl)
+
+      const result = ConfigManager.getLockWebhookUrl()
+      expect(result).toBe(testUrl)
+      expect(GM_getValue).toHaveBeenCalledWith('lockWebhookUrl', '')
     })
   })
 
