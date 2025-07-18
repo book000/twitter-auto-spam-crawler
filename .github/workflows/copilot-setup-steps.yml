@@ -14,7 +14,7 @@ on:
       - .github/workflows/copilot-setup-steps.yml
 
 jobs:
-  setup:
+  copilot-setup-steps:
     name: Development Environment Setup
     runs-on: ubuntu-latest
     
