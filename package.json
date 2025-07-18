@@ -28,7 +28,7 @@
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "@book000/eslint-config": "1.9.27",
+    "@book000/eslint-config": "1.9.28",
     "@types/greasemonkey": "4.0.7",
     "@types/jest": "30.0.0",
     "@types/jsdom": "21.1.7",
