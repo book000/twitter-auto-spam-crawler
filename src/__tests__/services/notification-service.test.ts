@@ -221,5 +221,68 @@ describe('NotificationService', () => {
 
       consoleWarnSpy.mockRestore()
     })
+
+    /**
+     * カスタムWebhook URL指定時の処理をテスト
+     * - カスタムWebhook URLが設定値より優先されることを確認
+     * - ConfigManagerの設定が呼び出されないことを確認
+     */
+    it('should use custom webhook URL when provided', () => {
+      const mockResponse = { ok: true }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      const customUrl = 'https://discord.com/api/webhooks/custom'
+      const defaultUrl = 'https://discord.com/api/webhooks/default'
+
+      jest
+        .spyOn(ConfigManager, 'getDiscordWebhookUrl')
+        .mockReturnValue(defaultUrl)
+      jest.spyOn(ConfigManager, 'getComment').mockReturnValue('Test comment')
+
+      NotificationService.notifyDiscord(
+        'Test message',
+        undefined,
+        false,
+        customUrl
+      )
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        customUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: ' Test message\nTest comment',
+          }),
+        })
+      )
+
+      // ConfigManagerのgetDiscordWebhookUrlが呼び出されないことを確認
+      expect(ConfigManager.getDiscordWebhookUrl).not.toHaveBeenCalled()
+    })
+
+    /**
+     * カスタムWebhook URLが空文字列の場合のフォールバック処理をテスト
+     * - 空のカスタムURLが指定された場合にConfigManagerの設定を使用
+     */
+    it('should fallback to config when custom webhook URL is empty', () => {
+      const mockResponse = { ok: true }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      const defaultUrl = 'https://discord.com/api/webhooks/default'
+
+      jest
+        .spyOn(ConfigManager, 'getDiscordWebhookUrl')
+        .mockReturnValue(defaultUrl)
+      jest.spyOn(ConfigManager, 'getComment').mockReturnValue('')
+
+      NotificationService.notifyDiscord('Test message', undefined, false, '')
+
+      expect(mockFetch).toHaveBeenCalledWith(defaultUrl, expect.any(Object))
+
+      expect(ConfigManager.getDiscordWebhookUrl).toHaveBeenCalled()
+    })
   })
 })

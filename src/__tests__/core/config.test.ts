@@ -18,7 +18,7 @@ describe('ConfigManager', () => {
   describe('registerMenuCommand', () => {
     /**
      * GM_configが正しい設定で呼び出されることをテスト
-     * 期待される設定項目（Discord Webhook URL、Comment、Only Home crawling）が適切に設定されているか確認
+     * 期待される設定項目（Discord Webhook URL、Auth Webhook URL、Lock Webhook URL、Comment、Only Home crawling）が適切に設定されているか確認
      */
     it('should call GM_config with correct configuration', () => {
       ConfigManager.registerMenuCommand()
@@ -26,7 +26,17 @@ describe('ConfigManager', () => {
       expect(GM_config).toHaveBeenCalledWith(
         {
           discordWebhookUrl: {
-            name: 'Discord Webhook URL',
+            name: 'Discord Webhook URL (default)',
+            value: '',
+            input: 'prompt',
+          },
+          authWebhookUrl: {
+            name: 'Auth Discord Webhook URL (for login notifications)',
+            value: '',
+            input: 'prompt',
+          },
+          lockWebhookUrl: {
+            name: 'Lock Discord Webhook URL (for lock/unlock notifications)',
             value: '',
             input: 'prompt',
           },
@@ -164,6 +174,102 @@ describe('ConfigManager', () => {
 
       const result = ConfigManager.getIsOnlyHome()
       expect(result).toBe(false)
+    })
+  })
+
+  /**
+   * getAuthWebhookUrlメソッドのテスト
+   * 認証関連通知用Discord Webhook URLの取得機能を検証
+   */
+  describe('getAuthWebhookUrl', () => {
+    /**
+     * authWebhookUrlが設定されている場合はその値が返されることをテスト
+     * 個別設定の優先度確認
+     */
+    it('should return authWebhookUrl when set', () => {
+      const authUrl = 'https://discord.com/api/webhooks/auth'
+      ;(GM_getValue as jest.Mock).mockReturnValueOnce(authUrl) // authWebhookUrl
+
+      const result = ConfigManager.getAuthWebhookUrl()
+      expect(result).toBe(authUrl)
+      expect(GM_getValue).toHaveBeenCalledWith('authWebhookUrl', '')
+    })
+
+    /**
+     * authWebhookUrlが未設定の場合はdefaultのdiscordWebhookUrlが返されることをテスト
+     * フォールバック機能の確認
+     */
+    it('should fallback to discordWebhookUrl when authWebhookUrl is not set', () => {
+      const defaultUrl = 'https://discord.com/api/webhooks/default'
+      ;(GM_getValue as jest.Mock)
+        .mockReturnValueOnce('') // authWebhookUrl
+        .mockReturnValueOnce(defaultUrl) // discordWebhookUrl
+
+      const result = ConfigManager.getAuthWebhookUrl()
+      expect(result).toBe(defaultUrl)
+      expect(GM_getValue).toHaveBeenCalledWith('authWebhookUrl', '')
+      expect(GM_getValue).toHaveBeenCalledWith('discordWebhookUrl', '')
+    })
+
+    /**
+     * 両方が未設定の場合は空文字列が返されることをテスト
+     * 未設定時の動作確認
+     */
+    it('should return empty string when both URLs are not set', () => {
+      ;(GM_getValue as jest.Mock)
+        .mockReturnValueOnce('') // authWebhookUrl
+        .mockReturnValueOnce('') // discordWebhookUrl
+
+      const result = ConfigManager.getAuthWebhookUrl()
+      expect(result).toBe('')
+    })
+  })
+
+  /**
+   * getLockWebhookUrlメソッドのテスト
+   * ロック関連通知用Discord Webhook URLの取得機能を検証
+   */
+  describe('getLockWebhookUrl', () => {
+    /**
+     * lockWebhookUrlが設定されている場合はその値が返されることをテスト
+     * 個別設定の優先度確認
+     */
+    it('should return lockWebhookUrl when set', () => {
+      const lockUrl = 'https://discord.com/api/webhooks/lock'
+      ;(GM_getValue as jest.Mock).mockReturnValueOnce(lockUrl) // lockWebhookUrl
+
+      const result = ConfigManager.getLockWebhookUrl()
+      expect(result).toBe(lockUrl)
+      expect(GM_getValue).toHaveBeenCalledWith('lockWebhookUrl', '')
+    })
+
+    /**
+     * lockWebhookUrlが未設定の場合はdefaultのdiscordWebhookUrlが返されることをテスト
+     * フォールバック機能の確認
+     */
+    it('should fallback to discordWebhookUrl when lockWebhookUrl is not set', () => {
+      const defaultUrl = 'https://discord.com/api/webhooks/default'
+      ;(GM_getValue as jest.Mock)
+        .mockReturnValueOnce('') // lockWebhookUrl
+        .mockReturnValueOnce(defaultUrl) // discordWebhookUrl
+
+      const result = ConfigManager.getLockWebhookUrl()
+      expect(result).toBe(defaultUrl)
+      expect(GM_getValue).toHaveBeenCalledWith('lockWebhookUrl', '')
+      expect(GM_getValue).toHaveBeenCalledWith('discordWebhookUrl', '')
+    })
+
+    /**
+     * 両方が未設定の場合は空文字列が返されることをテスト
+     * 未設定時の動作確認
+     */
+    it('should return empty string when both URLs are not set', () => {
+      ;(GM_getValue as jest.Mock)
+        .mockReturnValueOnce('') // lockWebhookUrl
+        .mockReturnValueOnce('') // discordWebhookUrl
+
+      const result = ConfigManager.getLockWebhookUrl()
+      expect(result).toBe('')
     })
   })
 })
