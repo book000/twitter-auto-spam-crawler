@@ -18,6 +18,7 @@ export const NotificationService = {
    * @param {string} message - 送信するメッセージ内容
    * @param {(_response: Response) => void} [callback] - レスポンス受信時のコールバック関数
    * @param {boolean} [withReply=false] - true の場合、メッセージにメンションを付加
+   * @param {string} [customWebhookUrl] - カスタムWebhook URL。指定時はConfigManagerの設定より優先される
    * @returns {Promise<void>} 送信完了を表すPromise
    *
    * @throws {Error} ネットワークエラーまたはDiscord API エラー
@@ -30,6 +31,9 @@ export const NotificationService = {
    * // メンション付き通知
    * await NotificationService.notifyDiscord('緊急：大量のスパムを検出', undefined, true)
    *
+   * // カスタムWebhook URL使用
+   * await NotificationService.notifyDiscord('ログイン必要', undefined, false, 'https://discord.com/api/webhooks/...')
+   *
    * // コールバック付き通知
    * NotificationService.notifyDiscord('メッセージ', (response) => {
    *   console.log('送信ステータス:', response.status)
@@ -39,7 +43,8 @@ export const NotificationService = {
   notifyDiscord(
     message: string,
     callback?: (_response: Response) => void,
-    withReply = false
+    withReply = false,
+    customWebhookUrl?: string
   ): Promise<void> {
     const mention = withReply ? `<@${DISCORD_MENTION_ID}>` : ''
     const comment = ConfigManager.getComment()
@@ -47,7 +52,8 @@ export const NotificationService = {
       content: `${mention} ${message}\n${comment}`,
     })
 
-    const webhookUrl = ConfigManager.getDiscordWebhookUrl()
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const webhookUrl = customWebhookUrl || ConfigManager.getDiscordWebhookUrl()
     if (!webhookUrl) {
       console.warn('notifyDiscord: Discord Webhook URL is not set.')
       return Promise.resolve()

@@ -12,6 +12,9 @@ import {
   setupConsoleMocks,
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
+// Import mock before the module under test
+import '../../__mocks__/userscript'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock dependencies
 jest.mock('../../core/storage')
@@ -39,6 +42,7 @@ describe('ExamplePages', () => {
   beforeEach(() => {
     // Setup mocks
     setupUserscriptMocks()
+    clearMockStorage()
     consoleMocks = setupConsoleMocks()
 
     // Clear all mocks
@@ -148,7 +152,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':key: Need to login.',
         expect.any(Function),
-        false
+        false,
+        ''
       )
 
       // Execute the callback
@@ -208,7 +213,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':white_check_mark: Login is successful!',
         expect.any(Function),
-        false
+        false,
+        ''
       )
 
       // Execute the callback
@@ -265,7 +271,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':lock: Account is locked!',
         expect.any(Function),
-        true
+        true,
+        ''
       )
 
       // Execute the callback
@@ -323,7 +330,8 @@ describe('ExamplePages', () => {
       expect(NotificationService.notifyDiscord).toHaveBeenCalledWith(
         ':unlock: Account is unlocked.',
         expect.any(Function),
-        false
+        false,
+        ''
       )
 
       // Execute the callback

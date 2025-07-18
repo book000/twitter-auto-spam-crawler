@@ -35,7 +35,17 @@ export const ConfigManager = {
     GM_config(
       {
         discordWebhookUrl: {
-          name: 'Discord Webhook URL',
+          name: 'Discord Webhook URL (default)',
+          value: '',
+          input: 'prompt',
+        },
+        authWebhookUrl: {
+          name: 'Auth Discord Webhook URL (for login notifications)',
+          value: '',
+          input: 'prompt',
+        },
+        lockWebhookUrl: {
+          name: 'Lock Discord Webhook URL (for lock/unlock notifications)',
           value: '',
           input: 'prompt',
         },
@@ -77,6 +87,48 @@ export const ConfigManager = {
    */
   getDiscordWebhookUrl(): string {
     return GM_getValue('discordWebhookUrl', '')
+  },
+
+  /**
+   * 認証関連通知用のDiscord Webhook URL を取得する
+   *
+   * ログイン必要/ログイン成功通知用のWebhook URLを取得する。
+   * 未設定の場合はデフォルトのDiscord Webhook URLにフォールバックする。
+   *
+   * @returns {string} 認証関連通知用のWebhook URL。
+   *                   未設定の場合はデフォルトWebhook URLを返す。
+   *
+   * @example
+   * ```typescript
+   * const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
+   * await NotificationService.notifyDiscord('ログイン必要', undefined, false, authWebhookUrl)
+   * ```
+   */
+  getAuthWebhookUrl(): string {
+    const authUrl = GM_getValue('authWebhookUrl', '')
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return authUrl || this.getDiscordWebhookUrl()
+  },
+
+  /**
+   * ロック関連通知用のDiscord Webhook URL を取得する
+   *
+   * アカウントロック/ロック解除通知用のWebhook URLを取得する。
+   * 未設定の場合はデフォルトのDiscord Webhook URLにフォールバックする。
+   *
+   * @returns {string} ロック関連通知用のWebhook URL。
+   *                   未設定の場合はデフォルトWebhook URLを返す。
+   *
+   * @example
+   * ```typescript
+   * const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
+   * await NotificationService.notifyDiscord('アカウントロック', undefined, true, lockWebhookUrl)
+   * ```
+   */
+  getLockWebhookUrl(): string {
+    const lockUrl = GM_getValue('lockWebhookUrl', '')
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return lockUrl || this.getDiscordWebhookUrl()
   },
 
   /**
