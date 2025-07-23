@@ -52,6 +52,27 @@ export const OtherPages = {
       'Account is locked, starting continuous unlock detection'
     )
 
+    const isLockedNotified = Storage.isLockedNotified()
+    if (isLockedNotified) {
+      // 既に通知済みの場合は、setIntervalのみ設定してロック解除検知を継続
+      let checkCount = 0
+
+      setInterval(() => {
+        checkCount++
+        PageErrorHandler.logAction(
+          `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+        )
+
+        location.href = URLS.BOOKMARK
+      }, DELAYS.LOCKED_CHECK_INTERVAL)
+      return
+    }
+
+    // 重複通知を防ぐため、通知ウィンドウを開く前にフラグを設定
+    Storage.setLockedNotified(true)
+    window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
+
+    // ロック解除検知のためのsetIntervalを設定
     let checkCount = 0
 
     setInterval(() => {
@@ -62,11 +83,5 @@ export const OtherPages = {
 
       location.href = URLS.BOOKMARK
     }, DELAYS.LOCKED_CHECK_INTERVAL)
-
-    const isLockedNotified = Storage.isLockedNotified()
-    if (isLockedNotified) {
-      return
-    }
-    window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
   },
 }

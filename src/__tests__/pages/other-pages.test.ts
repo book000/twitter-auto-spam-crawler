@@ -8,6 +8,9 @@ import {
   setupConsoleMocks,
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
+// Import mock before the module under test
+import '../../__mocks__/userscript'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock dependencies
 jest.mock('../../core/storage')
@@ -31,6 +34,7 @@ describe('OtherPages', () => {
   beforeEach(() => {
     // Setup mocks
     setupUserscriptMocks()
+    clearMockStorage()
     consoleMocks = setupConsoleMocks()
 
     // Clear all mocks
@@ -319,11 +323,12 @@ describe('OtherPages', () => {
 
   describe('runLocked', () => {
     /**
-     * アカウントロック時の定期チェック処理をテスト
-     * - ロック通知が未送信の場合のロック通知ページオープン
-     * - 定期的なブックマークページへの遷移
+     * アカウントロック時の定期チェック処理をテスト（初回通知時）
+     * - ロック通知が未送信の場合は即座にsetLockedNotified(true)を設定
+     * - ロック通知ページをオープン
+     * - 定期的なブックマークページへの遷移を開始
      */
-    it('should start periodic unlock check and open locked notify page when not notified', () => {
+    it('should set locked flag immediately, open notify page and start periodic check when not notified', () => {
       ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
 
       let intervalCallback: (() => void) | undefined
@@ -337,13 +342,15 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'Account is locked, starting continuous unlock detection'
       )
-      expect(globalThis.setInterval).toHaveBeenCalledWith(
-        expect.any(Function),
-        DELAYS.LOCKED_CHECK_INTERVAL
-      )
+      // 重複通知防止のため、即座にフラグを設定
+      expect(Storage.setLockedNotified).toHaveBeenCalledWith(true)
       expect(window.open).toHaveBeenCalledWith(
         URLS.EXAMPLE_LOCKED_NOTIFY,
         '_blank'
+      )
+      expect(globalThis.setInterval).toHaveBeenCalledWith(
+        expect.any(Function),
+        DELAYS.LOCKED_CHECK_INTERVAL
       )
 
       // Execute interval callback
@@ -354,14 +361,12 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'Periodic check 1 - navigating to bookmark page to test unlock status'
       )
-      // Since we can't mock location.href in JSDOM, we verify the behavior by checking
-      // that the periodic check was started
-      expect(globalThis.setInterval).toHaveBeenCalled()
     })
 
     /**
      * ロック通知が既に送信済みの場合の処理をテスト
      * - 定期チェックは開始するが、通知ページは開かない
+     * - setLockedNotified()は再度呼び出されない
      */
     it('should start periodic check but not open notify page when already notified', () => {
       ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(true)
@@ -370,6 +375,7 @@ describe('OtherPages', () => {
 
       expect(globalThis.setInterval).toHaveBeenCalled()
       expect(window.open).not.toHaveBeenCalled()
+      expect(Storage.setLockedNotified).not.toHaveBeenCalled()
     })
 
     /**
