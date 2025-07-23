@@ -54,7 +54,7 @@ export const OtherPages = {
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
-      // 既に通知済みの場合は、setIntervalのみ設定してロック解除検知を継続
+      // 既に通知済みの場合は、checkCountを初期化し、setIntervalを設定してロック解除検知を継続
       let checkCount = 0
 
       setInterval(() => {
