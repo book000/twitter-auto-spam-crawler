@@ -255,9 +255,9 @@ describe('ExamplePages', () => {
     /**
      * アカウントロック通知の正常処理をテスト
      * - Discord通知の送信（skipAlert=true）
-     * - Storage.setLockedNotified(true)の呼び出し
+     * - コールバック内では何も実行しない（フラグは事前設定済み）
      */
-    it('should send account locked notification', async () => {
+    it('should send account locked notification without setting flag in callback', async () => {
       let notificationCallback: (() => void) | undefined
       ;(NotificationService.notifyDiscord as jest.Mock).mockImplementation(
         (_message, callback) => {
@@ -281,7 +281,8 @@ describe('ExamplePages', () => {
       }
 
       expect(window.close).toHaveBeenCalled()
-      expect(Storage.setLockedNotified).toHaveBeenCalledWith(true)
+      // setLockedNotified(true)はコールバック内では呼び出されない（事前設定済みのため）
+      expect(Storage.setLockedNotified).not.toHaveBeenCalled()
 
       // Wait for promise resolution
       await Promise.resolve()
@@ -292,8 +293,9 @@ describe('ExamplePages', () => {
 
     /**
      * アカウントロック通知失敗時のエラーハンドリングをテスト
+     * - 通知失敗時はフラグをリセット
      */
-    it('should handle account locked notification error', async () => {
+    it('should handle account locked notification error and reset flag', async () => {
       const mockError = new Error('Notification failed')
       ;(NotificationService.notifyDiscord as jest.Mock).mockRejectedValue(
         mockError
@@ -303,6 +305,9 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
+
+      // 通知失敗時はフラグをリセット
+      expect(Storage.setLockedNotified).toHaveBeenCalledWith(false)
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
         'Failed to notify account locked',
         mockError

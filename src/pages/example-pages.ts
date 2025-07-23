@@ -66,7 +66,7 @@ export const ExamplePages = {
       ':lock: Account is locked!',
       () => {
         window.close()
-        Storage.setLockedNotified(true)
+        // 通知送信成功時のコールバックは空にする（フラグは事前に設定済み）
       },
       true,
       lockWebhookUrl
@@ -75,6 +75,8 @@ export const ExamplePages = {
         PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
+        // 通知送信失敗時はフラグをリセット
+        Storage.setLockedNotified(false)
         PageErrorHandler.logError('Failed to notify account locked', error)
       })
   },

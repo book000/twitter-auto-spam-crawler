@@ -14,6 +14,22 @@ export const OtherPages = {
     history.back()
   },
 
+  /**
+   * ロック解除検知のための定期チェックを開始
+   */
+  startPeriodicUnlockCheck(): void {
+    let checkCount = 0
+
+    setInterval(() => {
+      checkCount++
+      PageErrorHandler.logAction(
+        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+      )
+
+      location.href = URLS.BOOKMARK
+    }, DELAYS.LOCKED_CHECK_INTERVAL)
+  },
+
   async runProcessBlueBlockerQueue(): Promise<void> {
     PageErrorHandler.logAction('start')
 
@@ -52,21 +68,18 @@ export const OtherPages = {
       'Account is locked, starting continuous unlock detection'
     )
 
-    let checkCount = 0
-
-    setInterval(() => {
-      checkCount++
-      PageErrorHandler.logAction(
-        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
-      )
-
-      location.href = URLS.BOOKMARK
-    }, DELAYS.LOCKED_CHECK_INTERVAL)
-
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
+      // 既に通知済みの場合は、定期チェックのみ開始
+      this.startPeriodicUnlockCheck()
       return
     }
+
+    // 重複通知を防ぐため、通知ウィンドウを開く前にフラグを設定
+    Storage.setLockedNotified(true)
     window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
+
+    // ロック解除検知のための定期チェックを開始
+    this.startPeriodicUnlockCheck()
   },
 }
