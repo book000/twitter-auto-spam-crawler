@@ -305,7 +305,7 @@ describe('ExamplePages', () => {
 
       // Flush all promises and timers
       await jest.runAllTimersAsync()
-      
+
       // 通知失敗時はフラグをリセット
       expect(Storage.setLockedNotified).toHaveBeenCalledWith(false)
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(

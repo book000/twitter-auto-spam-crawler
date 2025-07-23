@@ -321,76 +321,26 @@ describe('OtherPages', () => {
     })
   })
 
-  describe('runLocked', () => {
+  describe('startPeriodicUnlockCheck', () => {
     /**
-     * アカウントロック時の定期チェック処理をテスト（初回通知時）
-     * - ロック通知が未送信の場合は即座にsetLockedNotified(true)を設定
-     * - ロック通知ページをオープン
-     * - 定期的なブックマークページへの遷移を開始
+     * 定期的なロック解除チェック処理をテスト
+     * - setIntervalの正しい設定
+     * - checkCountの適切な増加
+     * - ブックマークページへの遷移
      */
-    it('should set locked flag immediately, open notify page and start periodic check when not notified', () => {
-      ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
-
+    it('should start periodic check with proper interval and incrementing count', () => {
       let intervalCallback: (() => void) | undefined
       ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
-        return 999
+        return 555
       })
 
-      OtherPages.runLocked()
+      OtherPages.startPeriodicUnlockCheck()
 
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'Account is locked, starting continuous unlock detection'
-      )
-      // 重複通知防止のため、即座にフラグを設定
-      expect(Storage.setLockedNotified).toHaveBeenCalledWith(true)
-      expect(window.open).toHaveBeenCalledWith(
-        URLS.EXAMPLE_LOCKED_NOTIFY,
-        '_blank'
-      )
       expect(globalThis.setInterval).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.LOCKED_CHECK_INTERVAL
       )
-
-      // Execute interval callback
-      if (intervalCallback) {
-        intervalCallback()
-      }
-
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'Periodic check 1 - navigating to bookmark page to test unlock status'
-      )
-    })
-
-    /**
-     * ロック通知が既に送信済みの場合の処理をテスト
-     * - 定期チェックは開始するが、通知ページは開かない
-     * - setLockedNotified()は再度呼び出されない
-     */
-    it('should start periodic check but not open notify page when already notified', () => {
-      ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(true)
-
-      OtherPages.runLocked()
-
-      expect(globalThis.setInterval).toHaveBeenCalled()
-      expect(window.open).not.toHaveBeenCalled()
-      expect(Storage.setLockedNotified).not.toHaveBeenCalled()
-    })
-
-    /**
-     * 複数回の定期チェック実行をテスト
-     * - checkCountの適切な増加
-     * - 各チェック時のログ出力
-     */
-    it('should increment check count on each periodic check', () => {
-      let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
-        intervalCallback = callback
-        return 111
-      })
-
-      OtherPages.runLocked()
 
       // First check
       if (intervalCallback) {
@@ -407,14 +357,59 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'Periodic check 2 - navigating to bookmark page to test unlock status'
       )
+    })
+  })
 
-      // Third check
-      if (intervalCallback) {
-        intervalCallback()
-      }
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'Periodic check 3 - navigating to bookmark page to test unlock status'
+  describe('runLocked', () => {
+    /**
+     * アカウントロック時の定期チェック処理をテスト（初回通知時）
+     * - ロック通知が未送信の場合は即座にsetLockedNotified(true)を設定
+     * - ロック通知ページをオープン
+     * - startPeriodicUnlockCheckメソッドを呼び出し
+     */
+    it('should set locked flag immediately, open notify page and start periodic check when not notified', () => {
+      ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
+
+      // startPeriodicUnlockCheckメソッドをモック化
+      const startPeriodicUnlockCheckSpy = jest.spyOn(
+        OtherPages,
+        'startPeriodicUnlockCheck'
       )
+
+      OtherPages.runLocked()
+
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'Account is locked, starting continuous unlock detection'
+      )
+      // 重複通知防止のため、即座にフラグを設定
+      expect(Storage.setLockedNotified).toHaveBeenCalledWith(true)
+      expect(window.open).toHaveBeenCalledWith(
+        URLS.EXAMPLE_LOCKED_NOTIFY,
+        '_blank'
+      )
+      expect(startPeriodicUnlockCheckSpy).toHaveBeenCalled()
+    })
+
+    /**
+     * ロック通知が既に送信済みの場合の処理をテスト
+     * - startPeriodicUnlockCheckメソッドを呼び出し
+     * - 通知ページは開かない
+     * - setLockedNotified()は再度呼び出されない
+     */
+    it('should start periodic check but not open notify page when already notified', () => {
+      ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(true)
+
+      // startPeriodicUnlockCheckメソッドをモック化
+      const startPeriodicUnlockCheckSpy = jest.spyOn(
+        OtherPages,
+        'startPeriodicUnlockCheck'
+      )
+
+      OtherPages.runLocked()
+
+      expect(startPeriodicUnlockCheckSpy).toHaveBeenCalled()
+      expect(window.open).not.toHaveBeenCalled()
+      expect(Storage.setLockedNotified).not.toHaveBeenCalled()
     })
   })
 })

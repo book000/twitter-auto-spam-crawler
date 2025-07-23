@@ -14,6 +14,22 @@ export const OtherPages = {
     history.back()
   },
 
+  /**
+   * ロック解除検知のための定期チェックを開始
+   */
+  startPeriodicUnlockCheck(): void {
+    let checkCount = 0
+
+    setInterval(() => {
+      checkCount++
+      PageErrorHandler.logAction(
+        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+      )
+
+      location.href = URLS.BOOKMARK
+    }, DELAYS.LOCKED_CHECK_INTERVAL)
+  },
+
   async runProcessBlueBlockerQueue(): Promise<void> {
     PageErrorHandler.logAction('start')
 
@@ -54,17 +70,8 @@ export const OtherPages = {
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
-      // 既に通知済みの場合は、checkCountを初期化し、setIntervalを設定してロック解除検知を継続
-      let checkCount = 0
-
-      setInterval(() => {
-        checkCount++
-        PageErrorHandler.logAction(
-          `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
-        )
-
-        location.href = URLS.BOOKMARK
-      }, DELAYS.LOCKED_CHECK_INTERVAL)
+      // 既に通知済みの場合は、定期チェックのみ開始
+      this.startPeriodicUnlockCheck()
       return
     }
 
@@ -72,16 +79,7 @@ export const OtherPages = {
     Storage.setLockedNotified(true)
     window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
 
-    // ロック解除検知のためのsetIntervalを設定
-    let checkCount = 0
-
-    setInterval(() => {
-      checkCount++
-      PageErrorHandler.logAction(
-        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
-      )
-
-      location.href = URLS.BOOKMARK
-    }, DELAYS.LOCKED_CHECK_INTERVAL)
+    // ロック解除検知のための定期チェックを開始
+    this.startPeriodicUnlockCheck()
   },
 }
