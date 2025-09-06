@@ -26,7 +26,7 @@ jobs:
       # 2. Node.js の設定
       # .node-version ファイルを使用してNode.jsバージョンを指定
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.node-version'
           
