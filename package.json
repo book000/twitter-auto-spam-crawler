@@ -34,7 +34,7 @@
     "@types/jsdom": "21.1.7",
     "@types/node": "22.18.0",
     "@typescript-eslint/parser": "8.42.0",
-    "eslint": "9.34.0",
+    "eslint": "9.35.0",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-n": "17.21.3",
