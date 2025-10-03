@@ -31,7 +31,7 @@
     "@book000/eslint-config": "1.9.31",
     "@types/greasemonkey": "4.0.7",
     "@types/jest": "30.0.0",
-    "@types/jsdom": "21.1.7",
+    "@types/jsdom": "27.0.0",
     "@types/node": "22.18.7",
     "@typescript-eslint/parser": "8.45.0",
     "eslint": "9.36.0",
