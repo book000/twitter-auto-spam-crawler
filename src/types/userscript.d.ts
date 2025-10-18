@@ -11,8 +11,8 @@ interface GMConfigField {
     | 'int_range'
     | 'float'
     | 'float_range'
-    | ((value: any) => any)
-  formatter?: 'normal' | 'boolean' | ((name: string, value: any) => string)
+    | ((value: unknown) => unknown)
+  formatter?: 'normal' | 'boolean' | ((name: string, value: unknown) => string)
   key?: string // Access key for menu
   close?: boolean // Auto-close after input
 }
@@ -24,10 +24,10 @@ type GMConfigFields = Record<string, GMConfigField>
 
 // Storage functions (from @grant)
 // GM_getValue supports any serializable type (uses JSON internally)
-declare function GM_getValue<T = any>(key: string, defaultValue?: T): T
+declare function GM_getValue<T>(key: string, defaultValue: T): T
 
 // GM_setValue accepts any serializable value (uses JSON internally)
-declare function GM_setValue(key: string, value: any): void
+declare function GM_setValue(key: string, value: unknown): void
 
 // Menu commands (from @grant)
 // Returns a menu command ID that can be used to unregister

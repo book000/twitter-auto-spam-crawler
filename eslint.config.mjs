@@ -3,13 +3,6 @@ import baseConfig from '@book000/eslint-config'
 export default [
   ...baseConfig,
   {
-    files: ['src/core/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  },
-  {
     files: ['src/__tests__/**/*.ts'],
     rules: {
       '@typescript-eslint/no-empty-function': 'off',
@@ -26,8 +19,6 @@ export default [
     rules: {
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
 ]
