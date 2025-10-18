@@ -105,8 +105,8 @@ export const ConfigManager = {
    * ```
    */
   getAuthWebhookUrl(): string {
-    const authUrl = GM_getValue('authWebhookUrl', '')
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const authUrl = GM_getValue<string>('authWebhookUrl', '')
+
     return authUrl || this.getDiscordWebhookUrl()
   },
 
@@ -126,8 +126,8 @@ export const ConfigManager = {
    * ```
    */
   getLockWebhookUrl(): string {
-    const lockUrl = GM_getValue('lockWebhookUrl', '')
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const lockUrl = GM_getValue<string>('lockWebhookUrl', '')
+
     return lockUrl || this.getDiscordWebhookUrl()
   },
 
@@ -167,9 +167,8 @@ export const ConfigManager = {
    * ```
    */
   getIsOnlyHome(): boolean {
-    const value = GM_getValue('isOnlyHome', 'false')
-    // @ts-expect-error string型で比較が行われるため
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const value = GM_getValue<string>('isOnlyHome', 'false')
+
     return value === 'true'
   },
 }
