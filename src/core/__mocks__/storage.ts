@@ -175,7 +175,7 @@ const mockStorage: MockStorage = {
     for (const tweet of tweets) {
       savedTweetsMap.set(tweet.tweetId, tweet)
     }
-    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+    const sortedTweets = [...savedTweetsMap.values()].toSorted((a, b) =>
       a.tweetId.localeCompare(b.tweetId)
     )
     mockStorage.setSavedTweets(sortedTweets)

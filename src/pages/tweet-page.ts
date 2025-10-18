@@ -40,10 +40,11 @@ export const TweetPage = {
       const dialogMessage = dialog.textContent
       PageErrorHandler.logError('found error dialog', dialogMessage)
 
-      if (
-        dialogMessage?.includes('削除') ||
-        dialogMessage?.includes('deleted')
-      ) {
+      if (!dialogMessage) {
+        return
+      }
+
+      if (dialogMessage.includes('削除') || dialogMessage.includes('deleted')) {
         PageErrorHandler.logError('tweet deleted. Skip this tweet.')
 
         const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)

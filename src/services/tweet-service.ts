@@ -135,7 +135,7 @@ export const TweetService = {
     }
 
     // ツイートIDでソートして順序の一貫性を保証
-    const sortedTweets = [...savedTweetsMap.values()].sort((a, b) =>
+    const sortedTweets = [...savedTweetsMap.values()].toSorted((a, b) =>
       a.tweetId.localeCompare(b.tweetId)
     )
     Storage.setSavedTweets(sortedTweets)
