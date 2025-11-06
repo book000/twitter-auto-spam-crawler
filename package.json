@@ -33,7 +33,7 @@
     "@types/jest": "30.0.0",
     "@types/jsdom": "27.0.0",
     "@types/node": "24.10.0",
-    "@typescript-eslint/parser": "8.46.2",
+    "@typescript-eslint/parser": "8.46.3",
     "eslint": "9.38.0",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
