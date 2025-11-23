@@ -21,7 +21,7 @@ jobs:
     steps:
       # 1. ソースコードのチェックアウト
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       # 2. Node.js の設定
       # .node-version ファイルを使用してNode.jsバージョンを指定
