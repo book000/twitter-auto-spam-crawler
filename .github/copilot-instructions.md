@@ -25,19 +25,18 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
    - コード内のコメント、JSDoc
    - コミットメッセージの詳細説明
 
-2. **PR タイトルとコミットメッセージは英語**
-   - Conventional Commits 仕様に準拠
-   - 例: `feat: add Discord webhook integration`
+2. **Conventional Commits 仕様**
+   - `<description>` は日本語で記載
+   - 例: `feat: Discord Webhook 連携機能を追加`
 
-3. **Conventional Commits 仕様**
    ```
    <type>[optional scope]: <description>
-   
+
    [optional body in Japanese]
-   
+
    [optional footer]
    ```
-   
+
    **許可されている型:**
    - `feat`: 新機能追加
    - `fix`: バグ修正
@@ -47,6 +46,12 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
    - `style`: コードスタイル変更
    - `test`: テスト関連
    - `chore`: その他の変更
+
+3. **ブランチ命名**
+   - [Conventional Branch](https://conventional-branch.github.io) に従う
+   - 形式: `<type>/<description>`
+   - `<type>` は短縮形（feat, fix）を使用
+   - 例: `feat/add-discord-webhook`
 
 ## アーキテクチャパターン
 
