@@ -167,7 +167,7 @@ pnpm run clean
 
 ### Gemini CLI の役割
 
-Gemini CLI は、以下の観点で Claude Code や Codex CLI をサポートします：
+Gemini CLI は、以下の観点で GitHub Copilot、Claude Code、一般的な AI エージェントをサポートします：
 
 1. **外部仕様の確認**: SaaS 仕様、API の最新仕様、料金・制限・クォータの確認
 2. **言語・ランタイムのバージョン差**: TypeScript、Node.js のバージョン間の違いの確認
