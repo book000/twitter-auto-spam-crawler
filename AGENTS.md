@@ -56,7 +56,7 @@ Twitter/X のツイートを自動でクロールし、潜在的なスパムコ�
 - **パッケージマネージャー**: pnpm@10.28.1+
 - **Node.js**: 24.13.0
 - **ビルドシステム**: Webpack
-- **テストフレームワーク**: Jest (jsdom、120秒タイムアウト)
+- **テストフレームワーク**: Jest (jsdom、120 秒タイムアウト)
 - **ユーザースクリプト API**: GM_getValue、GM_setValue、GM_registerMenuCommand、GM_unregisterMenuCommand
 
 ## 開発手順（概要）
