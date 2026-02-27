@@ -2,7 +2,6 @@ import { NotificationService } from '../../services/notification-service'
 import { ConfigManager } from '../../core/config'
 import { DISCORD_MENTION_ID } from '../../core/constants'
 // Import mock before the module under test
-import '../../__mocks__/userscript'
 import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock fetch

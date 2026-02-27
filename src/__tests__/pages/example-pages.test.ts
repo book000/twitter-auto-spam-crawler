@@ -13,7 +13,6 @@ import {
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
 // Import mock before the module under test
-import '../../__mocks__/userscript'
 import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock dependencies

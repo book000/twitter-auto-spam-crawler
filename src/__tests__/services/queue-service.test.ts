@@ -1,9 +1,7 @@
 import { QueueService } from '../../services/queue-service'
 import { Storage } from '../../core/storage'
-import { clearMockStorage } from '../../__mocks__/userscript'
-
 // Import mock before the module under test
-import '../../__mocks__/userscript'
+import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock timers
 jest.useFakeTimers()

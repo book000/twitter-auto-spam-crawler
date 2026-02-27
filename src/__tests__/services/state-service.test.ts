@@ -2,7 +2,6 @@ import { StateService } from '../../services/state-service'
 import { Storage } from '../../core/storage'
 import { URLS } from '../../core/constants'
 // Import mock before the module under test
-import '../../__mocks__/userscript'
 import { clearMockStorage } from '../../__mocks__/userscript'
 
 // Mock window.open
