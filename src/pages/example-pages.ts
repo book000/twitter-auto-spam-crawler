@@ -18,8 +18,8 @@ export const ExamplePages = {
       await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in TweetPage.run', error)
+    TweetPage.run(true).catch((err: unknown) => {
+      PageErrorHandler.logError('Error in TweetPage.run', err)
     })
   },
 
@@ -37,8 +37,8 @@ export const ExamplePages = {
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')
       })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify login', error)
+      .catch((err: unknown) => {
+        PageErrorHandler.logError('Failed to notify login', err)
       })
   },
 
@@ -55,8 +55,8 @@ export const ExamplePages = {
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')
       })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify login success', error)
+      .catch((err: unknown) => {
+        PageErrorHandler.logError('Failed to notify login success', err)
       })
   },
 
@@ -74,10 +74,10 @@ export const ExamplePages = {
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')
       })
-      .catch((error: unknown) => {
+      .catch((err: unknown) => {
         // 通知送信失敗時はフラグをリセット
         Storage.setLockedNotified(false)
-        PageErrorHandler.logError('Failed to notify account locked', error)
+        PageErrorHandler.logError('Failed to notify account locked', err)
       })
   },
 
@@ -94,8 +94,8 @@ export const ExamplePages = {
       .then(() => {
         PageErrorHandler.logAction('Notification sent successfully')
       })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify account unlocked', error)
+      .catch((err: unknown) => {
+        PageErrorHandler.logError('Failed to notify account unlocked', err)
       })
   },
 
@@ -133,8 +133,8 @@ export const ExamplePages = {
       .then(() => {
         PageErrorHandler.logAction('Update notification sent successfully')
       })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify update', error)
+      .catch((err: unknown) => {
+        PageErrorHandler.logError('Failed to notify update', err)
       })
   },
 }

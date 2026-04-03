@@ -168,14 +168,14 @@ export const PageErrorHandler = {
         throw new Error(`Element ${selector} not found after waiting`)
       }
       return element as HTMLElement
-    } catch (error) {
+    } catch (err) {
       await this.handlePageError(
         pageName,
         methodName,
-        error,
+        err,
         options.errorOptions
       )
-      throw error // Re-throw to maintain control flow
+      throw err // Re-throw to maintain control flow
     }
   },
 
@@ -237,8 +237,8 @@ export const PageErrorHandler = {
 
     try {
       return await operation()
-    } catch (error) {
-      await this.handlePageError(pageName, methodName, error, options)
+    } catch (err) {
+      await this.handlePageError(pageName, methodName, err, options)
       return undefined
     }
   },

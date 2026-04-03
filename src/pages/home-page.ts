@@ -20,8 +20,8 @@ export const HomePage = {
       await DomUtils.waitElement(
         'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
       )
-    } catch (error) {
-      await PageErrorHandler.handlePageError('Home', 'runHome', error)
+    } catch (err) {
+      await PageErrorHandler.handlePageError('Home', 'runHome', err)
       return
     }
 
@@ -40,9 +40,9 @@ export const HomePage = {
       await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
       try {
         await DomUtils.waitElement('article[data-testid="tweet"]')
-      } catch (error) {
+      } catch (err) {
         if (DomUtils.isFailedPage()) {
-          await PageErrorHandler.handlePageError('Home', 'runHome', error, {
+          await PageErrorHandler.handlePageError('Home', 'runHome', err, {
             customMessage: 'runHome: failed page. Wait 1 minute and reload.',
           })
           return

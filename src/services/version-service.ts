@@ -28,10 +28,10 @@ export const VersionService = {
         console.log(
           'VersionService: Update notification sent and version updated'
         )
-      } catch (error) {
+      } catch (err) {
         console.error(
           'VersionService: Failed to send update notification:',
-          error
+          err
         )
       }
     }
@@ -69,9 +69,9 @@ export const VersionService = {
         throw new Error('Popup blocked')
       }
       console.log(`VersionService: Opened notification URL: ${notifyUrl}`)
-    } catch (error) {
-      console.error('VersionService: Failed to open notification URL:', error)
-      throw error
+    } catch (err) {
+      console.error('VersionService: Failed to open notification URL:', err)
+      throw err
     }
   },
 }

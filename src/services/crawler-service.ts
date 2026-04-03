@@ -58,8 +58,8 @@ export class CrawlerService {
    */
   static startCrawling(): void {
     this.crawlTweetInterval ??= setInterval(() => {
-      this.crawlTweets().catch((error: unknown) => {
-        console.error('crawlTweets failed', error)
+      this.crawlTweets().catch((err: unknown) => {
+        console.error('crawlTweets failed', err)
       })
     }, DELAYS.CRAWL_INTERVAL)
   }

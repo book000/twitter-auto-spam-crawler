@@ -76,8 +76,8 @@ export const NotificationService = {
           callback(response)
         }
       })
-      .catch((error: unknown) => {
-        console.error('notifyDiscord: fetch error', error)
+      .catch((err: unknown) => {
+        console.error('notifyDiscord: fetch error', err)
       })
   },
 }

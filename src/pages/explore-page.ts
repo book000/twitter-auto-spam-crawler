@@ -12,8 +12,8 @@ export const ExplorePage = {
 
     try {
       await DomUtils.waitElement('div[data-testid="trend"]')
-    } catch (error) {
-      await PageErrorHandler.handlePageError('Explore', 'runExplore', error, {
+    } catch (err) {
+      await PageErrorHandler.handlePageError('Explore', 'runExplore', err, {
         customMessage: DomUtils.isFailedPage()
           ? 'runExplore: failed page. Wait 1 minute and reload.'
           : 'Wait 1 minute and reload.',

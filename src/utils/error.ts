@@ -38,15 +38,15 @@ export const ErrorHandler = {
               )
               resolve()
             })
-            .catch((error: unknown) => {
+            .catch((err: unknown) => {
               console.error(
                 `ErrorHandler: Callback failed for ${selector}:`,
-                error
+                err
               )
-              if (error instanceof Error) {
-                reject(error)
+              if (err instanceof Error) {
+                reject(err)
               } else {
-                reject(new Error(String(error)))
+                reject(new Error(String(err)))
               }
             })
         }
@@ -89,15 +89,15 @@ export const ErrorHandler = {
               )
               resolve()
             })
-            .catch((error: unknown) => {
+            .catch((err: unknown) => {
               console.error(
                 `ErrorHandler: Callback failed for ${selector}:`,
-                error
+                err
               )
-              if (error instanceof Error) {
-                reject(error)
+              if (err instanceof Error) {
+                reject(err)
               } else {
-                reject(new Error(String(error)))
+                reject(new Error(String(err)))
               }
             })
         }
@@ -136,8 +136,8 @@ export const ErrorHandler = {
                 .then(() => {
                   resolve()
                 })
-                .catch((error: unknown) => {
-                  console.error('ErrorHandler callback error:', error)
+                .catch((err: unknown) => {
+                  console.error('ErrorHandler callback error:', err)
                   resolve()
                 })
             } else {
@@ -195,8 +195,8 @@ export const ErrorHandler = {
               .then(() => {
                 resolve()
               })
-              .catch((error: unknown) => {
-                console.error('ErrorHandler callback error:', error)
+              .catch((err: unknown) => {
+                console.error('ErrorHandler callback error:', err)
                 resolve()
               })
           } else {

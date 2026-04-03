@@ -158,8 +158,8 @@ export const AsyncUtils = {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         return await operation()
-      } catch (error) {
-        lastError = error as Error
+      } catch (err) {
+        lastError = err as Error
 
         if (attempt === maxAttempts - 1) {
           throw lastError

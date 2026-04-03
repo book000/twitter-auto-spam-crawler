@@ -24,8 +24,8 @@ export const SearchPage = {
 
     try {
       await DomUtils.waitElement('article[data-testid="tweet"]')
-    } catch (error) {
-      await PageErrorHandler.handlePageError('Search', 'runSearch', error, {
+    } catch (err) {
+      await PageErrorHandler.handlePageError('Search', 'runSearch', err, {
         customMessage: DomUtils.isFailedPage()
           ? 'runSearch: failed page. Wait 1 minute and reload.'
           : 'Wait 1 minute and reload.',
@@ -41,8 +41,8 @@ export const SearchPage = {
       await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in TweetPage.run', error)
+    TweetPage.run(true).catch((err: unknown) => {
+      PageErrorHandler.logError('Error in TweetPage.run', err)
     })
   },
 }

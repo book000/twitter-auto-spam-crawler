@@ -178,11 +178,11 @@ import packageJson from '../package.json'
     console.log('Page already loaded, waiting for a moment before running...')
     setTimeout(() => {
       try {
-        run().catch((error: unknown) => {
-          console.error('Error in run():', error)
+        run().catch((err: unknown) => {
+          console.error('Error in run():', err)
         })
-      } catch (error: unknown) {
-        console.error('Error starting script:', error)
+      } catch (err: unknown) {
+        console.error('Error starting script:', err)
       }
     }, 1000)
   } else {
@@ -190,11 +190,11 @@ import packageJson from '../package.json'
       console.log('Page loaded, waiting for network stability...')
       setTimeout(() => {
         try {
-          run().catch((error: unknown) => {
-            console.error('Error in run():', error)
+          run().catch((err: unknown) => {
+            console.error('Error in run():', err)
           })
-        } catch (error: unknown) {
-          console.error('Error starting script:', error)
+        } catch (err: unknown) {
+          console.error('Error starting script:', err)
         }
       }, 2000)
     })

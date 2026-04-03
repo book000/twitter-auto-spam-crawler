@@ -54,12 +54,12 @@ export const TweetPage = {
           CrawlerService.resetCrawledTweetCount()
         }
 
-        TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', error)
+        TweetPage.run(true).catch((err: unknown) => {
+          PageErrorHandler.logError('Error in TweetPage.run', err)
         })
       }
-    }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in handleErrorDialog', error)
+    }, 300_000).catch((err: unknown) => {
+      PageErrorHandler.logError('Error in handleErrorDialog', err)
     })
 
     ErrorHandler.detectUnprocessablePost(async (tweetArticleElement) => {
@@ -75,17 +75,17 @@ export const TweetPage = {
         CrawlerService.resetCrawledTweetCount()
       }
 
-      TweetPage.run(true).catch((error: unknown) => {
-        PageErrorHandler.logError('Error in TweetPage.run', error)
+      TweetPage.run(true).catch((err: unknown) => {
+        PageErrorHandler.logError('Error in TweetPage.run', err)
       })
-    }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in detectUnprocessablePost', error)
+    }, 300_000).catch((err: unknown) => {
+      PageErrorHandler.logError('Error in detectUnprocessablePost', err)
     })
 
     const retryCount = Storage.getRetryCount()
     try {
       await DomUtils.waitElement('article[data-testid="tweet"]')
-    } catch (error) {
+    } catch (err) {
       if (retryCount >= THRESHOLDS.MAX_RETRY_COUNT) {
         PageErrorHandler.logError(
           'failed to load tweet after 3 retries. Resetting retry count and moving to next tweet.'
@@ -97,13 +97,13 @@ export const TweetPage = {
           const tweetId = tweetUrlMatch[2]
           await QueueService.checkedTweet(tweetId)
         }
-        TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', error)
+        TweetPage.run(true).catch((err_: unknown) => {
+          PageErrorHandler.logError('Error in TweetPage.run', err_)
         })
         return
       }
 
-      await PageErrorHandler.handlePageError('Tweet', 'runTweet', error, {
+      await PageErrorHandler.handlePageError('Tweet', 'runTweet', err, {
         customMessage: `Wait 1 minute and reload. (Retry count: ${retryCount + 1})`,
       })
       Storage.setRetryCount(retryCount + 1)
@@ -126,8 +126,8 @@ export const TweetPage = {
       CrawlerService.resetCrawledTweetCount()
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in TweetPage.run', error)
+    TweetPage.run(true).catch((err: unknown) => {
+      PageErrorHandler.logError('Error in TweetPage.run', err)
     })
   },
 }
