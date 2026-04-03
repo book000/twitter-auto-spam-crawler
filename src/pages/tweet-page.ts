@@ -97,8 +97,8 @@ export const TweetPage = {
           const tweetId = tweetUrlMatch[2]
           await QueueService.checkedTweet(tweetId)
         }
-        TweetPage.run(true).catch((err_: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', err_)
+        TweetPage.run(true).catch((err: unknown) => {
+          PageErrorHandler.logError('Error in TweetPage.run', err)
         })
         return
       }
