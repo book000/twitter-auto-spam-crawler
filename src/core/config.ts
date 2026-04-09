@@ -167,7 +167,7 @@ export const ConfigManager = {
    * ```
    */
   getIsOnlyHome(): boolean {
-    const value = GM_getValue('isOnlyHome', 'false')
+    const value = GM_getValue('isOnlyHome', 'false' as string)
 
     return value === 'true'
   },
