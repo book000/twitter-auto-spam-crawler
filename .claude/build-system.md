@@ -49,11 +49,14 @@ const banner =
 
 ### tsconfig.json設定
 
-- **ターゲット**: ES2020（モダンJS機能使用）
-- **モジュール**: ES2015（Webpack用）
-- **モジュール解決**: bundler（Webpack専用）
+- **ターゲット**: ES2020（モダン JS 機能使用）
+- **モジュール**: ES2015（Webpack 用）
+- **モジュール解決**: bundler（Webpack 専用）
 - **ライブラリ**: ESNext, DOM, DOM.Iterable（ブラウザ環境対応）
 - **strict**: 全ての厳密チェック有効
+- **ルートディレクトリ**: `./src`（TypeScript 6 の `outDir` 利用要件に対応）
+- **型定義**: `node`, `jest` を明示指定（TypeScript 6 のグローバル型解決変更に対応）
+- **非推奨警告抑制**: `ignoreDeprecations: "6.0"`（`baseUrl` の移行猶予設定）
 - **パスマッピング**: `@/*` → `src/*`
 
 ### 重要な設定項目
@@ -62,13 +65,16 @@ const banner =
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "ES2015", 
+    "module": "ES2015",
     "moduleResolution": "bundler",
+    "rootDir": "./src",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node", "jest"],
+    "ignoreDeprecations": "6.0"
   }
 }
 ```

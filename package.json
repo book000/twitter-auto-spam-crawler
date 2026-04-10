@@ -28,7 +28,7 @@
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "@book000/eslint-config": "1.13.24",
+    "@book000/eslint-config": "1.14.7",
     "@types/greasemonkey": "4.0.7",
     "@types/jest": "30.0.0",
     "@types/jsdom": "28.0.1",
@@ -46,7 +46,7 @@
     "run-z": "2.1.0",
     "ts-jest": "29.4.9",
     "ts-loader": "9.5.7",
-    "typescript": "5.9.3",
+    "typescript": "6.0.2",
     "webpack": "5.105.4",
     "webpack-cli": "7.0.2"
   },

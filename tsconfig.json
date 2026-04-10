@@ -4,6 +4,7 @@
     "module": "ES2015",
     "moduleResolution": "bundler",
     "lib": ["ESNext", "esnext.AsyncIterable", "DOM", "DOM.Iterable"],
+    "rootDir": "./src",
     "outDir": "./dist",
     "removeComments": true,
     "esModuleInterop": true,
@@ -23,6 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "jest"],
     "newLine": "LF",
     "resolveJsonModule": true,
     "paths": {

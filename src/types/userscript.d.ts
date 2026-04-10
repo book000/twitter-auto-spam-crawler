@@ -24,6 +24,8 @@ type GMConfigFields = Record<string, GMConfigField>
 
 // Storage functions (from @grant)
 // GM_getValue supports any serializable type (uses JSON internally)
+// Overload for string default values — returns string to avoid narrowing to literal types
+declare function GM_getValue(key: string, defaultValue: string): string
 declare function GM_getValue<T>(key: string, defaultValue: T): T
 
 // GM_setValue accepts any serializable value (uses JSON internally)
