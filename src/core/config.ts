@@ -105,7 +105,7 @@ export const ConfigManager = {
    * ```
    */
   getAuthWebhookUrl(): string {
-    const authUrl = GM_getValue('authWebhookUrl', '' as string)
+    const authUrl = GM_getValue('authWebhookUrl', '')
 
     return authUrl || this.getDiscordWebhookUrl()
   },
@@ -126,7 +126,7 @@ export const ConfigManager = {
    * ```
    */
   getLockWebhookUrl(): string {
-    const lockUrl = GM_getValue('lockWebhookUrl', '' as string)
+    const lockUrl = GM_getValue('lockWebhookUrl', '')
 
     return lockUrl || this.getDiscordWebhookUrl()
   },
@@ -167,7 +167,7 @@ export const ConfigManager = {
    * ```
    */
   getIsOnlyHome(): boolean {
-    const value = GM_getValue('isOnlyHome', 'false' as string)
+    const value = GM_getValue('isOnlyHome', 'false')
 
     return value === 'true'
   },
