@@ -33,7 +33,7 @@ jobs:
       # 3. pnpm パッケージマネージャーの設定
       # package.json の packageManager フィールドから自動的にバージョンを取得
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: 'package.json'
           
