@@ -83,7 +83,7 @@ jobs:
           pnpm run build
 
       - name: Publish Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body: ${{ needs.bump-version.outputs.changelog }}
           tag_name: ${{ needs.bump-version.outputs.tag }}
