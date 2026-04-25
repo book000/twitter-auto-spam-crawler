@@ -9,13 +9,13 @@ interface MockStorage {
   _waitingTweetsSet: Set<string> | null
   _savedTweetsMap: Map<string, Tweet> | null
   getValue: jest.MockedFunction<
-    <K extends StorageKey>(
-      key: K,
-      defaultValue: StorageData[K]
-    ) => StorageData[K]
+    (
+      key: StorageKey,
+      defaultValue: StorageData[StorageKey]
+    ) => StorageData[StorageKey]
   >
   setValue: jest.MockedFunction<
-    <K extends StorageKey>(key: K, value: StorageData[K]) => void
+    (key: StorageKey, value: StorageData[StorageKey]) => void
   >
   getCheckedTweets: jest.MockedFunction<() => string[]>
   getWaitingTweets: jest.MockedFunction<() => string[]>
@@ -53,21 +53,14 @@ const mockStorage: MockStorage = {
   _savedTweetsMap: null,
 
   getValue: jest.fn(
-    <K extends StorageKey>(key: K, defaultValue: StorageData[K]) => {
+    (key: StorageKey, defaultValue: StorageData[StorageKey]) => {
       return GM_getValue(key, defaultValue)
     }
-  ) as jest.MockedFunction<
-    <K extends StorageKey>(
-      key: K,
-      defaultValue: StorageData[K]
-    ) => StorageData[K]
-  >,
+  ),
 
-  setValue: jest.fn(<K extends StorageKey>(key: K, value: StorageData[K]) => {
+  setValue: jest.fn((key: StorageKey, value: StorageData[StorageKey]) => {
     GM_setValue(key, value)
-  }) as jest.MockedFunction<
-    <K extends StorageKey>(key: K, value: StorageData[K]) => void
-  >,
+  }),
 
   getCheckedTweets: jest.fn((): string[] => {
     return GM_getValue('checkedTweets', [])
