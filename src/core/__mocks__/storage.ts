@@ -8,15 +8,19 @@ interface MockStorage {
   _checkedTweetsSet: Set<string> | null
   _waitingTweetsSet: Set<string> | null
   _savedTweetsMap: Map<string, Tweet> | null
-  getValue: jest.MockedFunction<
-    <K extends StorageKey>(
-      key: K,
-      defaultValue: StorageData[K]
-    ) => StorageData[K]
-  >
-  setValue: jest.MockedFunction<
-    <K extends StorageKey>(key: K, value: StorageData[K]) => void
-  >
+  /**
+   * キーと戻り値の型相関を保持した generic 型付き getValue モック。
+   * テスト内でキーに応じた型安全な値取得を保証する。
+   */
+  getValue<K extends StorageKey>(
+    key: K,
+    defaultValue: StorageData[K]
+  ): StorageData[K]
+  /**
+   * キーと値の型相関を保持した generic 型付き setValue モック。
+   * テスト内でキーに応じた型安全な値設定を保証する。
+   */
+  setValue<K extends StorageKey>(key: K, value: StorageData[K]): void
   getCheckedTweets: jest.MockedFunction<() => string[]>
   getWaitingTweets: jest.MockedFunction<() => string[]>
   getSavedTweets: jest.MockedFunction<() => Tweet[]>
@@ -53,21 +57,19 @@ const mockStorage: MockStorage = {
   _savedTweetsMap: null,
 
   getValue: jest.fn(
-    <K extends StorageKey>(key: K, defaultValue: StorageData[K]) => {
-      return GM_getValue(key, defaultValue)
-    }
-  ) as jest.MockedFunction<
     <K extends StorageKey>(
       key: K,
       defaultValue: StorageData[K]
-    ) => StorageData[K]
-  >,
+    ): StorageData[K] => {
+      return GM_getValue(key, defaultValue)
+    }
+  ) as MockStorage['getValue'],
 
-  setValue: jest.fn(<K extends StorageKey>(key: K, value: StorageData[K]) => {
-    GM_setValue(key, value)
-  }) as jest.MockedFunction<
-    <K extends StorageKey>(key: K, value: StorageData[K]) => void
-  >,
+  setValue: jest.fn(
+    <K extends StorageKey>(key: K, value: StorageData[K]): void => {
+      GM_setValue(key, value)
+    }
+  ) as MockStorage['setValue'],
 
   getCheckedTweets: jest.fn((): string[] => {
     return GM_getValue('checkedTweets', [])
