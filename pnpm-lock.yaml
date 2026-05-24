@@ -61,16 +61,16 @@ importers:
         version: 29.4.11(@babel/core@7.29.0)(@jest/transform@30.4.1)(@jest/types@30.4.1)(babel-jest@30.4.1(@babel/core@7.29.0))(jest-util@30.4.1)(jest@30.4.2(@types/node@24.12.4))(typescript@6.0.3)
       ts-loader:
         specifier: 9.5.7
-        version: 9.5.7(typescript@6.0.3)(webpack@5.107.0)
+        version: 9.5.7(typescript@6.0.3)(webpack@5.107.1)
       typescript:
         specifier: 6.0.3
         version: 6.0.3
       webpack:
-        specifier: 5.107.0
-        version: 5.107.0(webpack-cli@7.0.2)
+        specifier: 5.107.1
+        version: 5.107.1(webpack-cli@7.0.2)
       webpack-cli:
         specifier: 7.0.2
-        version: 7.0.2(webpack@5.107.0)
+        version: 7.0.2(webpack@5.107.1)
 
 packages:
 
@@ -2983,8 +2983,8 @@ packages:
     resolution: {integrity: sha512-eACpxRN02yaawnt+uUNIF7Qje6A9zArxBbcAJjK1PK3S9Ycg5jIuJ8pW4q8EMnwNZCEGltcjkRx1QzOxOkKD8A==}
     engines: {node: '>=10.13.0'}
 
-  webpack@5.107.0:
-    resolution: {integrity: sha512-PSxeHk/dmLYZlnTU+vL1Gej6Evg5RNtl3flhxBresfznFnzxinHMzHKloHnywM/3ouQv7/AlZCswWDIkNSggUA==}
+  webpack@5.107.1:
+    resolution: {integrity: sha512-mvdIWxj/H6QsfgDdH9djne3a5dYcmEmtsXGESkypaGN5jXjF/b+9KDlmTDQ2TKlFUeA2fI9Y65kihD30JOdB+Q==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -6310,13 +6310,13 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terser-webpack-plugin@5.6.0(webpack@5.107.0):
+  terser-webpack-plugin@5.6.0(webpack@5.107.1):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.47.1
-      webpack: 5.107.0(webpack-cli@7.0.2)
+      webpack: 5.107.1(webpack-cli@7.0.2)
 
   terser@5.47.1:
     dependencies:
@@ -6401,7 +6401,7 @@ snapshots:
       babel-jest: 30.4.1(@babel/core@7.29.0)
       jest-util: 30.4.1
 
-  ts-loader@9.5.7(typescript@6.0.3)(webpack@5.107.0):
+  ts-loader@9.5.7(typescript@6.0.3)(webpack@5.107.1):
     dependencies:
       chalk: 4.1.2
       enhanced-resolve: 5.21.3
@@ -6409,7 +6409,7 @@ snapshots:
       semver: 7.8.0
       source-map: 0.7.6
       typescript: 6.0.3
-      webpack: 5.107.0(webpack-cli@7.0.2)
+      webpack: 5.107.1(webpack-cli@7.0.2)
 
   tsconfig-paths@3.15.0:
     dependencies:
@@ -6552,7 +6552,7 @@ snapshots:
 
   webidl-conversions@8.0.1: {}
 
-  webpack-cli@7.0.2(webpack@5.107.0):
+  webpack-cli@7.0.2(webpack@5.107.1):
     dependencies:
       '@discoveryjs/json-ext': 1.1.0
       commander: 14.0.3
@@ -6562,7 +6562,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.107.0(webpack-cli@7.0.2)
+      webpack: 5.107.1(webpack-cli@7.0.2)
       webpack-merge: 6.0.1
 
   webpack-merge@6.0.1:
@@ -6573,7 +6573,7 @@ snapshots:
 
   webpack-sources@3.4.1: {}
 
-  webpack@5.107.0(webpack-cli@7.0.2):
+  webpack@5.107.1(webpack-cli@7.0.2):
     dependencies:
       '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
@@ -6595,11 +6595,11 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.0(webpack@5.107.0)
+      terser-webpack-plugin: 5.6.0(webpack@5.107.1)
       watchpack: 2.5.1
       webpack-sources: 3.4.1
     optionalDependencies:
-      webpack-cli: 7.0.2(webpack@5.107.0)
+      webpack-cli: 7.0.2(webpack@5.107.1)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
