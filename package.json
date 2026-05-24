@@ -51,7 +51,7 @@
     "webpack-cli": "7.0.2"
   },
   "engines": {
-    "node": "24.15.0"
+    "node": "24.16.0"
   },
   "packageManager": "pnpm@11.2.1+sha512.4c4c142b276348da01d39907cce2f40bf61281212a0e43295ee988055d50cce728ab7e9c181e252e4bce3a4f19ba1cff1a75b1e2e0fd6b17ba0be598a5e45446",
   "type": "module",
