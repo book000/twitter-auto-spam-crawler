@@ -109,11 +109,13 @@ describe('DomUtils', () => {
       const div = document.createElement('div')
       div.className = 'css-175oi2r'
 
-      const svg = document.createElementNS('https://www.w3.org/2000/svg', 'svg')
+      /* eslint-disable unicorn/prefer-https -- SVG namespace URI は W3C 仕様上 http:// で定義されており変更不可 */
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
       const path = document.createElementNS(
-        'https://www.w3.org/2000/svg',
+        'http://www.w3.org/2000/svg',
         'path'
       )
+      /* eslint-enable unicorn/prefer-https */
       path.setAttribute(
         'd',
         'M12 4c-4.418 0-8 3.58-8 8s3.582 8 8 8c3.806 0 6.993-2.66 7.802-6.22l1.95.44C20.742 18.67 16.76 22 12 22 6.477 22 2 17.52 2 12S6.477 2 12 2c3.272 0 6.176 1.57 8 4V3.5h2v6h-6v-2h2.616C17.175 5.39 14.749 4 12 4z'
