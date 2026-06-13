@@ -57,7 +57,7 @@ export const AsyncUtils = {
     signal?: AbortSignal
   ): Promise<void> {
     const durationMs = Math.random() * (maxMs - minMs) + minMs
-    return this.delay(durationMs, signal)
+    return AsyncUtils.delay(durationMs, signal)
   },
 
   /**
@@ -90,7 +90,7 @@ export const AsyncUtils = {
     signal?: AbortSignal
   ): Promise<void> {
     const backoffMs = Math.min(baseMs * Math.pow(2, attempt), maxMs)
-    return this.delay(backoffMs, signal)
+    return AsyncUtils.delay(backoffMs, signal)
   },
 
   /**
@@ -166,8 +166,8 @@ export const AsyncUtils = {
         }
 
         await (useExponentialBackoff
-          ? this.exponentialBackoff(baseDelay, attempt, 30_000, signal)
-          : this.delay(baseDelay, signal))
+          ? AsyncUtils.exponentialBackoff(baseDelay, attempt, 30_000, signal)
+          : AsyncUtils.delay(baseDelay, signal))
       }
     }
 
@@ -176,9 +176,14 @@ export const AsyncUtils = {
   },
 }
 
+/** リトライ処理のオプション */
 export interface RetryOptions {
+  /** 最大試行回数（デフォルト: 3） */
   maxAttempts?: number
+  /** 基本遅延時間（ミリ秒、デフォルト: 1000） */
   baseDelay?: number
+  /** 指数バックオフを使用するか（デフォルト: true） */
   useExponentialBackoff?: boolean
+  /** キャンセル用 AbortSignal */
   signal?: AbortSignal
 }

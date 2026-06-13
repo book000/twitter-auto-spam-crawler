@@ -109,9 +109,9 @@ describe('DomUtils', () => {
       const div = document.createElement('div')
       div.className = 'css-175oi2r'
 
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      const svg = document.createElementNS('https://www.w3.org/2000/svg', 'svg')
       const path = document.createElementNS(
-        'http://www.w3.org/2000/svg',
+        'https://www.w3.org/2000/svg',
         'path'
       )
       path.setAttribute(

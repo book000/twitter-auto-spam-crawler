@@ -107,7 +107,7 @@ export const ConfigManager = {
   getAuthWebhookUrl(): string {
     const authUrl = GM_getValue('authWebhookUrl', '')
 
-    return authUrl || this.getDiscordWebhookUrl()
+    return authUrl || ConfigManager.getDiscordWebhookUrl()
   },
 
   /**
@@ -128,7 +128,7 @@ export const ConfigManager = {
   getLockWebhookUrl(): string {
     const lockUrl = GM_getValue('lockWebhookUrl', '')
 
-    return lockUrl || this.getDiscordWebhookUrl()
+    return lockUrl || ConfigManager.getDiscordWebhookUrl()
   },
 
   /**

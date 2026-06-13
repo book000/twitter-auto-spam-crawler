@@ -381,11 +381,12 @@ describe('TweetService', () => {
      * - 閾値チェックの正確な動作確認
      */
     it('should return true when tweets count exceeds limit', () => {
-      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT + 1 })
-        .fill({})
-        .map((_, index) => ({
+      const tweets = Array.from(
+        { length: THRESHOLDS.SAVED_TWEETS_LIMIT + 1 },
+        (_, index) => ({
           tweetId: index.toString(),
-        }))
+        })
+      )
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 
@@ -400,11 +401,12 @@ describe('TweetService', () => {
      * - ダウンロード不要状態の正確な判定
      */
     it('should return false when tweets count is below limit', () => {
-      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT - 1 })
-        .fill({})
-        .map((_, index) => ({
+      const tweets = Array.from(
+        { length: THRESHOLDS.SAVED_TWEETS_LIMIT - 1 },
+        (_, index) => ({
           tweetId: index.toString(),
-        }))
+        })
+      )
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 
@@ -419,11 +421,12 @@ describe('TweetService', () => {
      * - 境界値での正確な判定動作確認
      */
     it('should return false when tweets count equals limit', () => {
-      const tweets = Array.from({ length: THRESHOLDS.SAVED_TWEETS_LIMIT })
-        .fill({})
-        .map((_, index) => ({
+      const tweets = Array.from(
+        { length: THRESHOLDS.SAVED_TWEETS_LIMIT },
+        (_, index) => ({
           tweetId: index.toString(),
-        }))
+        })
+      )
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 

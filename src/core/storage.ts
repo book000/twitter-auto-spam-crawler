@@ -8,189 +8,290 @@ import type { StorageData, StorageKey, Tweet } from '@/types'
  * - チェック済み/待機中ツイートIDにSetを使用してO(1)ルックアップを実現
  * - 保存済みツイートにMapを使用して効率的な更新を実現
  */
-export const Storage = {
-  // キャッシュ用のプライベートプロパティ
-  _checkedTweetsSet: null as Set<string> | null,
-  _waitingTweetsSet: null as Set<string> | null,
-  _savedTweetsMap: null as Map<string, Tweet> | null,
-  getValue<K extends StorageKey>(
+export class Storage {
+  /** チェック済みツイートIDのキャッシュ */
+  private static _checkedTweetsSet: Set<string> | null = null
+  /** 待機中ツイートIDのキャッシュ */
+  private static _waitingTweetsSet: Set<string> | null = null
+  /** 保存済みツイートのキャッシュ */
+  private static _savedTweetsMap: Map<string, Tweet> | null = null
+
+  /**
+   * ストレージから値を取得する
+   *
+   * @param key - 取得するキー
+   * @param defaultValue - デフォルト値
+   * @returns 取得した値
+   */
+  static getValue<K extends StorageKey>(
     key: K,
     defaultValue: StorageData[K]
   ): StorageData[K] {
     return GM_getValue(key, defaultValue)
-  },
+  }
 
-  setValue<K extends StorageKey>(key: K, value: StorageData[K]): void {
+  /**
+   * ストレージに値を保存する
+   *
+   * @param key - 保存するキー
+   * @param value - 保存する値
+   */
+  static setValue<K extends StorageKey>(key: K, value: StorageData[K]): void {
     GM_setValue(key, value)
-  },
+  }
 
-  getCheckedTweets(): string[] {
-    return this.getValue('checkedTweets', [])
-  },
+  /**
+   * チェック済みツイートIDの配列を取得する
+   *
+   * @returns チェック済みツイートIDの配列
+   */
+  static getCheckedTweets(): string[] {
+    return Storage.getValue('checkedTweets', [])
+  }
 
   /**
    * チェック済みツイートIDのSetを取得（キャッシュ付き）
    * O(1)ルックアップのための最適化
+   *
+   * @returns チェック済みツイートIDのSet
    */
-  getCheckedTweetsSet(): Set<string> {
-    this._checkedTweetsSet ??= new Set(this.getCheckedTweets())
-    return this._checkedTweetsSet
-  },
+  static getCheckedTweetsSet(): Set<string> {
+    Storage._checkedTweetsSet ??= new Set(Storage.getCheckedTweets())
+    return Storage._checkedTweetsSet
+  }
 
-  getWaitingTweets(): string[] {
-    return this.getValue('waitingTweets', [])
-  },
+  /**
+   * 待機中ツイートIDの配列を取得する
+   *
+   * @returns 待機中ツイートIDの配列
+   */
+  static getWaitingTweets(): string[] {
+    return Storage.getValue('waitingTweets', [])
+  }
 
   /**
    * 待機中ツイートIDのSetを取得（キャッシュ付き）
    * O(1)ルックアップのための最適化
+   *
+   * @returns 待機中ツイートIDのSet
    */
-  getWaitingTweetsSet(): Set<string> {
-    this._waitingTweetsSet ??= new Set(this.getWaitingTweets())
-    return this._waitingTweetsSet
-  },
+  static getWaitingTweetsSet(): Set<string> {
+    Storage._waitingTweetsSet ??= new Set(Storage.getWaitingTweets())
+    return Storage._waitingTweetsSet
+  }
 
-  getSavedTweets() {
-    return this.getValue('savedTweets', [])
-  },
+  /**
+   * 保存済みツイートの配列を取得する
+   *
+   * @returns 保存済みツイートの配列
+   */
+  static getSavedTweets() {
+    return Storage.getValue('savedTweets', [])
+  }
 
   /**
    * 保存済みツイートのMapを取得（キャッシュ付き）
    * O(1)ルックアップと更新のための最適化
+   *
+   * @returns 保存済みツイートのMap（キー: tweetId）
    */
-  getSavedTweetsMap(): Map<string, Tweet> {
-    this._savedTweetsMap ??= new Map(
-      this.getSavedTweets().map((tweet) => [tweet.tweetId, tweet])
+  static getSavedTweetsMap(): Map<string, Tweet> {
+    Storage._savedTweetsMap ??= new Map(
+      Storage.getSavedTweets().map((tweet) => [tweet.tweetId, tweet])
     )
-    return this._savedTweetsMap
-  },
+    return Storage._savedTweetsMap
+  }
 
-  isLoginNotified(): boolean {
-    return this.getValue('isLoginNotified', false)
-  },
+  /**
+   * ログイン通知済みかどうかを取得する
+   *
+   * @returns ログイン通知済みの場合 true
+   */
+  static isLoginNotified(): boolean {
+    return Storage.getValue('isLoginNotified', false)
+  }
 
-  isLockedNotified(): boolean {
-    return this.getValue('isLockedNotified', false)
-  },
+  /**
+   * ロック通知済みかどうかを取得する
+   *
+   * @returns ロック通知済みの場合 true
+   */
+  static isLockedNotified(): boolean {
+    return Storage.getValue('isLockedNotified', false)
+  }
 
-  getRetryCount(): number {
-    return this.getValue('retryCount', 0)
-  },
+  /**
+   * リトライ回数を取得する
+   *
+   * @returns 現在のリトライ回数
+   */
+  static getRetryCount(): number {
+    return Storage.getValue('retryCount', 0)
+  }
 
-  setCheckedTweets(tweets: string[]): void {
-    this.setValue('checkedTweets', tweets)
+  /**
+   * チェック済みツイートIDの配列を保存する
+   *
+   * @param tweets - 保存するツイートIDの配列
+   */
+  static setCheckedTweets(tweets: string[]): void {
+    Storage.setValue('checkedTweets', tweets)
     // キャッシュを更新
-    this._checkedTweetsSet = new Set(tweets)
-  },
+    Storage._checkedTweetsSet = new Set(tweets)
+  }
 
-  setWaitingTweets(tweets: string[]): void {
-    this.setValue('waitingTweets', tweets)
+  /**
+   * 待機中ツイートIDの配列を保存する
+   *
+   * @param tweets - 保存するツイートIDの配列
+   */
+  static setWaitingTweets(tweets: string[]): void {
+    Storage.setValue('waitingTweets', tweets)
     // キャッシュを更新
-    this._waitingTweetsSet = new Set(tweets)
-  },
+    Storage._waitingTweetsSet = new Set(tweets)
+  }
 
-  setSavedTweets(tweets: StorageData['savedTweets']): void {
-    this.setValue('savedTweets', tweets)
+  /**
+   * 保存済みツイートの配列を保存する
+   *
+   * @param tweets - 保存するツイートの配列
+   */
+  static setSavedTweets(tweets: StorageData['savedTweets']): void {
+    Storage.setValue('savedTweets', tweets)
     // キャッシュを更新
-    this._savedTweetsMap = new Map(
+    Storage._savedTweetsMap = new Map(
       tweets.map((tweet) => [tweet.tweetId, tweet])
     )
-  },
+  }
 
-  setLoginNotified(value: boolean): void {
-    this.setValue('isLoginNotified', value)
-  },
+  /**
+   * ログイン通知済みフラグを保存する
+   *
+   * @param value - 保存する値
+   */
+  static setLoginNotified(value: boolean): void {
+    Storage.setValue('isLoginNotified', value)
+  }
 
-  setLockedNotified(value: boolean): void {
-    this.setValue('isLockedNotified', value)
-  },
+  /**
+   * ロック通知済みフラグを保存する
+   *
+   * @param value - 保存する値
+   */
+  static setLockedNotified(value: boolean): void {
+    Storage.setValue('isLockedNotified', value)
+  }
 
-  setRetryCount(count: number): void {
-    this.setValue('retryCount', count)
-  },
+  /**
+   * リトライ回数を保存する
+   *
+   * @param count - 保存するリトライ回数
+   */
+  static setRetryCount(count: number): void {
+    Storage.setValue('retryCount', count)
+  }
 
-  getStoredVersion(): string {
-    return this.getValue('storedVersion', '')
-  },
+  /**
+   * 保存済みバージョンを取得する
+   *
+   * @returns 保存済みバージョン文字列
+   */
+  static getStoredVersion(): string {
+    return Storage.getValue('storedVersion', '')
+  }
 
-  setStoredVersion(version: string): void {
-    this.setValue('storedVersion', version)
-  },
+  /**
+   * バージョンを保存する
+   *
+   * @param version - 保存するバージョン文字列
+   */
+  static setStoredVersion(version: string): void {
+    Storage.setValue('storedVersion', version)
+  }
 
   /**
    * キャッシュをクリア（主にテスト用）
    */
-  clearCache(): void {
-    this._checkedTweetsSet = null
-    this._waitingTweetsSet = null
-    this._savedTweetsMap = null
-  },
+  static clearCache(): void {
+    Storage._checkedTweetsSet = null
+    Storage._waitingTweetsSet = null
+    Storage._savedTweetsMap = null
+  }
 
   /**
    * バッチ処理: 複数のツイートIDを一度にチェック済みに追加
+   *
    * @param tweetIds - 追加するツイートIDの配列
    */
-  addCheckedTweetsBatch(tweetIds: string[]): void {
-    const checkedTweetsSet = this.getCheckedTweetsSet()
+  static addCheckedTweetsBatch(tweetIds: string[]): void {
+    const checkedTweetsSet = Storage.getCheckedTweetsSet()
     for (const tweetId of tweetIds) {
       checkedTweetsSet.add(tweetId)
     }
-    this.setCheckedTweets([...checkedTweetsSet])
-  },
+    Storage.setCheckedTweets([...checkedTweetsSet])
+  }
 
   /**
    * バッチ処理: 複数のツイートIDを一度に待機中に追加
+   *
    * @param tweetIds - 追加するツイートIDの配列
    */
-  addWaitingTweetsBatch(tweetIds: string[]): void {
-    const waitingTweetsSet = this.getWaitingTweetsSet()
+  static addWaitingTweetsBatch(tweetIds: string[]): void {
+    const waitingTweetsSet = Storage.getWaitingTweetsSet()
     for (const tweetId of tweetIds) {
       waitingTweetsSet.add(tweetId)
     }
-    this.setWaitingTweets([...waitingTweetsSet])
-  },
+    Storage.setWaitingTweets([...waitingTweetsSet])
+  }
 
   /**
    * バッチ処理: 複数のツイートを一度に保存
+   *
    * @param tweets - 保存するツイートの配列
    */
-  saveTweetsBatch(tweets: Tweet[]): void {
-    const savedTweetsMap = this.getSavedTweetsMap()
+  static saveTweetsBatch(tweets: Tweet[]): void {
+    const savedTweetsMap = Storage.getSavedTweetsMap()
     for (const tweet of tweets) {
       savedTweetsMap.set(tweet.tweetId, tweet)
     }
     const sortedTweets = [...savedTweetsMap.values()].toSorted((a, b) =>
       a.tweetId.localeCompare(b.tweetId)
     )
-    this.setSavedTweets(sortedTweets)
-  },
+    Storage.setSavedTweets(sortedTweets)
+  }
 
   /**
    * 特定のツイートIDがチェック済みか待機中かを一度にチェック
+   *
    * @param tweetId - チェックするツイートID
-   * @returns {チェック済み: boolean, 待機中: boolean}
+   * @returns チェック済みと待機中の状態を含むオブジェクト
    */
-  getTweetStatus(tweetId: string): { isChecked: boolean; isWaiting: boolean } {
+  static getTweetStatus(tweetId: string): {
+    isChecked: boolean
+    isWaiting: boolean
+  } {
     return {
-      isChecked: this.getCheckedTweetsSet().has(tweetId),
-      isWaiting: this.getWaitingTweetsSet().has(tweetId),
+      isChecked: Storage.getCheckedTweetsSet().has(tweetId),
+      isWaiting: Storage.getWaitingTweetsSet().has(tweetId),
     }
-  },
+  }
 
   /**
    * 保存済みツイートから特定のIDで検索
+   *
    * @param tweetId - 検索するツイートID
    * @returns ツイートオブジェクトまたはundefined
    */
-  getSavedTweetById(tweetId: string): Tweet | undefined {
-    return this.getSavedTweetsMap().get(tweetId)
-  },
+  static getSavedTweetById(tweetId: string): Tweet | undefined {
+    return Storage.getSavedTweetsMap().get(tweetId)
+  }
 
   /**
    * ストレージの統計情報を取得
-   * @returns ストレージの統計情報
+   *
+   * @returns ストレージの統計情報（件数とメモリ使用状況）
    */
-  getStorageStats(): {
+  static getStorageStats(): {
     checkedTweetsCount: number
     waitingTweetsCount: number
     savedTweetsCount: number
@@ -201,14 +302,14 @@ export const Storage = {
     }
   } {
     return {
-      checkedTweetsCount: this.getCheckedTweetsSet().size,
-      waitingTweetsCount: this.getWaitingTweetsSet().size,
-      savedTweetsCount: this.getSavedTweetsMap().size,
+      checkedTweetsCount: Storage.getCheckedTweetsSet().size,
+      waitingTweetsCount: Storage.getWaitingTweetsSet().size,
+      savedTweetsCount: Storage.getSavedTweetsMap().size,
       memoryUsage: {
-        checkedTweetsSetSize: this._checkedTweetsSet?.size ?? 0,
-        waitingTweetsSetSize: this._waitingTweetsSet?.size ?? 0,
-        savedTweetsMapSize: this._savedTweetsMap?.size ?? 0,
+        checkedTweetsSetSize: Storage._checkedTweetsSet?.size ?? 0,
+        waitingTweetsSetSize: Storage._waitingTweetsSet?.size ?? 0,
+        savedTweetsMapSize: Storage._savedTweetsMap?.size ?? 0,
       },
     }
-  },
+  }
 }

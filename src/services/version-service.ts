@@ -6,7 +6,8 @@ import { Storage } from '@/core/storage'
 export const VersionService = {
   /**
    * 現在のスクリプトバージョンをチェックし、変更があればDiscordに通知する
-   * @param currentVersion 現在のスクリプトバージョン
+   *
+   * @param currentVersion - 現在のスクリプトバージョン
    */
   checkVersionAndNotify(currentVersion: string): void {
     const storedVersion = Storage.getStoredVersion()
@@ -23,7 +24,7 @@ export const VersionService = {
       )
 
       try {
-        this.notifyVersionUpdate(storedVersion, currentVersion)
+        VersionService.notifyVersionUpdate(storedVersion, currentVersion)
         Storage.setStoredVersion(currentVersion)
         console.log(
           'VersionService: Update notification sent and version updated'
