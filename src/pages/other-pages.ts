@@ -3,7 +3,13 @@ import { Storage } from '@/core/storage'
 import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
+/**
+ * ツイートページ以外のページ処理を担当するクラス
+ */
 export const OtherPages = {
+  /**
+   * 投稿作成ページから戻る処理を実行する
+   */
   runComposePost(): void {
     const closeButton = document.querySelector(
       'button[data-testid="app-bar-close"][role="button"]'
@@ -15,7 +21,7 @@ export const OtherPages = {
   },
 
   /**
-   * ロック解除検知のための定期チェックを開始
+   * ロック解除検知のための定期チェックを開始する
    */
   startPeriodicUnlockCheck(): void {
     let checkCount = 0
@@ -30,6 +36,11 @@ export const OtherPages = {
     }, DELAYS.LOCKED_CHECK_INTERVAL)
   },
 
+  /**
+   * Blue Blocker キューの処理ページを実行する
+   *
+   * @returns {Promise<void>} 処理完了を表すPromise
+   */
   async runProcessBlueBlockerQueue(): Promise<void> {
     PageErrorHandler.logAction('start')
 
@@ -55,6 +66,9 @@ export const OtherPages = {
     }, DELAYS.CRAWL_INTERVAL)
   },
 
+  /**
+   * ログインページの処理を実行する
+   */
   runLogin(): void {
     const isLoginNotified = Storage.isLoginNotified()
     if (isLoginNotified) {
@@ -63,6 +77,12 @@ export const OtherPages = {
     window.open(URLS.EXAMPLE_LOGIN_NOTIFY, '_blank')
   },
 
+  /**
+   * アカウントロック時の処理を実行する
+   *
+   * 未通知の場合はロック通知ウィンドウを開き、
+   * ロック解除検知のための定期チェックを開始する。
+   */
   runLocked(): void {
     PageErrorHandler.logAction(
       'Account is locked, starting continuous unlock detection'
@@ -71,7 +91,7 @@ export const OtherPages = {
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
       // 既に通知済みの場合は、定期チェックのみ開始
-      this.startPeriodicUnlockCheck()
+      OtherPages.startPeriodicUnlockCheck()
       return
     }
 
@@ -80,6 +100,6 @@ export const OtherPages = {
     window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
 
     // ロック解除検知のための定期チェックを開始
-    this.startPeriodicUnlockCheck()
+    OtherPages.startPeriodicUnlockCheck()
   },
 }

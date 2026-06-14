@@ -43,7 +43,9 @@ export function setupFailedPageDOM(): void {
   const div = document.createElement('div')
   div.className = FAILED_PAGE_CLASS
 
+  // eslint-disable-next-line unicorn/prefer-https -- SVG namespace URI は W3C 仕様上 http:// で定義されており変更不可
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  // eslint-disable-next-line unicorn/prefer-https -- SVG namespace URI は W3C 仕様上 http:// で定義されており変更不可
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
   path.setAttribute(
     'd',
