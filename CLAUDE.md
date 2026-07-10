@@ -4,301 +4,117 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定するTypeScriptベースのユーザースクリプトです。Blue Blocker拡張機能と組み合わせて使用することを想定しており、Tampermonkey/Greasemonkey経由でブラウザで動作するユーザースクリプト（.user.js）にコンパイルされます。
+Twitter/X のツイートを自動でクロールし、潜在的なスパムコンテンツを特定する TypeScript ベースのユーザースクリプトです。Blue Blocker 拡張機能と組み合わせて使うことを想定しており、Webpack で Tampermonkey/Greasemonkey 用のユーザースクリプト（`dist/twitter-auto-spam-crawler.user.js`）にコンパイルされます。
 
-## 基本的なコマンド
+## 開発環境要件
 
-### 開発環境要件
+- **Node.js**: `24.18.0`（`.node-version` / `engines` フィールドで指定）
+- **パッケージマネージャ**: `pnpm@11.10.0`（`packageManager` フィールドで固定。npm/yarn は不可）
 
-- **Node.js**: `24.1.0` (engines フィールドで指定)
-- **パッケージマネージャ**: `pnpm@9.15.4+` (必須)
-
-### 開発コマンド
+## 開発コマンド
 
 - `pnpm install` - 依存関係をインストール
 - `pnpm run build` - 本番用ユーザースクリプトをビルド
-- `pnpm run build:dev` - ソースマップ付き開発用ユーザースクリプトをビルド
-- `pnpm run watch` - 開発用のウォッチモードでビルド
-- `pnpm test` - カバレッジ付きで全テストを実行（120秒タイムアウト※）
-- `pnpm test -- <ファイル>` - 特定のテストファイルを実行（例：`pnpm test -- src/services/tweet-service.test.ts`）
-- `pnpm run lint` - 全てのリンティング（prettier、eslint、typescript）を実行
-- `pnpm run fix` - リンティングエラーを自動修正
-- `pnpm run clean` - distディレクトリをクリーンアップ
+- `pnpm run build:dev` - ソースマップ付き開発用ビルド
+- `pnpm run watch` - ウォッチモードでビルド
+- `pnpm test` - 全テストをカバレッジ付きで実行（Jest、`testTimeout` 120 秒）
+- `pnpm test -- <ファイル>` - 特定テストのみ実行（例: `pnpm test -- src/__tests__/services/tweet-service.test.ts`）
+- `pnpm run lint` - prettier / eslint / tsc を一括実行
+- `pnpm run fix` - prettier / eslint の自動修正
+- `pnpm run clean` - `dist` をクリーンアップ
 
-※ タイムアウト設定の詳細は `.claude/testing-guide.md` を参照
+**変更後は必ず `pnpm run lint` と `pnpm test` の両方を通すこと。**
 
-### 品質チェック
+## 言語・コミュニケーション規約
 
-変更後は必ず以下のコマンドを実行してください：
+- **会話**: 日本語
+- **コード内コメント・JSDoc**: 日本語
+- **エラーメッセージ（ユーザー/ログ向け文字列）**: 英語
+- **日本語と英数字の間**: 半角スペースを挿入
+- **絵文字**: 既存のエラーメッセージに絵文字がある場合は、周辺と統一する
 
-1. `pnpm run lint` - 静的解析とコード品質チェック
-2. `pnpm test` - 全テストの実行と検証
+## コミット・ブランチ規約
 
-## 詳細ガイド
+- **Conventional Commits**: `<type>(<scope>): <description>`。`<description>` は日本語。例: `feat: Discord Webhook 連携機能を追加`
+- 許可 type: `feat` / `fix` / `docs` / `perf` / `refactor` / `style` / `test` / `chore`
+- **ブランチ**: [Conventional Branch](https://conventional-branch.github.io) 短縮形。例: `feat/add-discord-webhook`
+- ブランチ作成時は `--no-track` を付けリモート追跡を無効化する（例: `git checkout -b feat/xxx origin/master --no-track`）
+- **Renovate が作成した PR には追加コミットや更新を行わない**
 
-プロジェクトの詳細情報については、以下の専門ガイドを参照してください：
+## コーディング規約
 
-### アーキテクチャ
+- **TypeScript**: strict モード必須、ES2020 ターゲット。`skipLibCheck` での型エラー回避は禁止
+- **パスエイリアス**: `@/` → `src/`
+- **命名**: 変数・関数は camelCase、クラス・インターフェースは PascalCase、定数は UPPER_SNAKE_CASE、ファイルは kebab-case
+- **エラーハンドリング**: ページ処理では共通ユーティリティ `PageErrorHandler`（`src/utils/page-error-handler.ts`）を使い、各ページでの重複した try/catch を避ける
+- 既存のアーキテクチャ・サービス層・コードパターンを尊重し、最小限の変更にとどめる
+- 詳細な実装パターンは `.claude/development-patterns.md` を参照
 
-**`.claude/architecture.md`** - コアアーキテクチャの詳細
+## アーキテクチャ概要
 
-- ページベースルーティングシステム
-- サービス層アーキテクチャ（CrawlerService, TweetService, QueueService, NotificationService）
-- データフロー、ストレージシステム、DOM操作パターン
+- **ページベースルーティング**: `src/main.ts` が URL に応じて適切なページハンドラーを実行
+- **サービス層**: CrawlerService / TweetService / QueueService / NotificationService
+- **ストレージ**: `GM_getValue` / `GM_setValue` でデータを永続化
+- **DOM 操作**: X.com 固有のセレクター（`[data-testid="tweet"]` など）を使用
 
-### ビルドシステム
+### ディレクトリ構成
 
-**`.claude/build-system.md`** - ビルド・設定の詳細  
-
-- Webpack構成とユーザースクリプトメタデータ自動生成
-- TypeScript設定（ES2020, strict モード）
-- ESLint構成（テスト・モック特有ルール）
-
-### 開発パターン
-
-**`.claude/development-patterns.md`** - 実装パターンの詳細
-
-- ユーザースクリプトAPI使用例（GM_getValue/GM_setValue）
-- DOM操作パターン（X.com固有セレクター）
-- エラーハンドリング、非同期処理、TypeScript型定義
-
-### テスト
-
-**`.claude/testing-guide.md`** - テスト環境と手法の詳細
-
-- Jest設定（jsdom、フェイクタイマー、120秒タイムアウト）
-- ユーザースクリプトモック（GM_* API）
-- DOM・タイマー・サービステストの実装方法
-
-### GitHub PRワークフロー  
-
-**`.claude/github-pr-workflow.md`** - PR作成・レビュー・CI対応の詳細
-
-- Pull Request作成フロー
-- Copilot Review対応手順
-- CI/CD修正とトラブルシューティング
-
-### Issue対応ワークフロー
-
-**`.claude/issue-workflow.md`** - GitHub Issue対応の完全自動フロー
-
-- 「issue #nnを対応してください」だけで完全対応
-- Issue取得から実装、テスト、PR作成まで
-- Copilotレビュー対応を含む標準フロー
-
-**重要**: Issue対応は必ず以下の完全フローで実行すること：
-
-1. **Issue取得と理解** - `gh issue view #nn` で内容確認
-2. **Todoリスト作成** - TodoWriteツールでタスク管理と進捗追跡
-3. **実装** - 機能実装
-4. **テスト作成・実行** - `pnpm test` で包括的テスト
-5. **品質チェック** - `pnpm run lint` でコード品質確認
-6. **ドキュメント更新** - 確定した実装に基づき関連`.claude/*.md`ファイル更新
-7. **PR作成** - ブランチ作成、コミット、プッシュ、PR作成。このとき、PRのタイトルはコミットメッセージ同様に Conventional Commits に沿ったものとする。
-8. **CI・Copilot対応** - 失敗時は手順3-7を繰り返し
-9. **マージ可能まで繰り返し** - 全チェックが通るまで修正継続
-
-**実践的な注意点**:
-- テスト失敗、リンティングエラー、CI失敗、Copilotレビュー指摘など
-- **手順3-7のサイクルを何度も繰り返す**ことが現実的
-- ドキュメント更新は実装確定後に行う（実装中の設計変更に対応）
-- **絶対に必要**: 最終的にPR作成まで完了すること
-
-## このプロジェクト固有の設定
-
-GitHub PRワークフロー使用時の環境変数：
-
-```bash
-export REPO_OWNER="book000"
-export REPO_NAME="twitter-auto-spam-crawler"
-export MAIN_BRANCH="master"
-export PACKAGE_MANAGER="pnpm"
-export TEST_CMD="pnpm test"
-export LINT_CMD="pnpm run lint"
-export BUILD_CMD="pnpm run build"
-export FIX_CMD="pnpm run fix"
+```
+src/
+├── __mocks__/   # ユーザースクリプト API モック
+├── __tests__/   # テスト（元のソース構造を反映）
+├── core/        # コア機能（設定、ストレージ）
+├── pages/       # ページハンドラー
+├── services/    # サービス層
+├── types/       # TypeScript 型定義
+├── utils/       # ユーティリティ
+└── main.ts      # エントリーポイント
 ```
 
-## 重要：ドキュメントの継続的更新
+### 詳細ガイド（`.claude/`）
 
-### ドキュメント更新の責任
+必要な領域の作業時に該当ファイルを参照する:
 
-Claude Codeとして作業する際は、以下の場合に**必ず**該当するドキュメントを更新または新規作成してください：
+| ファイル | 内容 |
+|---|---|
+| `.claude/architecture.md` | コアアーキテクチャ、データフロー、ストレージ、DOM 操作 |
+| `.claude/build-system.md` | Webpack 構成、ユーザースクリプトメタデータ生成、TS/ESLint 設定 |
+| `.claude/development-patterns.md` | 実装パターン、GM_* API、エラーハンドリング、型定義 |
+| `.claude/testing-guide.md` | Jest 設定（jsdom、フェイクタイマー、120 秒）、モック手法 |
+| `.claude/github-pr-workflow.md` | PR 作成・Copilot レビュー対応・CI トラブルシューティング |
+| `.claude/issue-workflow.md` | GitHub Issue 対応の標準フロー |
 
-#### 必須更新・新規作成ケース
+## テスト
 
-1. **新しいアーキテクチャパターンを導入・変更した場合**
-   - `.claude/architecture.md` を更新または新規ガイド作成
-   - 新しいサービス追加、データフロー変更、ストレージ構造変更など
+- Jest（`ts-jest` / jsdom）。`testTimeout` は 120 秒、フェイクタイマーがグローバルに有効
+- ユーザースクリプトの GM_* API は `src/__mocks__/userscript.ts` でモック
+- テストは `src/__tests__/**/*.test.ts` に配置し、元のソース構造を反映する
+- 新機能・バグ修正には対応するテストを追加する
 
-2. **ビルド設定・開発環境を変更した場合**
-   - `.claude/build-system.md` を更新または新規ガイド作成
-   - Webpack設定変更、新しいツール導入、依存関係の大幅変更など
+## Pull Request
 
-3. **新しい開発パターン・API使用方法を実装した場合**
-   - `.claude/development-patterns.md` を更新または新規ガイド作成
-   - 新しいユーザースクリプトAPI使用、DOM操作パターン、エラーハンドリング手法など
+- 元 Issue を自動クローズする場合、本文に `closes #<番号>`（`fixes` / `resolves` も可）を含める
+- PR タイトルもコミット同様 Conventional Commits に従う
+- 作成・レビュー対応の詳細フローは `.claude/github-pr-workflow.md` を参照
 
-4. **テスト手法・設定を変更した場合**
-   - `.claude/testing-guide.md` を更新または新規ガイド作成
-   - Jest設定変更、新しいモック手法、テストパターンの追加など
+## セキュリティ / 機密情報
 
-5. **基本コマンド・開発フローを変更した場合**
-   - `CLAUDE.md` を更新
-   - 新しいnpmスクリプト追加、開発環境要件変更など
+- API キー・認証情報はコミットしない（`.env` で管理）
+- ログに個人情報・認証情報を出力しない
+- コミット前に機密情報が含まれていないか確認する
 
-6. **プロジェクト固有の新しい領域が必要な場合**
-   - `.claude/` フォルダに新しい専門ガイドを作成
-   - デプロイメント、セキュリティ、パフォーマンス最適化など
+## ドキュメント更新ルール
 
-#### 更新手順
+実装を変更したら、対応する `.claude/*.md` を同じ作業内で更新する:
 
-```bash
-# 1. 作業完了後、関連ドキュメントを確認
-# 2. 必要に応じてドキュメントを更新
-# 3. ドキュメント更新を同じコミットまたは追加コミットに含める
+- アーキテクチャ変更（新サービス、データフロー、ストレージ構造）→ `.claude/architecture.md`
+- ビルド設定・依存関係の大幅変更 → `.claude/build-system.md`
+- 新しい実装パターン・API 使用方法 → `.claude/development-patterns.md`
+- テスト手法・設定変更 → `.claude/testing-guide.md`
+- コマンド・開発環境要件の変更 → この `CLAUDE.md`
 
-git add CLAUDE.md .claude/
-git commit -m "feat: 新機能実装とドキュメント更新
+ドキュメントを実態から乖離させないこと。更新は実装確定後に行い、同一コミットまたは追加コミットに含める。
 
-- [実装内容の説明]
-- [ドキュメント名]: [更新内容の概要]
+## 作業判断の記録
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-#### 更新の目的
-
-- **一貫性維持**: 実装とドキュメントの整合性を保つ
-- **知識継承**: 将来のClaude Codeセッションでの正確な理解
-- **開発効率**: 最新の情報に基づく適切な開発支援
-
-**注意**: ドキュメント更新を怠ると、将来のセッションで古い情報に基づく不適切な提案をする可能性があります。必ず実装と同時にドキュメントも更新してください。
-
-### 修正例: メモリリーク防止のタイムアウト機能（Issue #18）
-
-**実際のワークフロー例**:
-1. Issue #18確認 → setIntervalの無限ループ問題を把握
-2. Todoリスト作成 → 7つのタスクで進捗管理
-3. 実装 → ErrorHandlerに2つのメソッドへタイムアウト機能追加
-4. テスト → 4つの新しいテストケース作成、16/16 passed
-5. 品質チェック → ESLintエラー修正（error: unknown型）
-6. ドキュメント更新 → `development-patterns.md`更新
-   - **エラーハンドリングセクション**: ErrorHandlerのタイムアウト機能使用例追加
-   - **タイマー管理セクション**: メモリリーク防止パターン追加
-7. PR作成 → [PR #27](https://github.com/book000/twitter-auto-spam-crawler/pull/27)
-8. CI・Copilot対応 → （進行中）
-
-### 修正例: ErrorHandlerの無言エラー処理修正（Issue #21）
-
-**実際のワークフロー例**:
-1. Issue #21確認 → コールバックエラーが`.catch(resolve)`で隠蔽される問題を把握
-2. Todoリスト作成 → 8つのタスクで進捗管理
-3. 実装 → ErrorHandlerに`waitForElementAndCallback`、`waitForAllElementsAndCallback`メソッド追加
-4. テスト → 8つの新しいテストケース作成、131 passed（エラー伝播シナリオ含む）
-5. 品質チェック → TypeScript型安全性エラー修正（NodeList型キャスト）
-6. ドキュメント更新 → `development-patterns.md`更新
-   - **ErrorHandlerの新しい要素待機メソッドセクション**: 新機能の使用例追加
-   - **修正内容（Issue #21対応）**: Before/After比較と重要な注意点追加
-7. PR作成 → [PR #28](https://github.com/book000/twitter-auto-spam-crawler/pull/28)
-8. CI・Copilot対応 → コンフリクト解決、masterとのマージ、Copilotレビュー確認
-
-**学んだポイント**:
-- 実装中にコンフリクト発生、masterブランチからの変更をマージ
-- 手順3-7を複数回繰り返し、コンフリクト解決とテスト調整を実施
-- エラー伝播の適切な実装により、デバッグ効率とコード品質が大幅に向上
-- Copilotレビューで存在しない変更への言及があったが、実際の修正内容に集中
-
-## Git ブランチ作成ガイドライン
-
-### ブランチ作成時の設定
-
-- **デフォルト**: 必ず `--no-track` オプションを使用してリモートブランチの追跡を無効化
-
-```bash
-# 正しい例
-git checkout -b feature/new-feature origin/master --no-track
-
-# 避けるべき例
-git checkout -b feature/new-feature origin/master
-```
-
-### コンフリクト対応
-
-コンフリクトが発生した場合の必須対応手順：
-
-1. **fetch & rebase**: `git fetch origin && git rebase origin/master`
-2. **コンフリクト解決**: マージコンフリクトマーカーを手動で解決
-3. **staged add**: `git add <解決済みファイル>`
-4. **rebase continue**: `git rebase --continue`
-5. **force push**: `git push --force-with-lease origin HEAD`
-
-## Pull Request 作成ガイドライン
-
-### Issue 自動クローズ機能
-
-Pull Request 作成時、元の GitHub Issue が PR マージと同時に自動クローズされるように、本文に適切なキーワードを含める：
-
-#### 自動クローズキーワード
-以下のキーワードのいずれかを PR 本文に含める：
-- `closes #<issue番号>`
-- `fixes #<issue番号>`
-- `resolves #<issue番号>`
-
-#### PR 本文テンプレート
-```markdown
-## Summary
-- [実装内容の1-3行での要約]
-
-## Changes
-- [主要な変更点のリスト]
-- [新機能・修正・改善の詳細]
-
-## Test Plan
-- [x] テスト実行: `pnpm test`
-- [x] リンティング: `pnpm run lint`
-- [x] [その他の検証項目]
-
-Closes #<issue番号>
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-```
-
-#### 使用例（Issue #24対応）
-```markdown
-## Summary
-- JSDoc ドキュメントが不足していた ConfigManager、NotificationService、VersionService に包括的な JSDoc を追加
-- 開発パターンガイドにJSDoc標準を追加してドキュメント品質の一貫性を確保
-
-## Changes
-- ConfigManager: 全メソッドに詳細なJSDoc追加（パラメータ、戻り値、使用例を含む）
-- NotificationService: notifyDiscord メソッドに包括的なJSDoc追加
-- VersionService: notifyVersionUpdate メソッドのJSDoc強化
-- `.claude/development-patterns.md`: JSDoc標準とベストプラクティスを追加
-
-## Test Plan
-- [x] テスト実行: `pnpm test` - 全テスト通過
-- [x] リンティング: `pnpm run lint` - コード品質チェック通過
-- [x] JSDoc構文確認: TypeScriptコンパイル成功
-
-Closes #24
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-```
-
-### 重要な注意点
-
-1. **Issue番号の正確性**: 対応する Issue 番号を正確に記載
-2. **キーワードの配置**: `Closes #24` は本文の任意の場所に配置可能
-3. **複数Issue対応**: `Closes #24, closes #25` のように複数指定可能
-4. **大文字小文字**: `closes`, `Closes`, `CLOSES` いずれも有効
-
-## 重要：ファイル変更時の必須事項
-
-**ファイルを変更した場合は必ずコミットすること！**
-
-- ファイル編集後は即座に `git add` → `git commit` → `git push`
-- コミットを忘れると変更が失われる可能性がある
-- 必ず変更内容を適切なコミットメッセージで記録する
+重要な判断は後からレビュー可能な形で残す: 決定内容の要約、検討した代替案、採用しなかった理由、前提・仮定・不確実性。仮定を事実のように扱わない。
