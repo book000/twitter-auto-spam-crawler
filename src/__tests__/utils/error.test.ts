@@ -12,14 +12,14 @@ jest.useFakeTimers()
  */
 describe('ErrorHandler', () => {
   beforeEach(() => {
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
     jest.clearAllTimers()
     jest.clearAllMocks()
   })
 
   afterEach(() => {
     // Clean up DOM elements after each test
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
   })
 
   afterEach(() => {

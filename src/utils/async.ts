@@ -1,7 +1,7 @@
 /**
  * 非同期処理用のユーティリティ関数群
  */
-export const AsyncUtils = {
+export const AsyncUtilities = {
   /**
    * 指定した時間だけ処理を遅延する
    *
@@ -12,11 +12,11 @@ export const AsyncUtils = {
    * @example
    * ```typescript
    * // 1秒待機
-   * await AsyncUtils.delay(1000)
+   * await AsyncUtilities.delay(1000)
    *
    * // キャンセル可能な待機
    * const controller = new AbortController()
-   * await AsyncUtils.delay(5000, controller.signal)
+   * await AsyncUtilities.delay(5000, controller.signal)
    * ```
    */
   delay(ms: number, signal?: AbortSignal): Promise<void> {
@@ -48,7 +48,7 @@ export const AsyncUtils = {
    * @example
    * ```typescript
    * // 500ms〜1500msの間でランダム遅延
-   * await AsyncUtils.randomDelay(500, 1500)
+   * await AsyncUtilities.randomDelay(500, 1500)
    * ```
    */
   randomDelay(
@@ -57,7 +57,7 @@ export const AsyncUtils = {
     signal?: AbortSignal
   ): Promise<void> {
     const durationMs = Math.random() * (maxMs - minMs) + minMs
-    return AsyncUtils.delay(durationMs, signal)
+    return AsyncUtilities.delay(durationMs, signal)
   },
 
   /**
@@ -78,7 +78,7 @@ export const AsyncUtils = {
    *     break
    *   } catch (error) {
    *     if (attempt === maxRetries - 1) throw error
-   *     await AsyncUtils.exponentialBackoff(1000, attempt, 10000)
+   *     await AsyncUtilities.exponentialBackoff(1000, attempt, 10000)
    *   }
    * }
    * ```
@@ -90,7 +90,7 @@ export const AsyncUtils = {
     signal?: AbortSignal
   ): Promise<void> {
     const backoffMs = Math.min(baseMs * Math.pow(2, attempt), maxMs)
-    return AsyncUtils.delay(backoffMs, signal)
+    return AsyncUtilities.delay(backoffMs, signal)
   },
 
   /**
@@ -103,28 +103,31 @@ export const AsyncUtils = {
    *
    * @example
    * ```typescript
-   * const result = await AsyncUtils.withTimeout(
+   * const result = await AsyncUtilities.withTimeout(
    *   fetchData(),
    *   5000,
    *   'Data fetch timed out'
    * )
    * ```
    */
-  withTimeout<T>(
+  async withTimeout<T>(
     promise: Promise<T>,
     timeoutMs: number,
     timeoutMessage = 'Operation timed out'
   ): Promise<T> {
-    let timeoutId: NodeJS.Timeout
+    // Promise のexecutorは同期的に実行されるため必ず代入されるが、TS はそれを追跡できない
+    let timeoutId!: NodeJS.Timeout
     const timeoutPromise = new Promise<never>((_resolve, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(timeoutMessage))
       }, timeoutMs)
     })
 
-    return Promise.race([promise, timeoutPromise]).finally(() => {
+    try {
+      return await Promise.race([promise, timeoutPromise])
+    } finally {
       clearTimeout(timeoutId)
-    })
+    }
   },
 
   /**
@@ -136,7 +139,7 @@ export const AsyncUtils = {
    *
    * @example
    * ```typescript
-   * const result = await AsyncUtils.retry(
+   * const result = await AsyncUtilities.retry(
    *   () => unstableApiCall(),
    *   { maxAttempts: 3, baseDelay: 1000 }
    * )
@@ -166,8 +169,13 @@ export const AsyncUtils = {
         }
 
         await (useExponentialBackoff
-          ? AsyncUtils.exponentialBackoff(baseDelay, attempt, 30_000, signal)
-          : AsyncUtils.delay(baseDelay, signal))
+          ? AsyncUtilities.exponentialBackoff(
+              baseDelay,
+              attempt,
+              30_000,
+              signal
+            )
+          : AsyncUtilities.delay(baseDelay, signal))
       }
     }
 

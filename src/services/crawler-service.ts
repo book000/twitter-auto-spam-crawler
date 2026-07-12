@@ -58,9 +58,13 @@ export class CrawlerService {
    */
   static startCrawling(): void {
     this.crawlTweetInterval ??= setInterval(() => {
-      this.crawlTweets().catch((error: unknown) => {
-        console.error('crawlTweets failed', error)
-      })
+      ;(async () => {
+        try {
+          await this.crawlTweets()
+        } catch (error: unknown) {
+          console.error('crawlTweets failed', error)
+        }
+      })()
     }, DELAYS.CRAWL_INTERVAL)
   }
 
@@ -68,10 +72,12 @@ export class CrawlerService {
    * 自動クローリングプロセスを停止し、インターバルタイマーをクリア。
    */
   static stopCrawling(): void {
-    if (this.crawlTweetInterval) {
-      clearInterval(this.crawlTweetInterval)
-      this.crawlTweetInterval = null
+    if (!this.crawlTweetInterval) {
+      return
     }
+
+    clearInterval(this.crawlTweetInterval)
+    this.crawlTweetInterval = null
   }
 
   /**

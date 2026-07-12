@@ -137,8 +137,8 @@ describe('ConfigManager', () => {
      * 初期状態では全てのページで処理が有効であることを確認
      */
     it('should return false by default', () => {
-      const result = ConfigManager.getIsOnlyHome()
-      expect(result).toBe(false)
+      const isResult = ConfigManager.getIsOnlyHome()
+      expect(isResult).toBe(false)
       expect(GM_getValue).toHaveBeenCalledWith('isOnlyHome', 'false')
     })
 
@@ -149,8 +149,8 @@ describe('ConfigManager', () => {
     it('should return true when stored value is "true"', () => {
       ;(GM_getValue as jest.Mock).mockReturnValueOnce('true')
 
-      const result = ConfigManager.getIsOnlyHome()
-      expect(result).toBe(true)
+      const isResult = ConfigManager.getIsOnlyHome()
+      expect(isResult).toBe(true)
       expect(GM_getValue).toHaveBeenCalledWith('isOnlyHome', 'false')
     })
 
@@ -161,8 +161,8 @@ describe('ConfigManager', () => {
     it('should return false when stored value is "false"', () => {
       ;(GM_getValue as jest.Mock).mockReturnValueOnce('false')
 
-      const result = ConfigManager.getIsOnlyHome()
-      expect(result).toBe(false)
+      const isResult = ConfigManager.getIsOnlyHome()
+      expect(isResult).toBe(false)
     })
 
     /**
@@ -172,8 +172,8 @@ describe('ConfigManager', () => {
     it('should return false for other string values', () => {
       ;(GM_getValue as jest.Mock).mockReturnValueOnce('other')
 
-      const result = ConfigManager.getIsOnlyHome()
-      expect(result).toBe(false)
+      const isResult = ConfigManager.getIsOnlyHome()
+      expect(isResult).toBe(false)
     })
   })
 

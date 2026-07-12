@@ -4,99 +4,99 @@ import { ConfigManager } from '@/core/config'
 import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
 import { NotificationService } from '@/services/notification-service'
-import { AsyncUtils } from '@/utils/async'
+import { AsyncUtilities } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
 export const ExamplePages = {
   async runDownloadJson(): Promise<void> {
-    const ifNeeded = TweetService.isNeedDownload()
+    const isIfNeeded = TweetService.isNeedDownload()
 
-    if (ifNeeded) {
+    if (isIfNeeded) {
       PageErrorHandler.logAction('download needed. Wait 5 seconds.')
       TweetService.downloadTweets()
-      await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
+      await AsyncUtilities.delay(DELAYS.DOWNLOAD_WAIT)
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in TweetPage.run', error)
-    })
+    ;(async () => {
+      try {
+        await TweetPage.run(true)
+      } catch (error: unknown) {
+        PageErrorHandler.logError('Error in TweetPage.run', error)
+      }
+    })()
   },
 
-  runLoginNotify(): void {
+  async runLoginNotify(): Promise<void> {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
-    NotificationService.notifyDiscord(
-      ':key: Need to login.',
-      () => {
-        window.close()
-        Storage.setLoginNotified(true)
-      },
-      false,
-      authWebhookUrl
-    )
-      .then(() => {
-        PageErrorHandler.logAction('Notification sent successfully')
-      })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify login', error)
-      })
+    try {
+      await NotificationService.notifyDiscord(
+        ':key: Need to login.',
+        () => {
+          window.close()
+          Storage.setLoginNotified(true)
+        },
+        false,
+        authWebhookUrl
+      )
+      PageErrorHandler.logAction('Notification sent successfully')
+    } catch (error: unknown) {
+      PageErrorHandler.logError('Failed to notify login', error)
+    }
   },
 
-  runLoginSuccessNotify(): void {
+  async runLoginSuccessNotify(): Promise<void> {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
-    NotificationService.notifyDiscord(
-      ':white_check_mark: Login is successful!',
-      () => {
-        window.close()
-      },
-      false,
-      authWebhookUrl
-    )
-      .then(() => {
-        PageErrorHandler.logAction('Notification sent successfully')
-      })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify login success', error)
-      })
+    try {
+      await NotificationService.notifyDiscord(
+        ':white_check_mark: Login is successful!',
+        () => {
+          window.close()
+        },
+        false,
+        authWebhookUrl
+      )
+      PageErrorHandler.logAction('Notification sent successfully')
+    } catch (error: unknown) {
+      PageErrorHandler.logError('Failed to notify login success', error)
+    }
   },
 
-  runLockedNotify(): void {
+  async runLockedNotify(): Promise<void> {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
-    NotificationService.notifyDiscord(
-      ':lock: Account is locked!',
-      () => {
-        window.close()
-        // 通知送信成功時のコールバックは空にする（フラグは事前に設定済み）
-      },
-      true,
-      lockWebhookUrl
-    )
-      .then(() => {
-        PageErrorHandler.logAction('Notification sent successfully')
-      })
-      .catch((error: unknown) => {
-        // 通知送信失敗時はフラグをリセット
-        Storage.setLockedNotified(false)
-        PageErrorHandler.logError('Failed to notify account locked', error)
-      })
+    try {
+      await NotificationService.notifyDiscord(
+        ':lock: Account is locked!',
+        () => {
+          window.close()
+          // 通知送信成功時のコールバックは空にする（フラグは事前に設定済み）
+        },
+        true,
+        lockWebhookUrl
+      )
+      PageErrorHandler.logAction('Notification sent successfully')
+    } catch (error: unknown) {
+      // 通知送信失敗時はフラグをリセット
+      Storage.setLockedNotified(false)
+      PageErrorHandler.logError('Failed to notify account locked', error)
+    }
   },
 
-  runUnlockedNotify(): void {
+  async runUnlockedNotify(): Promise<void> {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
-    NotificationService.notifyDiscord(
-      ':unlock: Account is unlocked.',
-      () => {
-        window.close()
-      },
-      false,
-      lockWebhookUrl
-    )
-      .then(() => {
-        PageErrorHandler.logAction('Notification sent successfully')
-      })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify account unlocked', error)
-      })
+    try {
+      await NotificationService.notifyDiscord(
+        ':unlock: Account is unlocked.',
+        () => {
+          window.close()
+        },
+        false,
+        lockWebhookUrl
+      )
+      PageErrorHandler.logAction('Notification sent successfully')
+    } catch (error: unknown) {
+      PageErrorHandler.logError('Failed to notify account unlocked', error)
+    }
   },
 
   runResetWaiting(): void {
@@ -106,14 +106,14 @@ export const ExamplePages = {
     )
 
     setTimeout(() => {
-      location.href = URLS.HOME
+      location.assign(URLS.HOME)
     }, DELAYS.RESET_REDIRECT_WAIT)
   },
 
-  runUpdateNotify(): void {
-    const params = new URLSearchParams(globalThis.location.search)
-    const oldVersion = params.get('old')
-    const newVersion = params.get('new')
+  async runUpdateNotify(): Promise<void> {
+    const parameters = new URLSearchParams(globalThis.location.search)
+    const oldVersion = parameters.get('old')
+    const newVersion = parameters.get('new')
 
     if (!oldVersion || !newVersion) {
       PageErrorHandler.logError('Missing version parameters')
@@ -121,20 +121,19 @@ export const ExamplePages = {
       return
     }
 
-    NotificationService.notifyDiscord(
-      `🚀 Twitter Auto Spam Crawler がアップデートされました!\n` +
-        `📦 ${oldVersion} → ${newVersion}\n` +
-        `✨ 新しいバージョンが適用されました。`,
-      () => {
-        window.close()
-      },
-      true
-    )
-      .then(() => {
-        PageErrorHandler.logAction('Update notification sent successfully')
-      })
-      .catch((error: unknown) => {
-        PageErrorHandler.logError('Failed to notify update', error)
-      })
+    try {
+      await NotificationService.notifyDiscord(
+        `🚀 Twitter Auto Spam Crawler がアップデートされました!\n` +
+          `📦 ${oldVersion} → ${newVersion}\n` +
+          `✨ 新しいバージョンが適用されました。`,
+        () => {
+          window.close()
+        },
+        true
+      )
+      PageErrorHandler.logAction('Update notification sent successfully')
+    } catch (error: unknown) {
+      PageErrorHandler.logError('Failed to notify update', error)
+    }
   },
 }

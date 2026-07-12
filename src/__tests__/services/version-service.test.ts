@@ -27,7 +27,7 @@ describe('VersionService', () => {
     it('should store version without notification on first run', () => {
       // Arrange
       jest.spyOn(Storage, 'getStoredVersion').mockReturnValue('')
-      const setStoredVersionSpy = jest
+      const storedVersionSetSpy = jest
         .spyOn(Storage, 'setStoredVersion')
         .mockImplementation()
       const notifyVersionUpdateSpy = jest
@@ -38,14 +38,14 @@ describe('VersionService', () => {
       VersionService.checkVersionAndNotify('1.0.0')
 
       // Assert
-      expect(setStoredVersionSpy).toHaveBeenCalledWith('1.0.0')
+      expect(storedVersionSetSpy).toHaveBeenCalledWith('1.0.0')
       expect(notifyVersionUpdateSpy).not.toHaveBeenCalled()
     })
 
     it('should do nothing when version is unchanged', () => {
       // Arrange
       jest.spyOn(Storage, 'getStoredVersion').mockReturnValue('1.0.0')
-      const setStoredVersionSpy = jest
+      const storedVersionSetSpy = jest
         .spyOn(Storage, 'setStoredVersion')
         .mockImplementation()
       const notifyVersionUpdateSpy = jest
@@ -56,14 +56,14 @@ describe('VersionService', () => {
       VersionService.checkVersionAndNotify('1.0.0')
 
       // Assert
-      expect(setStoredVersionSpy).not.toHaveBeenCalled()
+      expect(storedVersionSetSpy).not.toHaveBeenCalled()
       expect(notifyVersionUpdateSpy).not.toHaveBeenCalled()
     })
 
     it('should notify and update version when version changes', () => {
       // Arrange
       jest.spyOn(Storage, 'getStoredVersion').mockReturnValue('1.0.0')
-      const setStoredVersionSpy = jest
+      const storedVersionSetSpy = jest
         .spyOn(Storage, 'setStoredVersion')
         .mockImplementation()
       const notifyVersionUpdateSpy = jest
@@ -75,13 +75,13 @@ describe('VersionService', () => {
 
       // Assert
       expect(notifyVersionUpdateSpy).toHaveBeenCalledWith('1.0.0', '1.1.0')
-      expect(setStoredVersionSpy).toHaveBeenCalledWith('1.1.0')
+      expect(storedVersionSetSpy).toHaveBeenCalledWith('1.1.0')
     })
 
     it('should not update version when notification fails', () => {
       // Arrange
       jest.spyOn(Storage, 'getStoredVersion').mockReturnValue('1.0.0')
-      const setStoredVersionSpy = jest
+      const storedVersionSetSpy = jest
         .spyOn(Storage, 'setStoredVersion')
         .mockImplementation()
       const notifyVersionUpdateSpy = jest
@@ -95,7 +95,7 @@ describe('VersionService', () => {
 
       // Assert
       expect(notifyVersionUpdateSpy).toHaveBeenCalledWith('1.0.0', '1.1.0')
-      expect(setStoredVersionSpy).not.toHaveBeenCalled()
+      expect(storedVersionSetSpy).not.toHaveBeenCalled()
     })
   })
 

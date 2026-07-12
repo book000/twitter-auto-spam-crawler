@@ -4,87 +4,107 @@ import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
 import { QueueService } from '@/services/queue-service'
 import { TweetService } from '@/services/tweet-service'
-import { DomUtils } from '@/utils/dom'
-import { ScrollUtils } from '@/utils/scroll'
+import { DomUtilities } from '@/utils/dom'
+import { ScrollUtilities } from '@/utils/scroll'
 import { ErrorHandler } from '@/utils/error'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const TweetPage = {
-  async run(onlyOpen = false): Promise<void> {
-    if (DomUtils.checkAndNavigateToLogin()) {
+  async run(isOnlyOpen = false): Promise<void> {
+    if (DomUtilities.checkAndNavigateToLogin()) {
       return
     }
 
     StateService.resetState()
 
-    if (onlyOpen) {
+    if (isOnlyOpen) {
       if (TweetService.isNeedDownload()) {
-        location.href = URLS.EXAMPLE_DOWNLOAD_JSON
+        location.assign(URLS.EXAMPLE_DOWNLOAD_JSON)
         return
       }
 
       const nextTweetId = QueueService.getNextWaitingTweet()
       if (nextTweetId === null) {
-        location.href = URLS.BOOKMARK
+        location.assign(URLS.BOOKMARK)
         return
       }
 
       const tweetUrl = `https://x.com/user/status/${nextTweetId}`
-      location.href = tweetUrl
+      location.assign(tweetUrl)
       return
     }
 
     CrawlerService.startCrawling()
+    ;(async () => {
+      try {
+        await ErrorHandler.handleErrorDialog(async (dialog) => {
+          const dialogMessage = dialog.textContent
+          PageErrorHandler.logError('found error dialog', dialogMessage)
 
-    ErrorHandler.handleErrorDialog(async (dialog) => {
-      const dialogMessage = dialog.textContent
-      PageErrorHandler.logError('found error dialog', dialogMessage)
+          if (!dialogMessage) {
+            return
+          }
 
-      if (!dialogMessage) {
-        return
+          if (
+            dialogMessage.includes('削除') ||
+            dialogMessage.includes('deleted')
+          ) {
+            PageErrorHandler.logError('tweet deleted. Skip this tweet.')
+
+            const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
+            if (tweetUrlMatch) {
+              const tweetId = tweetUrlMatch[2]
+              await QueueService.checkedTweet(tweetId)
+              CrawlerService.resetCrawledTweetCount()
+            }
+
+            ;(async () => {
+              try {
+                await TweetPage.run(true)
+              } catch (error: unknown) {
+                PageErrorHandler.logError('Error in TweetPage.run', error)
+              }
+            })()
+          }
+        }, 300_000)
+      } catch (error: unknown) {
+        PageErrorHandler.logError('Error in handleErrorDialog', error)
       }
+    })()
+    ;(async () => {
+      try {
+        await ErrorHandler.detectUnprocessablePost(
+          async (tweetArticleElement) => {
+            PageErrorHandler.logError(
+              "found can't processing post",
+              tweetArticleElement
+            )
 
-      if (dialogMessage.includes('削除') || dialogMessage.includes('deleted')) {
-        PageErrorHandler.logError('tweet deleted. Skip this tweet.')
+            const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
+            if (tweetUrlMatch) {
+              const tweetId = tweetUrlMatch[2]
+              await QueueService.checkedTweet(tweetId)
+              CrawlerService.resetCrawledTweetCount()
+            }
 
-        const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
-        if (tweetUrlMatch) {
-          const tweetId = tweetUrlMatch[2]
-          await QueueService.checkedTweet(tweetId)
-          CrawlerService.resetCrawledTweetCount()
-        }
-
-        TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', error)
-        })
+            ;(async () => {
+              try {
+                await TweetPage.run(true)
+              } catch (error: unknown) {
+                PageErrorHandler.logError('Error in TweetPage.run', error)
+              }
+            })()
+          },
+          300_000
+        )
+      } catch (error: unknown) {
+        PageErrorHandler.logError('Error in detectUnprocessablePost', error)
       }
-    }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in handleErrorDialog', error)
-    })
-
-    ErrorHandler.detectUnprocessablePost(async (tweetArticleElement) => {
-      PageErrorHandler.logError(
-        "found can't processing post",
-        tweetArticleElement
-      )
-
-      const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
-      if (tweetUrlMatch) {
-        const tweetId = tweetUrlMatch[2]
-        await QueueService.checkedTweet(tweetId)
-        CrawlerService.resetCrawledTweetCount()
-      }
-
-      TweetPage.run(true).catch((error: unknown) => {
-        PageErrorHandler.logError('Error in TweetPage.run', error)
-      })
-    }, 300_000).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in detectUnprocessablePost', error)
-    })
+    })()
 
     const retryCount = Storage.getRetryCount()
     try {
-      await DomUtils.waitElement('article[data-testid="tweet"]')
+      await DomUtilities.waitElement('article[data-testid="tweet"]')
     } catch (error) {
       if (retryCount >= THRESHOLDS.MAX_RETRY_COUNT) {
         PageErrorHandler.logError(
@@ -97,9 +117,13 @@ export const TweetPage = {
           const tweetId = tweetUrlMatch[2]
           await QueueService.checkedTweet(tweetId)
         }
-        TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', error)
-        })
+        ;(async () => {
+          try {
+            await TweetPage.run(true)
+          } catch (error: unknown) {
+            PageErrorHandler.logError('Error in TweetPage.run', error)
+          }
+        })()
         return
       }
 
@@ -112,10 +136,10 @@ export const TweetPage = {
 
     Storage.setRetryCount(0)
 
-    await ScrollUtils.scrollPage()
+    await ScrollUtilities.scrollPage()
 
     if (CrawlerService.getCrawledTweetCount() === 0) {
-      location.href = URLS.BOOKMARK
+      location.assign(URLS.BOOKMARK)
       return
     }
 
@@ -126,8 +150,12 @@ export const TweetPage = {
       CrawlerService.resetCrawledTweetCount()
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
-      PageErrorHandler.logError('Error in TweetPage.run', error)
-    })
+    ;(async () => {
+      try {
+        await TweetPage.run(true)
+      } catch (error: unknown) {
+        PageErrorHandler.logError('Error in TweetPage.run', error)
+      }
+    })()
   },
 }

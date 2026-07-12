@@ -5,16 +5,16 @@ import { StateService } from '../../services/state-service'
 import { CrawlerService } from '../../services/crawler-service'
 import { QueueService } from '../../services/queue-service'
 import { TweetService } from '../../services/tweet-service'
-import { DomUtils } from '../../utils/dom'
-import { ScrollUtils } from '../../utils/scroll'
+import { DomUtilities } from '../../utils/dom'
+import { ScrollUtilities } from '../../utils/scroll'
 import { PageErrorHandler } from '../../utils/page-error-handler'
-import { AsyncUtils } from '../../utils/async'
+import { AsyncUtilities } from '../../utils/async'
 import {
   setupTweetPageDOM,
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 
 // Mock dependencies
 jest.mock('../../core/storage')
@@ -42,7 +42,7 @@ describe('TweetPage', () => {
 
   beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
 
     // Setup mocks
     setupUserscriptMocks()
@@ -53,10 +53,10 @@ describe('TweetPage', () => {
     jest.clearAllTimers()
 
     // Setup default mock implementations
-    ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
-    ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
-    ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
+    ;(DomUtilities.waitElement as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(false)
+    ;(AsyncUtilities.delay as jest.Mock).mockResolvedValue(undefined)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.startCrawling as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.getCrawledTweetCount as jest.Mock).mockReturnValue(1)
@@ -70,7 +70,7 @@ describe('TweetPage', () => {
     ;(QueueService.checkedTweet as jest.Mock).mockResolvedValue(undefined)
     ;(Storage.getRetryCount as jest.Mock).mockReturnValue(0)
     ;(Storage.setRetryCount as jest.Mock).mockImplementation(() => {})
-    ;(ScrollUtils.scrollPage as jest.Mock).mockResolvedValue(undefined)
+    ;(ScrollUtilities.scrollPage as jest.Mock).mockResolvedValue(undefined)
     ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
     ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
     ;(PageErrorHandler.handlePageError as jest.Mock).mockResolvedValue(
@@ -89,7 +89,7 @@ describe('TweetPage', () => {
      * - ログインが必要な場合の早期リターン
      */
     it('should return early when login is required', async () => {
-      ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
       await TweetPage.run()
 
@@ -153,7 +153,7 @@ describe('TweetPage', () => {
      */
     it('should process tweet page successfully', async () => {
       setupTweetPageDOM()
-      globalThis.location.href = 'https://x.com/user/status/123456789'
+      globalThis.location.assign('https://x.com/user/status/123456789')
 
       // Mock regex match
       jest
@@ -168,10 +168,10 @@ describe('TweetPage', () => {
 
       expect(StateService.resetState).toHaveBeenCalled()
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         'article[data-testid="tweet"]'
       )
-      expect(ScrollUtils.scrollPage).toHaveBeenCalled()
+      expect(ScrollUtilities.scrollPage).toHaveBeenCalled()
       expect(QueueService.checkedTweet).toHaveBeenCalledWith('123456789')
     })
 
@@ -182,7 +182,7 @@ describe('TweetPage', () => {
      * - 待機後のページリロード
      */
     it('should retry when tweet element is not found', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
       ;(Storage.getRetryCount as jest.Mock).mockReturnValue(1)
@@ -198,7 +198,7 @@ describe('TweetPage', () => {
         }
       )
       expect(Storage.setRetryCount).toHaveBeenCalledWith(2)
-      // AsyncUtils.delay is called within PageErrorHandler.handlePageError,
+      // AsyncUtilities.delay is called within PageErrorHandler.handlePageError,
       // so we don't need to verify it separately
     })
 
@@ -210,13 +210,13 @@ describe('TweetPage', () => {
      * - 次ツイートへの遷移
      */
     it('should skip tweet after max retries', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
       ;(Storage.getRetryCount as jest.Mock).mockReturnValue(
         THRESHOLDS.MAX_RETRY_COUNT
       )
-      globalThis.location.href = 'https://x.com/user/status/987654321'
+      globalThis.location.assign('https://x.com/user/status/987654321')
 
       // Mock regex match
       jest
@@ -238,14 +238,14 @@ describe('TweetPage', () => {
 
     /**
      * 失敗ページ検出時のエラーログ出力をテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
+     * - DomUtilities.isFailedPage()がtrueを返す場合
      * - 専用エラーメッセージの出力確認
      */
     it('should log error when failed page is detected', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
-      ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await TweetPage.run()
 
@@ -281,7 +281,7 @@ describe('TweetPage', () => {
      * - クロール数のリセット
      */
     it('should handle error dialog callback for deleted tweet', async () => {
-      globalThis.location.href = 'https://x.com/user/status/111222333'
+      globalThis.location.assign('https://x.com/user/status/111222333')
 
       // Mock regex match
       jest
@@ -309,7 +309,7 @@ describe('TweetPage', () => {
      * - クロール数のリセット
      */
     it('should handle unprocessable post detection callback', async () => {
-      globalThis.location.href = 'https://x.com/user/status/444555666'
+      globalThis.location.assign('https://x.com/user/status/444555666')
 
       // Mock regex match
       jest
@@ -337,7 +337,7 @@ describe('TweetPage', () => {
      */
     it('should reset retry count on successful processing', async () => {
       setupTweetPageDOM()
-      globalThis.location.href = 'https://x.com/user/status/777888999'
+      globalThis.location.assign('https://x.com/user/status/777888999')
 
       // Mock regex match
       jest
@@ -359,7 +359,7 @@ describe('TweetPage', () => {
      * - 適切な削除処理の実行
      */
     it('should handle English deleted tweet message', async () => {
-      globalThis.location.href = 'https://x.com/user/status/555666777'
+      globalThis.location.assign('https://x.com/user/status/555666777')
 
       // Mock regex match
       jest

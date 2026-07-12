@@ -3,15 +3,15 @@ import { DELAYS } from '../../core/constants'
 import { ConfigManager } from '../../core/config'
 import { StateService } from '../../services/state-service'
 import { CrawlerService } from '../../services/crawler-service'
-import { DomUtils } from '../../utils/dom'
-import { AsyncUtils } from '../../utils/async'
+import { DomUtilities } from '../../utils/dom'
+import { AsyncUtilities } from '../../utils/async'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupTwitterDOM,
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 
 // Mock dependencies
 jest.mock('../../core/config')
@@ -36,7 +36,7 @@ describe('HomePage', () => {
 
   beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
 
     // Setup mocks
     setupUserscriptMocks()
@@ -47,10 +47,10 @@ describe('HomePage', () => {
     jest.clearAllTimers()
 
     // Reset mock implementations
-    ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
-    ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
-    ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
+    ;(DomUtilities.waitElement as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(false)
+    ;(AsyncUtilities.delay as jest.Mock).mockResolvedValue(undefined)
     ;(ConfigManager.getIsOnlyHome as jest.Mock).mockReturnValue(false)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.startCrawling as jest.Mock).mockImplementation(() => {})
@@ -81,13 +81,13 @@ describe('HomePage', () => {
 
       expect(StateService.resetState).toHaveBeenCalled()
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
       )
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.LONG * 3)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.LONG * 3)
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that all tabs were processed
-      expect(DomUtils.waitElement).toHaveBeenCalled()
+      expect(DomUtilities.waitElement).toHaveBeenCalled()
     })
 
     /**
@@ -96,7 +96,7 @@ describe('HomePage', () => {
      * - 他の処理が実行されないことを確認
      */
     it('should return early when login is required', async () => {
-      ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
       await HomePage.run()
 
@@ -110,7 +110,7 @@ describe('HomePage', () => {
      * - エラー待機時間後のページリロード
      */
     it('should handle waitElement error and reload page', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
 
@@ -125,14 +125,14 @@ describe('HomePage', () => {
 
     /**
      * 失敗ページ検出時のエラーハンドリングをテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
+     * - DomUtilities.isFailedPage()がtrueを返す場合
      * - PageErrorHandler.handlePageError()の呼び出し確認
      */
     it('should handle error when failed page is detected', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
-      ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await HomePage.run()
 
@@ -168,7 +168,7 @@ describe('HomePage', () => {
       }
 
       // Verify tweet waiting was called for each tab
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         'article[data-testid="tweet"]'
       )
 
@@ -188,7 +188,7 @@ describe('HomePage', () => {
       setupTwitterDOM()
 
       // Mock waitElement to fail only for tweet elements
-      ;(DomUtils.waitElement as jest.Mock).mockImplementation(
+      ;(DomUtilities.waitElement as jest.Mock).mockImplementation(
         (selector: string) => {
           if (selector.includes('article[data-testid="tweet"]')) {
             return Promise.reject(new Error('Tweet not found'))
@@ -209,7 +209,7 @@ describe('HomePage', () => {
      */
     it('should reload when tweet waiting fails on failed page', async () => {
       setupTwitterDOM()
-      ;(DomUtils.waitElement as jest.Mock).mockImplementation(
+      ;(DomUtilities.waitElement as jest.Mock).mockImplementation(
         (selector: string) => {
           if (selector.includes('article[data-testid="tweet"]')) {
             return Promise.reject(new Error('Tweet not found'))
@@ -217,7 +217,7 @@ describe('HomePage', () => {
           return Promise.resolve()
         }
       )
-      ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await HomePage.run()
 
@@ -267,7 +267,7 @@ describe('HomePage', () => {
       })
 
       // Verify scroll delay
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
     })
 
     /**
@@ -287,8 +287,10 @@ describe('HomePage', () => {
       )
 
       // Check individual tab logs
-      for (let i = 0; i < tabs.length; i++) {
-        expect(PageErrorHandler.logAction).toHaveBeenCalledWith(`open tab=${i}`)
+      for (let index = 0; index < tabs.length; index++) {
+        expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+          `open tab=${index}`
+        )
       }
 
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(

@@ -4,7 +4,7 @@ import { TIMEOUTS, URLS, SELECTORS } from '@/core/constants'
  * DOM操作とページ状態検出のためのユーティリティ関数群。
  * 要素の待機、ページエラー検出、返信読み込みボタンのクリック処理を提供。
  */
-export const DomUtils = {
+export const DomUtilities = {
   /**
    * 指定されたセレクターの要素がDOMに出現するまで待機。
    * @param selector - 待機する要素のCSSセレクター
@@ -75,7 +75,7 @@ export const DomUtils = {
     for (const tweetArticleElement of tweetArticleElements) {
       const text = tweetArticleElement.textContent
 
-      if (!text || !texts.some((t) => text.includes(t))) {
+      if (!text || texts.every((t) => !text.includes(t))) {
         continue
       }
 
@@ -103,7 +103,7 @@ export const DomUtils = {
       console.log(
         'checkAndNavigateToLogin: Login required detected, navigating to login page'
       )
-      location.href = URLS.LOGIN
+      location.assign(URLS.LOGIN)
       return true
     }
 

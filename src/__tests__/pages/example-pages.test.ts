@@ -4,14 +4,14 @@ import { Storage } from '../../core/storage'
 import { TweetService } from '../../services/tweet-service'
 import { QueueService } from '../../services/queue-service'
 import { NotificationService } from '../../services/notification-service'
-import { AsyncUtils } from '../../utils/async'
+import { AsyncUtilities } from '../../utils/async'
 import { TweetPage } from '../../pages/tweet-page'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 // Import mock before the module under test
 import { clearMockStorage } from '../../__mocks__/userscript'
 
@@ -51,7 +51,7 @@ describe('ExamplePages', () => {
     // Setup default mock implementations
     ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(false)
     ;(TweetService.downloadTweets as jest.Mock).mockImplementation(() => {})
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(AsyncUtilities.delay as jest.Mock).mockResolvedValue(undefined)
     ;(TweetPage.run as jest.Mock).mockResolvedValue(undefined)
     ;(NotificationService.notifyDiscord as jest.Mock).mockResolvedValue(
       undefined
@@ -89,7 +89,9 @@ describe('ExamplePages', () => {
       await ExamplePages.runDownloadJson()
 
       expect(TweetService.downloadTweets).not.toHaveBeenCalled()
-      expect(AsyncUtils.delay).not.toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
+      expect(AsyncUtilities.delay).not.toHaveBeenCalledWith(
+        DELAYS.DOWNLOAD_WAIT
+      )
       expect(TweetPage.run).toHaveBeenCalledWith(true)
     })
 
@@ -108,7 +110,7 @@ describe('ExamplePages', () => {
         'download needed. Wait 5 seconds.'
       )
       expect(TweetService.downloadTweets).toHaveBeenCalled()
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
       expect(TweetPage.run).toHaveBeenCalledWith(true)
     })
 
@@ -386,20 +388,20 @@ describe('ExamplePages', () => {
       expect(globalThis.alert).toHaveBeenCalledWith(
         'Successfully reset waitingTweets. Navigate to the home page in 3 seconds.'
       )
-      expect(globalThis.setTimeout).toHaveBeenCalledWith(
+      expect(setTimeout).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.RESET_REDIRECT_WAIT
       )
 
       // Execute the setTimeout callback
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const setTimeoutCallback = (globalThis.setTimeout as any).mock.calls[0][0]
+      const setTimeoutCallback = (setTimeout as any).mock.calls[0][0]
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       setTimeoutCallback()
 
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that setTimeout was called with the correct parameters
-      expect(globalThis.setTimeout).toHaveBeenCalledWith(
+      expect(setTimeout).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.RESET_REDIRECT_WAIT
       )

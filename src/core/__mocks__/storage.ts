@@ -32,8 +32,8 @@ interface MockStorage {
   setSavedTweets: jest.MockedFunction<
     (tweets: StorageData['savedTweets']) => void
   >
-  setLoginNotified: jest.MockedFunction<(value: boolean) => void>
-  setLockedNotified: jest.MockedFunction<(value: boolean) => void>
+  setLoginNotified: jest.MockedFunction<(isNotified: boolean) => void>
+  setLockedNotified: jest.MockedFunction<(isNotified: boolean) => void>
   setRetryCount: jest.MockedFunction<(count: number) => void>
   getStoredVersion: jest.MockedFunction<() => string>
   setStoredVersion: jest.MockedFunction<(version: string) => void>
@@ -112,12 +112,12 @@ const mockStorage: MockStorage = {
     )
   }),
 
-  setLoginNotified: jest.fn((value: boolean): void => {
-    GM_setValue('isLoginNotified', value)
+  setLoginNotified: jest.fn((isNotified: boolean): void => {
+    GM_setValue('isLoginNotified', isNotified)
   }),
 
-  setLockedNotified: jest.fn((value: boolean): void => {
-    GM_setValue('isLockedNotified', value)
+  setLockedNotified: jest.fn((isNotified: boolean): void => {
+    GM_setValue('isLockedNotified', isNotified)
   }),
 
   setRetryCount: jest.fn((count: number): void => {
@@ -177,9 +177,10 @@ const mockStorage: MockStorage = {
     for (const tweet of tweets) {
       savedTweetsMap.set(tweet.tweetId, tweet)
     }
-    const sortedTweets = [...savedTweetsMap.values()].toSorted((a, b) =>
-      a.tweetId.localeCompare(b.tweetId)
-    )
+    const sortedTweets = savedTweetsMap
+      .values()
+      .toArray()
+      .toSorted((a, b) => a.tweetId.localeCompare(b.tweetId))
     mockStorage.setSavedTweets(sortedTweets)
   }),
 

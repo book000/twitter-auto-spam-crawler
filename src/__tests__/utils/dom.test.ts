@@ -1,4 +1,4 @@
-import { DomUtils } from '../../utils/dom'
+import { DomUtilities } from '../../utils/dom'
 import { TIMEOUTS } from '../../core/constants'
 
 // Mock timers
@@ -12,9 +12,9 @@ jest.useFakeTimers()
  * - ツイート返信の展開ボタンクリック機能
  * - X.com固有のDOMセレクターを使用した要素操作
  */
-describe('DomUtils', () => {
+describe('DomUtilities', () => {
   beforeEach(() => {
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
     jest.clearAllTimers()
     jest.clearAllMocks()
   })
@@ -34,7 +34,7 @@ describe('DomUtils', () => {
       testDiv.id = 'test-element'
       document.body.append(testDiv)
 
-      const promise = DomUtils.waitElement('#test-element')
+      const promise = DomUtilities.waitElement('#test-element')
 
       jest.advanceTimersByTime(TIMEOUTS.ELEMENT_WAIT)
       await expect(promise).resolves.toBeUndefined()
@@ -42,7 +42,7 @@ describe('DomUtils', () => {
 
     /** 要素が遅れて追加された場合でも正常に検出することを検証 */
     it('should resolve when element appears after some time', async () => {
-      const promise = DomUtils.waitElement('#delayed-element')
+      const promise = DomUtilities.waitElement('#delayed-element')
 
       // Advance timer partially
       jest.advanceTimersByTime(TIMEOUTS.ELEMENT_WAIT * 2)
@@ -59,7 +59,7 @@ describe('DomUtils', () => {
 
     /** タイムアウト時間内に要素が見つからない場合のエラー処理を検証 */
     it('should reject when element is not found within timeout', async () => {
-      const promise = DomUtils.waitElement('#non-existent', 1)
+      const promise = DomUtilities.waitElement('#non-existent', 1)
 
       jest.advanceTimersByTime(2000) // 2 seconds
 
@@ -70,7 +70,7 @@ describe('DomUtils', () => {
 
     /** タイムアウト時間が指定されていない場合のデフォルト値使用を検証 */
     it('should use default timeout when not specified', async () => {
-      const promise = DomUtils.waitElement('#non-existent')
+      const promise = DomUtilities.waitElement('#non-existent')
 
       jest.advanceTimersByTime(
         TIMEOUTS.ELEMENT_WAIT_LIMIT * 2 * TIMEOUTS.ELEMENT_WAIT
@@ -90,7 +90,7 @@ describe('DomUtils', () => {
       article.append(span)
       document.body.append(article)
 
-      const promise = DomUtils.waitElement(
+      const promise = DomUtilities.waitElement(
         'article[data-testid="tweet"] .tweet-text'
       )
 
@@ -116,6 +116,7 @@ describe('DomUtils', () => {
         'path'
       )
       /* eslint-enable unicorn/prefer-https */
+
       path.setAttribute(
         'd',
         'M12 4c-4.418 0-8 3.58-8 8s3.582 8 8 8c3.806 0 6.993-2.66 7.802-6.22l1.95.44C20.742 18.67 16.76 22 12 22 6.477 22 2 17.52 2 12S6.477 2 12 2c3.272 0 6.176 1.57 8 4V3.5h2v6h-6v-2h2.616C17.175 5.39 14.749 4 12 4z'
@@ -125,7 +126,7 @@ describe('DomUtils', () => {
       div.append(svg)
       document.body.append(div)
 
-      expect(DomUtils.isFailedPage()).toBe(true)
+      expect(DomUtilities.isFailedPage()).toBe(true)
     })
 
     /** エラーページのインジケーターが存在しない場合にfalseを返すことを検証 */
@@ -134,12 +135,12 @@ describe('DomUtils', () => {
       div.className = 'css-175oi2r'
       document.body.append(div)
 
-      expect(DomUtils.isFailedPage()).toBe(false)
+      expect(DomUtilities.isFailedPage()).toBe(false)
     })
 
     /** 空のドキュメントに対してfalseを返すことを検証 */
     it('should return false for empty document', () => {
-      expect(DomUtils.isFailedPage()).toBe(false)
+      expect(DomUtilities.isFailedPage()).toBe(false)
     })
   })
 
@@ -172,7 +173,7 @@ describe('DomUtils', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreReplies()
+      DomUtilities.clickMoreReplies()
 
       expect(clickSpy).toHaveBeenCalled()
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -186,7 +187,7 @@ describe('DomUtils', () => {
     it('should do nothing when more replies button is not found', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreReplies()
+      DomUtilities.clickMoreReplies()
 
       expect(consoleSpy).not.toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -227,7 +228,7 @@ describe('DomUtils', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreRepliesAggressive()
+      DomUtilities.clickMoreRepliesAggressive()
 
       expect(clickSpy).toHaveBeenCalled()
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -264,7 +265,7 @@ describe('DomUtils', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreRepliesAggressive()
+      DomUtilities.clickMoreRepliesAggressive()
 
       expect(clickSpy).not.toHaveBeenCalled()
       expect(consoleSpy).not.toHaveBeenCalled()
@@ -281,12 +282,12 @@ describe('DomUtils', () => {
       cellInnerDiv.dataset.testid = 'cellInnerDiv'
 
       // Create two matching articles
-      for (let i = 0; i < 2; i++) {
+      for (let index = 0; index < 2; index++) {
         const outerDiv = document.createElement('div')
         const innerDiv = document.createElement('div')
         const article = document.createElement('article')
         article.setAttribute('tabindex', '-1')
-        article.textContent = `ツイート${i + 1}: さらに返信を表示する`
+        article.textContent = `ツイート${index + 1}: さらに返信を表示する`
 
         const button = document.createElement('button')
         button.setAttribute('role', 'button')
@@ -305,7 +306,7 @@ describe('DomUtils', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreRepliesAggressive()
+      DomUtilities.clickMoreRepliesAggressive()
 
       expect(consoleSpy).toHaveBeenCalledTimes(2)
 
@@ -332,7 +333,7 @@ describe('DomUtils', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      DomUtils.clickMoreRepliesAggressive()
+      DomUtilities.clickMoreRepliesAggressive()
 
       expect(consoleSpy).not.toHaveBeenCalled()
 

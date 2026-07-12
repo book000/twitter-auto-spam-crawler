@@ -1,6 +1,6 @@
-import { AsyncUtils } from '@/utils/async'
+import { AsyncUtilities } from '@/utils/async'
 
-describe('AsyncUtils', () => {
+describe('AsyncUtilities', () => {
   beforeEach(() => {
     jest.useFakeTimers()
   })
@@ -12,7 +12,7 @@ describe('AsyncUtils', () => {
 
   describe('delay', () => {
     it('should delay for specified time', async () => {
-      const promise = AsyncUtils.delay(1000)
+      const promise = AsyncUtilities.delay(1000)
 
       // まだ解決されていないことを確認
       jest.advanceTimersByTime(999)
@@ -25,7 +25,7 @@ describe('AsyncUtils', () => {
 
     it('should be cancellable with AbortSignal', async () => {
       const controller = new AbortController()
-      const promise = AsyncUtils.delay(1000, controller.signal)
+      const promise = AsyncUtilities.delay(1000, controller.signal)
 
       controller.abort()
       await expect(promise).rejects.toThrow('Delay was aborted')
@@ -35,13 +35,13 @@ describe('AsyncUtils', () => {
       const controller = new AbortController()
       controller.abort()
 
-      const promise = AsyncUtils.delay(1000, controller.signal)
+      const promise = AsyncUtilities.delay(1000, controller.signal)
       await expect(promise).rejects.toThrow('Delay was aborted')
     })
 
     it('should cancel timeout when aborted during delay', async () => {
       const controller = new AbortController()
-      const promise = AsyncUtils.delay(1000, controller.signal)
+      const promise = AsyncUtilities.delay(1000, controller.signal)
 
       jest.advanceTimersByTime(500)
       controller.abort()
@@ -55,7 +55,7 @@ describe('AsyncUtils', () => {
     it('should delay for a random time between min and max', async () => {
       jest.spyOn(Math, 'random').mockReturnValue(0.5)
 
-      const promise = AsyncUtils.randomDelay(1000, 2000)
+      const promise = AsyncUtilities.randomDelay(1000, 2000)
 
       // 1500ms (min + 0.5 * (max - min))
       jest.advanceTimersByTime(1499)
@@ -67,7 +67,7 @@ describe('AsyncUtils', () => {
 
     it('should support cancellation', async () => {
       const controller = new AbortController()
-      const promise = AsyncUtils.randomDelay(1000, 2000, controller.signal)
+      const promise = AsyncUtilities.randomDelay(1000, 2000, controller.signal)
 
       controller.abort()
       await expect(promise).rejects.toThrow('Delay was aborted')
@@ -79,17 +79,17 @@ describe('AsyncUtils', () => {
       const baseMs = 1000
 
       // attempt 0: 1000ms
-      const promise0 = AsyncUtils.exponentialBackoff(baseMs, 0)
+      const promise0 = AsyncUtilities.exponentialBackoff(baseMs, 0)
       jest.advanceTimersByTime(1000)
       await expect(promise0).resolves.toBeUndefined()
 
       // attempt 1: 2000ms
-      const promise1 = AsyncUtils.exponentialBackoff(baseMs, 1)
+      const promise1 = AsyncUtilities.exponentialBackoff(baseMs, 1)
       jest.advanceTimersByTime(2000)
       await expect(promise1).resolves.toBeUndefined()
 
       // attempt 2: 4000ms
-      const promise2 = AsyncUtils.exponentialBackoff(baseMs, 2)
+      const promise2 = AsyncUtilities.exponentialBackoff(baseMs, 2)
       jest.advanceTimersByTime(4000)
       await expect(promise2).resolves.toBeUndefined()
     })
@@ -99,14 +99,14 @@ describe('AsyncUtils', () => {
       const maxMs = 3000
 
       // attempt 10 would be 1024000ms, but should be capped at 3000ms
-      const promise = AsyncUtils.exponentialBackoff(baseMs, 10, maxMs)
+      const promise = AsyncUtilities.exponentialBackoff(baseMs, 10, maxMs)
       jest.advanceTimersByTime(3000)
       await expect(promise).resolves.toBeUndefined()
     })
 
     it('should support cancellation', async () => {
       const controller = new AbortController()
-      const promise = AsyncUtils.exponentialBackoff(
+      const promise = AsyncUtilities.exponentialBackoff(
         1000,
         2,
         10_000,
@@ -126,7 +126,7 @@ describe('AsyncUtils', () => {
         }, 1000)
       })
 
-      const promise = AsyncUtils.withTimeout(operation, 2000)
+      const promise = AsyncUtilities.withTimeout(operation, 2000)
       jest.advanceTimersByTime(1000)
 
       await expect(promise).resolves.toBe('success')
@@ -139,7 +139,11 @@ describe('AsyncUtils', () => {
         }, 2000)
       })
 
-      const promise = AsyncUtils.withTimeout(operation, 1000, 'Custom timeout')
+      const promise = AsyncUtilities.withTimeout(
+        operation,
+        1000,
+        'Custom timeout'
+      )
       jest.advanceTimersByTime(1000)
 
       await expect(promise).rejects.toThrow('Custom timeout')
@@ -150,7 +154,7 @@ describe('AsyncUtils', () => {
         // Never resolves
       })
 
-      const promise = AsyncUtils.withTimeout(operation, 1000)
+      const promise = AsyncUtilities.withTimeout(operation, 1000)
       jest.advanceTimersByTime(1000)
 
       await expect(promise).rejects.toThrow('Operation timed out')
@@ -165,7 +169,7 @@ describe('AsyncUtils', () => {
         .mockRejectedValueOnce(new Error('2nd fail'))
         .mockResolvedValueOnce('success')
 
-      const promise = AsyncUtils.retry(operation, { maxAttempts: 3 })
+      const promise = AsyncUtilities.retry(operation, { maxAttempts: 3 })
 
       // 1回目の失敗
       await jest.advanceTimersByTimeAsync(0)
@@ -191,7 +195,7 @@ describe('AsyncUtils', () => {
         .mockRejectedValueOnce(new Error('2nd fail'))
         .mockRejectedValueOnce(new Error('3rd fail'))
 
-      const promise = AsyncUtils.retry(operation, {
+      const promise = AsyncUtilities.retry(operation, {
         maxAttempts: 3,
         baseDelay: 1, // Very short delay for testing
         useExponentialBackoff: false,
@@ -210,7 +214,7 @@ describe('AsyncUtils', () => {
         .mockRejectedValueOnce(new Error('2nd fail'))
         .mockResolvedValueOnce('success')
 
-      const promise = AsyncUtils.retry(operation, {
+      const promise = AsyncUtilities.retry(operation, {
         maxAttempts: 3,
         baseDelay: 500,
         useExponentialBackoff: false,
@@ -235,7 +239,7 @@ describe('AsyncUtils', () => {
       const controller = new AbortController()
       const operation = jest.fn().mockRejectedValue(new Error('Always fails'))
 
-      const promise = AsyncUtils.retry(operation, {
+      const promise = AsyncUtilities.retry(operation, {
         maxAttempts: 3,
         signal: controller.signal,
       })
@@ -251,7 +255,7 @@ describe('AsyncUtils', () => {
     it('should succeed on first attempt without delay', async () => {
       const operation = jest.fn().mockResolvedValueOnce('immediate success')
 
-      const result = await AsyncUtils.retry(operation)
+      const result = await AsyncUtilities.retry(operation)
 
       expect(result).toBe('immediate success')
       expect(operation).toHaveBeenCalledTimes(1)
@@ -263,7 +267,7 @@ describe('AsyncUtils', () => {
         .mockRejectedValueOnce(new Error('fail'))
         .mockResolvedValueOnce('success')
 
-      const promise = AsyncUtils.retry(operation)
+      const promise = AsyncUtilities.retry(operation)
 
       // デフォルトの指数バックオフ遅延
       await jest.advanceTimersByTimeAsync(0)

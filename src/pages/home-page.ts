@@ -2,13 +2,13 @@ import { URLS, DELAYS } from '@/core/constants'
 import { ConfigManager } from '@/core/config'
 import { StateService } from '@/services/state-service'
 import { CrawlerService } from '@/services/crawler-service'
-import { DomUtils } from '@/utils/dom'
-import { AsyncUtils } from '@/utils/async'
+import { DomUtilities } from '@/utils/dom'
+import { AsyncUtilities } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
 export const HomePage = {
   async run(): Promise<void> {
-    if (DomUtils.checkAndNavigateToLogin()) {
+    if (DomUtilities.checkAndNavigateToLogin()) {
       return
     }
 
@@ -17,7 +17,7 @@ export const HomePage = {
     CrawlerService.startCrawling()
 
     try {
-      await DomUtils.waitElement(
+      await DomUtilities.waitElement(
         'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
       )
     } catch (error) {
@@ -25,7 +25,7 @@ export const HomePage = {
       return
     }
 
-    await AsyncUtils.delay(DELAYS.LONG * 3)
+    await AsyncUtilities.delay(DELAYS.LONG * 3)
 
     const tabs = document.querySelectorAll(
       'div[data-testid="primaryColumn"] nav[aria-live="polite"][role="navigation"] div[role="tablist"] > div[role="presentation"] a[role="tab"]'
@@ -37,11 +37,11 @@ export const HomePage = {
       PageErrorHandler.logAction(`open tab=${tabIndex}`)
       tab.click()
 
-      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
+      await AsyncUtilities.delay(DELAYS.CRAWL_INTERVAL)
       try {
-        await DomUtils.waitElement('article[data-testid="tweet"]')
+        await DomUtilities.waitElement('article[data-testid="tweet"]')
       } catch (error) {
-        if (DomUtils.isFailedPage()) {
+        if (DomUtilities.isFailedPage()) {
           await PageErrorHandler.handlePageError('Home', 'runHome', error, {
             customMessage: 'runHome: failed page. Wait 1 minute and reload.',
           })
@@ -57,18 +57,18 @@ export const HomePage = {
           top: window.innerHeight,
           behavior: 'smooth',
         })
-        await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
+        await AsyncUtilities.delay(DELAYS.CRAWL_INTERVAL)
       }
     }
 
     const isOnlyHome = ConfigManager.getIsOnlyHome()
     if (isOnlyHome) {
       PageErrorHandler.logAction('isOnlyHome is true. Go to home page.')
-      location.href = URLS.HOME
+      location.assign(URLS.HOME)
       return
     }
 
     PageErrorHandler.logAction('all tabs are opened. Go to explore page.')
-    location.href = URLS.EXPLORE
+    location.assign(URLS.EXPLORE)
   },
 }

@@ -1,6 +1,6 @@
 import { PageErrorHandler } from '@/utils/page-error-handler'
-import { DomUtils } from '@/utils/dom'
-import { AsyncUtils } from '@/utils/async'
+import { DomUtilities } from '@/utils/dom'
+import { AsyncUtilities } from '@/utils/async'
 import { DELAYS } from '@/core/constants'
 
 // Mock dependencies
@@ -20,8 +20,8 @@ describe('PageErrorHandler', () => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
 
     // Setup default mocks
-    jest.mocked(DomUtils.isFailedPage).mockReturnValue(false)
-    jest.mocked(AsyncUtils.delay).mockResolvedValue()
+    jest.mocked(DomUtilities.isFailedPage).mockReturnValue(false)
+    jest.mocked(AsyncUtilities.delay).mockResolvedValue()
   })
 
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('PageErrorHandler', () => {
 
   describe('handlePageError', () => {
     it('should detect failed page and log error', async () => {
-      jest.mocked(DomUtils.isFailedPage).mockReturnValue(true)
+      jest.mocked(DomUtilities.isFailedPage).mockReturnValue(true)
 
       await PageErrorHandler.handlePageError(
         'Test',
@@ -50,7 +50,9 @@ describe('PageErrorHandler', () => {
       )
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(
+        DELAYS.ERROR_RELOAD_WAIT
+      )
       // Note: location.reload is called but we skip testing it due to JSDOM limitations
     })
 
@@ -75,7 +77,7 @@ describe('PageErrorHandler', () => {
         { waitTime: customWaitTime }
       )
 
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(customWaitTime)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(customWaitTime)
     })
 
     it('should not reload when shouldReload is false', async () => {
@@ -86,7 +88,7 @@ describe('PageErrorHandler', () => {
         { shouldReload: false }
       )
 
-      expect(AsyncUtils.delay).not.toHaveBeenCalled()
+      expect(AsyncUtilities.delay).not.toHaveBeenCalled()
       // Note: shouldReload=false prevents location.reload from being called
     })
 
@@ -130,7 +132,7 @@ describe('PageErrorHandler', () => {
       mockElement.classList.add('test-selector')
       document.body.append(mockElement)
 
-      jest.mocked(DomUtils.waitElement).mockResolvedValue(undefined)
+      jest.mocked(DomUtilities.waitElement).mockResolvedValue(undefined)
 
       const result = await PageErrorHandler.waitForElementWithErrorHandling(
         '.test-selector',
@@ -139,7 +141,7 @@ describe('PageErrorHandler', () => {
       )
 
       expect(result).toBe(mockElement)
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         '.test-selector',
         undefined
       )
@@ -150,7 +152,7 @@ describe('PageErrorHandler', () => {
 
     it('should handle error and re-throw when element not found', async () => {
       const testError = new Error('Element not found')
-      jest.mocked(DomUtils.waitElement).mockRejectedValue(testError)
+      jest.mocked(DomUtilities.waitElement).mockRejectedValue(testError)
 
       await expect(
         PageErrorHandler.waitForElementWithErrorHandling(
@@ -169,7 +171,7 @@ describe('PageErrorHandler', () => {
       mockElement.classList.add('test-selector')
       document.body.append(mockElement)
 
-      jest.mocked(DomUtils.waitElement).mockResolvedValue(undefined)
+      jest.mocked(DomUtilities.waitElement).mockResolvedValue(undefined)
       const customTimeout = 5000
 
       await PageErrorHandler.waitForElementWithErrorHandling(
@@ -179,7 +181,7 @@ describe('PageErrorHandler', () => {
         { timeout: customTimeout }
       )
 
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         '.test-selector',
         customTimeout
       )
@@ -190,7 +192,7 @@ describe('PageErrorHandler', () => {
 
     it('should pass error options when handling error', async () => {
       const testError = new Error('Element not found')
-      jest.mocked(DomUtils.waitElement).mockRejectedValue(testError)
+      jest.mocked(DomUtilities.waitElement).mockRejectedValue(testError)
 
       await expect(
         PageErrorHandler.waitForElementWithErrorHandling(
@@ -215,7 +217,7 @@ describe('PageErrorHandler', () => {
       mockElement.classList.add('test-selector')
       document.body.append(mockElement)
 
-      jest.mocked(DomUtils.waitElement).mockResolvedValue(undefined)
+      jest.mocked(DomUtilities.waitElement).mockResolvedValue(undefined)
 
       // Create a named function to ensure stack trace detection
       // eslint-disable-next-line unicorn/consistent-function-scoping
@@ -234,7 +236,7 @@ describe('PageErrorHandler', () => {
 
     it('should auto-detect caller name with options when error occurs', async () => {
       const testError = new Error('Element not found')
-      jest.mocked(DomUtils.waitElement).mockRejectedValue(testError)
+      jest.mocked(DomUtilities.waitElement).mockRejectedValue(testError)
 
       // Create a named function to ensure stack trace detection
       // eslint-disable-next-line unicorn/consistent-function-scoping
@@ -433,7 +435,7 @@ describe('PageErrorHandler', () => {
     })
 
     it('should log error details in development mode', () => {
-      const originalEnv = process.env.NODE_ENV
+      const originalEnvironment = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
       const testError = new Error('Detailed error')
@@ -447,11 +449,11 @@ describe('PageErrorHandler', () => {
         testError
       )
 
-      process.env.NODE_ENV = originalEnv
+      process.env.NODE_ENV = originalEnvironment
     })
 
     it('should not log error details in production mode', () => {
-      const originalEnv = process.env.NODE_ENV
+      const originalEnvironment = process.env.NODE_ENV
       process.env.NODE_ENV = 'production'
 
       const testError = new Error('Detailed error')
@@ -465,7 +467,7 @@ describe('PageErrorHandler', () => {
         testError
       )
 
-      process.env.NODE_ENV = originalEnv
+      process.env.NODE_ENV = originalEnvironment
     })
 
     it('should auto-detect caller name when not provided', () => {
@@ -483,7 +485,7 @@ describe('PageErrorHandler', () => {
     })
 
     it('should auto-detect caller name with error details in development', () => {
-      const originalEnv = process.env.NODE_ENV
+      const originalEnvironment = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
       const testError = new Error('Detailed error')
@@ -503,7 +505,7 @@ describe('PageErrorHandler', () => {
         testError
       )
 
-      process.env.NODE_ENV = originalEnv
+      process.env.NODE_ENV = originalEnvironment
     })
   })
 
@@ -518,7 +520,7 @@ describe('PageErrorHandler', () => {
 
     it('should handle when Error constructor throws', () => {
       // Mock Error constructor to throw
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => {
         throw new OriginalError('Error constructor failed')
       }) as any
@@ -532,7 +534,7 @@ describe('PageErrorHandler', () => {
 
     it('should return unknown for malformed stack traces', () => {
       // Mock Error to return a malformed stack
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: 'malformed stack trace without function names',
       })) as any
@@ -546,7 +548,7 @@ describe('PageErrorHandler', () => {
 
     it('should return unknown when stack is undefined', () => {
       // Mock Error to return no stack
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: undefined,
       })) as any

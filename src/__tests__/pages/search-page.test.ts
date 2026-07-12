@@ -2,8 +2,8 @@ import { SearchPage } from '../../pages/search-page'
 import { DELAYS } from '../../core/constants'
 import { StateService } from '../../services/state-service'
 import { CrawlerService } from '../../services/crawler-service'
-import { DomUtils } from '../../utils/dom'
-import { AsyncUtils } from '../../utils/async'
+import { DomUtilities } from '../../utils/dom'
+import { AsyncUtilities } from '../../utils/async'
 import { TweetPage } from '../../pages/tweet-page'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
@@ -11,7 +11,7 @@ import {
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 
 // Mock dependencies
 jest.mock('../../services/state-service')
@@ -36,7 +36,7 @@ describe('SearchPage', () => {
 
   beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
 
     // Setup mocks
     setupUserscriptMocks()
@@ -47,10 +47,10 @@ describe('SearchPage', () => {
     jest.clearAllTimers()
 
     // Setup default mock implementations
-    ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
-    ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
-    ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
+    ;(DomUtilities.waitElement as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(false)
+    ;(AsyncUtilities.delay as jest.Mock).mockResolvedValue(undefined)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(CrawlerService.startCrawling as jest.Mock).mockImplementation(() => {})
     ;(TweetPage.run as jest.Mock).mockResolvedValue(undefined)
@@ -72,7 +72,7 @@ describe('SearchPage', () => {
      * - ログインが必要な場合の早期リターン
      */
     it('should return early when login is required', async () => {
-      ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
       await SearchPage.run()
 
@@ -96,7 +96,7 @@ describe('SearchPage', () => {
 
       await SearchPage.run()
 
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // Since JSDOM doesn't allow location.search assignment, we can't test the actual change
       // Instead, we verify the behavior by checking that delay was called
 
@@ -126,7 +126,7 @@ describe('SearchPage', () => {
 
       expect(StateService.resetState).toHaveBeenCalled()
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         'article[data-testid="tweet"]'
       )
       expect(TweetPage.run).toHaveBeenCalledWith(true)
@@ -150,14 +150,16 @@ describe('SearchPage', () => {
         search: '?q=test&f=live',
         reload: jest.fn(),
       }
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
 
       await SearchPage.run()
 
       expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(
+        DELAYS.ERROR_RELOAD_WAIT
+      )
       expect(globalThis.location.reload).toHaveBeenCalled()
 
       // Restore original location
@@ -167,7 +169,7 @@ describe('SearchPage', () => {
 
     /**
      * 失敗ページ検出時のエラーログ出力をテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
+     * - DomUtilities.isFailedPage()がtrueを返す場合
      * - 専用エラーメッセージの出力確認
      */
     it.skip('should log error when failed page is detected', async () => {
@@ -178,10 +180,10 @@ describe('SearchPage', () => {
       ;(globalThis as any).location = {
         search: '?q=test&f=live',
       }
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
-      ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await SearchPage.run()
 
@@ -220,7 +222,7 @@ describe('SearchPage', () => {
       })
 
       // Verify delay was called for each scroll
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
 
       // Restore original location
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -273,7 +275,7 @@ describe('SearchPage', () => {
 
       await SearchPage.run()
 
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called, not the actual location change
 
       // Restore original location
@@ -297,7 +299,7 @@ describe('SearchPage', () => {
 
       await SearchPage.run()
 
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
       // We verify the behavior by checking that delay was called
 
       // Restore original location

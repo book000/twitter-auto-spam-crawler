@@ -31,14 +31,14 @@ export const ErrorHandler = {
         const element = document.querySelector(selector)
         if (element) {
           clearInterval(intervalId)
-          callback(element)
-            .then(() => {
+          ;(async () => {
+            try {
+              await callback(element)
               console.log(
                 `ErrorHandler: Successfully processed element: ${selector}`
               )
               resolve()
-            })
-            .catch((error: unknown) => {
+            } catch (error: unknown) {
               console.error(
                 `ErrorHandler: Callback failed for ${selector}:`,
                 error
@@ -48,7 +48,8 @@ export const ErrorHandler = {
               } else {
                 reject(new Error(String(error)))
               }
-            })
+            }
+          })()
         }
       }, 100)
     })
@@ -82,14 +83,14 @@ export const ErrorHandler = {
         const elements = document.querySelectorAll(selector)
         if (elements.length > 0) {
           clearInterval(intervalId)
-          callback(elements)
-            .then(() => {
+          ;(async () => {
+            try {
+              await callback(elements)
               console.log(
                 `ErrorHandler: Successfully processed ${elements.length} elements: ${selector}`
               )
               resolve()
-            })
-            .catch((error: unknown) => {
+            } catch (error: unknown) {
               console.error(
                 `ErrorHandler: Callback failed for ${selector}:`,
                 error
@@ -99,7 +100,8 @@ export const ErrorHandler = {
               } else {
                 reject(new Error(String(error)))
               }
-            })
+            }
+          })()
         }
       }, 100)
     })
@@ -132,14 +134,15 @@ export const ErrorHandler = {
           if (typeof callback === 'function') {
             const result = callback(dialog)
             if (result instanceof Promise) {
-              result
-                .then(() => {
-                  resolve()
-                })
-                .catch((error: unknown) => {
+              ;(async () => {
+                try {
+                  await result
+                } catch (error: unknown) {
                   console.error('ErrorHandler callback error:', error)
+                } finally {
                   resolve()
-                })
+                }
+              })()
             } else {
               resolve()
             }
@@ -191,14 +194,15 @@ export const ErrorHandler = {
           clearInterval(interval)
           const result = callback(tweetArticleElement)
           if (result instanceof Promise) {
-            result
-              .then(() => {
-                resolve()
-              })
-              .catch((error: unknown) => {
+            ;(async () => {
+              try {
+                await result
+              } catch (error: unknown) {
                 console.error('ErrorHandler callback error:', error)
+              } finally {
                 resolve()
-              })
+              }
+            })()
           } else {
             resolve()
           }

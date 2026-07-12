@@ -16,8 +16,8 @@ const originalCreateElement = document.createElement.bind(document)
 const originalAppend = document.body.append.bind(document.body)
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-globalThis.URL.createObjectURL = jest.fn(() => 'mock-blob-url')
-globalThis.URL.revokeObjectURL = jest.fn()
+URL.createObjectURL = jest.fn(() => 'mock-blob-url')
+URL.revokeObjectURL = jest.fn()
 
 // Mock Blob
 globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
@@ -36,7 +36,7 @@ globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
  */
 describe('TweetService', () => {
   beforeEach(() => {
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
     jest.clearAllMocks()
     mockCreateElement.mockClear()
     mockAppend.mockClear()
@@ -390,9 +390,9 @@ describe('TweetService', () => {
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 
-      const result = TweetService.isNeedDownload()
+      const isResult = TweetService.isNeedDownload()
 
-      expect(result).toBe(true)
+      expect(isResult).toBe(true)
     })
 
     /**
@@ -410,9 +410,9 @@ describe('TweetService', () => {
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 
-      const result = TweetService.isNeedDownload()
+      const isResult = TweetService.isNeedDownload()
 
-      expect(result).toBe(false)
+      expect(isResult).toBe(false)
     })
 
     /**
@@ -430,9 +430,9 @@ describe('TweetService', () => {
 
       ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(tweets)
 
-      const result = TweetService.isNeedDownload()
+      const isResult = TweetService.isNeedDownload()
 
-      expect(result).toBe(false)
+      expect(isResult).toBe(false)
     })
   })
 
@@ -483,10 +483,10 @@ describe('TweetService', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
-      const result = TweetService.downloadTweets()
+      const isResult = TweetService.downloadTweets()
 
       expect(consoleSpy).toHaveBeenCalledWith('downloadTweets: download tweets')
-      expect(globalThis.Blob).toHaveBeenCalledWith(
+      expect(Blob).toHaveBeenCalledWith(
         [
           JSON.stringify({
             type: 'tweets',
@@ -495,7 +495,7 @@ describe('TweetService', () => {
         ],
         { type: 'application/json' }
       )
-      expect(globalThis.URL.createObjectURL).toHaveBeenCalled()
+      expect(URL.createObjectURL).toHaveBeenCalled()
       expect(mockAnchor.href).toBe('mock-blob-url')
       expect(mockAnchor.download).toMatch(
         /^tweets-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z\.json$/
@@ -504,7 +504,7 @@ describe('TweetService', () => {
       expect(mockAppend).toHaveBeenCalledWith(mockAnchor)
       expect(mockClick).toHaveBeenCalled()
       expect(Storage.setSavedTweets).toHaveBeenCalledWith([])
-      expect(result).toBe(true)
+      expect(isResult).toBe(true)
 
       consoleSpy.mockRestore()
     })
@@ -689,9 +689,9 @@ describe('TweetService', () => {
 
       // Mock querySelector to count calls
       // eslint-disable-next-line @typescript-eslint/no-deprecated
-      article.querySelector = jest.fn((...args) => {
+      article.querySelector = jest.fn((...arguments_) => {
         queryCount++
-        return originalQuerySelector(...args)
+        return originalQuerySelector(...arguments_)
       })
 
       article.dataset.testid = 'tweet'
@@ -760,13 +760,13 @@ describe('TweetService', () => {
     it('should process large number of tweets efficiently', () => {
       // Create 100 mock tweet articles
       const articles: Element[] = []
-      for (let i = 0; i < 100; i++) {
+      for (let index = 0; index < 100; index++) {
         const article = document.createElement('article')
         article.dataset.testid = 'tweet'
 
         const link = document.createElement('a')
         link.setAttribute('role', 'link')
-        link.href = `https://x.com/user${i}/status/${i}`
+        link.href = `https://x.com/user${index}/status/${index}`
         const time = document.createElement('time')
         time.setAttribute('datetime', '2024-01-01T12:00:00Z')
         link.append(time)
@@ -775,22 +775,22 @@ describe('TweetService', () => {
         textDiv.setAttribute('lang', 'ja')
         textDiv.setAttribute('dir', 'ltr')
         textDiv.dataset.testid = 'tweetText'
-        textDiv.textContent = `Tweet content ${i}`
+        textDiv.textContent = `Tweet content ${index}`
 
         const replyButton = document.createElement('button')
         replyButton.setAttribute('role', 'button')
         replyButton.dataset.testid = 'reply'
-        replyButton.setAttribute('aria-label', `${i} replies`)
+        replyButton.setAttribute('aria-label', `${index} replies`)
 
         const retweetButton = document.createElement('button')
         retweetButton.setAttribute('role', 'button')
         retweetButton.dataset.testid = 'retweet'
-        retweetButton.setAttribute('aria-label', `${i * 2} retweets`)
+        retweetButton.setAttribute('aria-label', `${index * 2} retweets`)
 
         const likeButton = document.createElement('button')
         likeButton.setAttribute('role', 'button')
         likeButton.dataset.testid = 'like'
-        likeButton.setAttribute('aria-label', `${i * 3} likes`)
+        likeButton.setAttribute('aria-label', `${index * 3} likes`)
 
         article.append(link, textDiv, replyButton, retweetButton, likeButton)
         articles.push(article)
@@ -825,9 +825,9 @@ describe('TweetService', () => {
 
       // Mock querySelector to count calls
       // eslint-disable-next-line @typescript-eslint/no-deprecated
-      article.querySelector = jest.fn((...args) => {
+      article.querySelector = jest.fn((...arguments_) => {
         queryCount++
-        return originalQuerySelector(...args)
+        return originalQuerySelector(...arguments_)
       })
 
       article.dataset.testid = 'tweet'

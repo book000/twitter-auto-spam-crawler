@@ -12,7 +12,7 @@ import {
   OtherPages,
 } from '@/pages'
 import packageJson from '../package.json'
-;(function () {
+{
   const methods: PageMethod[] = [
     {
       url: URLS.HOME,
@@ -77,29 +77,29 @@ import packageJson from '../package.json'
     {
       url: URLS.EXAMPLE_LOGIN_NOTIFY,
       urlType: 'startsWith',
-      run: () => {
-        ExamplePages.runLoginNotify()
+      run: async () => {
+        await ExamplePages.runLoginNotify()
       },
     },
     {
       url: URLS.EXAMPLE_LOGIN_SUCCESS_NOTIFY,
       urlType: 'startsWith',
-      run: () => {
-        ExamplePages.runLoginSuccessNotify()
+      run: async () => {
+        await ExamplePages.runLoginSuccessNotify()
       },
     },
     {
       url: URLS.EXAMPLE_LOCKED_NOTIFY,
       urlType: 'startsWith',
-      run: () => {
-        ExamplePages.runLockedNotify()
+      run: async () => {
+        await ExamplePages.runLockedNotify()
       },
     },
     {
       url: URLS.EXAMPLE_UNLOCKED_NOTIFY,
       urlType: 'startsWith',
-      run: () => {
-        ExamplePages.runUnlockedNotify()
+      run: async () => {
+        await ExamplePages.runUnlockedNotify()
       },
     },
     {
@@ -112,8 +112,8 @@ import packageJson from '../package.json'
     {
       url: URLS.EXAMPLE_UPDATE_NOTIFY,
       urlType: 'startsWith',
-      run: () => {
-        ExamplePages.runUpdateNotify()
+      run: async () => {
+        await ExamplePages.runUpdateNotify()
       },
     },
   ]
@@ -125,7 +125,8 @@ import packageJson from '../package.json'
         location.href.startsWith(method.url as string)
       ) {
         return true
-      } else if (
+      }
+      if (
         method.urlType === 'regex' &&
         (method.url as RegExp).test(location.href)
       ) {
@@ -177,26 +178,26 @@ import packageJson from '../package.json'
   if (document.readyState === 'complete') {
     console.log('Page already loaded, waiting for a moment before running...')
     setTimeout(() => {
-      try {
-        run().catch((error: unknown) => {
+      ;(async () => {
+        try {
+          await run()
+        } catch (error: unknown) {
           console.error('Error in run():', error)
-        })
-      } catch (error: unknown) {
-        console.error('Error starting script:', error)
-      }
+        }
+      })()
     }, 1000)
   } else {
     window.addEventListener('load', () => {
       console.log('Page loaded, waiting for network stability...')
       setTimeout(() => {
-        try {
-          run().catch((error: unknown) => {
+        ;(async () => {
+          try {
+            await run()
+          } catch (error: unknown) {
             console.error('Error in run():', error)
-          })
-        } catch (error: unknown) {
-          console.error('Error starting script:', error)
-        }
+          }
+        })()
       }, 2000)
     })
   }
-})()
+}

@@ -1,6 +1,6 @@
 import { DELAYS } from '@/core/constants'
-import { DomUtils } from '@/utils/dom'
-import { AsyncUtils } from '@/utils/async'
+import { DomUtilities } from '@/utils/dom'
+import { AsyncUtilities } from '@/utils/async'
 
 /**
  * ページエラーハンドリングのオプション
@@ -27,14 +27,14 @@ export const PageErrorHandler = {
    * @param pageName - ログ用のページ名（例: 'Home', 'Search'）
    * @param methodNameOrError - メソッド名（文字列）またはエラーオブジェクト（自動検出時）
    * @param errorOrOptions - エラーオブジェクトまたはオプション
-   * @param optionsArg - エラーハンドリングオプション
+   * @param optionsArgument - エラーハンドリングオプション
    * @returns エラー処理完了を表すPromise
    *
    * @example
    * ```typescript
    * // 自動検出（推奨）
    * try {
-   *   await DomUtils.waitElement('.timeline')
+   *   await DomUtilities.waitElement('.timeline')
    * } catch (error) {
    *   await PageErrorHandler.handlePageError('Home', error)
    *   return
@@ -42,7 +42,7 @@ export const PageErrorHandler = {
    *
    * // メソッド名を手動指定
    * try {
-   *   await DomUtils.waitElement('.timeline')
+   *   await DomUtilities.waitElement('.timeline')
    * } catch (error) {
    *   await PageErrorHandler.handlePageError('Home', 'runHome', error)
    *   return
@@ -53,7 +53,7 @@ export const PageErrorHandler = {
     pageName: string,
     methodNameOrError: unknown,
     errorOrOptions?: any,
-    optionsArg?: PageErrorOptions
+    optionsArgument?: PageErrorOptions
   ): Promise<void> {
     // オーバーロードされたパラメータを処理する
     let methodName: string
@@ -64,7 +64,7 @@ export const PageErrorHandler = {
       // 旧シグネチャ: handlePageError(pageName, methodName, error, options)
       methodName = methodNameOrError
       error = errorOrOptions
-      options = optionsArg ?? {}
+      options = optionsArgument ?? {}
     } else {
       // 新シグネチャ: handlePageError(pageName, error, options)
       methodName = PageErrorHandler._getCallerName()
@@ -84,7 +84,7 @@ export const PageErrorHandler = {
     } = options
 
     // 失敗ページかどうかチェック
-    if (DomUtils.isFailedPage()) {
+    if (DomUtilities.isFailedPage()) {
       console.error(`${methodName}: failed page.`)
     }
 
@@ -97,7 +97,7 @@ export const PageErrorHandler = {
 
     // 必要に応じて待機してリロード
     if (shouldReload) {
-      await AsyncUtils.delay(waitTime)
+      await AsyncUtilities.delay(waitTime)
       location.reload()
     }
   },
@@ -105,12 +105,12 @@ export const PageErrorHandler = {
   /**
    * 標準的なエラーハンドリングで要素を待機する
    *
-   * DomUtils.waitElement を自動エラーハンドリングとリロードロジックでラップする。
+   * DomUtilities.waitElement を自動エラーハンドリングとリロードロジックでラップする。
    *
    * @param selector - 要素のCSSセレクター
    * @param pageName - ログ用のページ名
    * @param methodNameOrOptions - メソッド名（文字列）またはオプション（自動検出時）
-   * @param optionsArg - タイムアウトとエラーハンドリングを含む追加オプション
+   * @param optionsArgument - タイムアウトとエラーハンドリングを含む追加オプション
    * @returns 要素が見つかった場合に解決するPromise、エラー処理後にリジェクト
    *
    * @example
@@ -138,7 +138,7 @@ export const PageErrorHandler = {
           timeout?: number
           errorOptions?: PageErrorOptions
         },
-    optionsArg?: {
+    optionsArgument?: {
       timeout?: number
       errorOptions?: PageErrorOptions
     }
@@ -153,7 +153,7 @@ export const PageErrorHandler = {
     if (typeof methodNameOrOptions === 'string') {
       // 旧シグネチャ: waitForElementWithErrorHandling(selector, pageName, methodName, options)
       methodName = methodNameOrOptions
-      options = optionsArg ?? {}
+      options = optionsArgument ?? {}
     } else {
       // 新シグネチャ: waitForElementWithErrorHandling(selector, pageName, options)
       methodName = PageErrorHandler._getCallerName()
@@ -161,8 +161,8 @@ export const PageErrorHandler = {
     }
 
     try {
-      await DomUtils.waitElement(selector, options.timeout)
-      // DomUtils.waitElement は要素を返さないため、queryで取得する
+      await DomUtilities.waitElement(selector, options.timeout)
+      // DomUtilities.waitElement は要素を返さないため、queryで取得する
       const element = document.querySelector(selector)
       if (!element) {
         throw new Error(`Element ${selector} not found after waiting`)
@@ -188,7 +188,7 @@ export const PageErrorHandler = {
    * @param operation - 実行する非同期操作
    * @param pageName - ログ用のページ名
    * @param methodNameOrOptions - メソッド名（文字列）またはオプション（自動検出時）
-   * @param optionsArg - エラーハンドリングオプション
+   * @param optionsArgument - エラーハンドリングオプション
    * @returns 操作結果またはエラー処理後にundefinedを返すPromise
    *
    * @example
@@ -197,7 +197,7 @@ export const PageErrorHandler = {
    * await PageErrorHandler.executeWithErrorHandling(
    *   async () => {
    *     // 複雑なページ操作
-   *     const element = await DomUtils.waitElement('.timeline')
+   *     const element = await DomUtilities.waitElement('.timeline')
    *     await processElement(element)
    *   },
    *   'Home'
@@ -207,7 +207,7 @@ export const PageErrorHandler = {
    * await PageErrorHandler.executeWithErrorHandling(
    *   async () => {
    *     // 複雑なページ操作
-   *     const element = await DomUtils.waitElement('.timeline')
+   *     const element = await DomUtilities.waitElement('.timeline')
    *     await processElement(element)
    *   },
    *   'Home',
@@ -219,7 +219,7 @@ export const PageErrorHandler = {
     operation: () => Promise<T>,
     pageName: string,
     methodNameOrOptions?: string | PageErrorOptions,
-    optionsArg?: PageErrorOptions
+    optionsArgument?: PageErrorOptions
   ): Promise<T | undefined> {
     // オーバーロードされたパラメータを処理する
     let methodName: string
@@ -228,7 +228,7 @@ export const PageErrorHandler = {
     if (typeof methodNameOrOptions === 'string') {
       // 旧シグネチャ: executeWithErrorHandling(operation, pageName, methodName, options)
       methodName = methodNameOrOptions
-      options = optionsArg ?? {}
+      options = optionsArgument ?? {}
     } else {
       // 新シグネチャ: executeWithErrorHandling(operation, pageName, options)
       methodName = PageErrorHandler._getCallerName()
@@ -255,7 +255,7 @@ export const PageErrorHandler = {
    *
    * @param pageName - ページ名
    * @param methodNameOrAdditionalInfo - メソッド名（文字列）または追加情報（自動検出時）
-   * @param additionalInfoArg - オプションの追加情報
+   * @param additionalInfoArgument - オプションの追加情報
    *
    * @example
    * ```typescript
@@ -273,7 +273,7 @@ export const PageErrorHandler = {
   logPageStart(
     pageName: string,
     methodNameOrAdditionalInfo?: string | Record<string, any>,
-    additionalInfoArg?: Record<string, any>
+    additionalInfoArgument?: Record<string, any>
   ): void {
     // オーバーロードされたパラメータを処理する
     let methodName: string
@@ -282,7 +282,7 @@ export const PageErrorHandler = {
     if (typeof methodNameOrAdditionalInfo === 'string') {
       // 旧シグネチャ: logPageStart(pageName, methodName, additionalInfo)
       methodName = methodNameOrAdditionalInfo
-      additionalInfo = additionalInfoArg
+      additionalInfo = additionalInfoArgument
     } else {
       // 新シグネチャ: logPageStart(pageName, additionalInfo)
       methodName = PageErrorHandler._getCallerName()
@@ -366,8 +366,8 @@ export const PageErrorHandler = {
       const stackLines = stack.split('\n')
 
       // 呼び出し元を探す（Error()、このメソッド、logAction/logError をスキップ）
-      for (let i = 3; i < stackLines.length; i++) {
-        const line = stackLines[i]
+      for (let index = 3; index < stackLines.length; index++) {
+        const line = stackLines[index]
 
         // 各フォーマットの関数名にマッチ:
         // - "at functionName (...)"

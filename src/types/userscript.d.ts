@@ -44,7 +44,7 @@ declare function GM_unregisterMenuCommand(menuCommandId: number): void
 
 // GM_config from Tampermonkey Config library (from @require)
 // eslint-disable-next-line camelcase
-declare const GM_config: (fields: GMConfigFields, init?: boolean) => void
+declare const GM_config: (fields: GMConfigFields, isInit?: boolean) => void
 
 // Event name fired by GM_config when configuration changes
 // eslint-disable-next-line camelcase

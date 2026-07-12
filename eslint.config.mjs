@@ -12,6 +12,10 @@ export default [
       'import/no-duplicates': 'off',
       camelcase: ['error', { allow: ['^GM_'] }],
       'unicorn/no-useless-undefined': 'off',
+      // テストでは globalThis / window にモック用プロパティを直接代入する場面が多いため無効化
+      'unicorn/no-global-object-property-assignment': 'off',
+      // `setXxxSpy` のような jest.spyOn 変数名は慣習的な命名のため対象外
+      'unicorn/no-non-function-verb-prefix': 'off',
     },
   },
   {
@@ -19,6 +23,8 @@ export default [
     rules: {
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      // モックではユーザースクリプトのグローバル API (GM_*) を直接定義する必要がある
+      'unicorn/no-global-object-property-assignment': 'off',
     },
   },
 ]

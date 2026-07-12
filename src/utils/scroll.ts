@@ -1,12 +1,12 @@
 import { DELAYS, THRESHOLDS } from '@/core/constants'
-import { DomUtils } from './dom'
-import { AsyncUtils } from './async'
+import { DomUtilities } from './dom'
+import { AsyncUtilities } from './async'
 
 /**
  * ページの自動スクロールと無限スクロール処理を管理するクラス。
  * コンテンツの動的読み込みと返信ボタンのクリックを自動化。
  */
-export class ScrollUtils {
+export class ScrollUtilities {
   private static scrollPageInterval: ReturnType<typeof setInterval> | null =
     null
 
@@ -39,8 +39,8 @@ export class ScrollUtils {
           behavior: 'smooth',
         })
 
-        DomUtils.clickMoreReplies()
-        DomUtils.clickMoreRepliesAggressive()
+        DomUtilities.clickMoreReplies()
+        DomUtilities.clickMoreRepliesAggressive()
 
         const newHeight = document.body.scrollHeight
 
@@ -74,7 +74,7 @@ export class ScrollUtils {
         top: window.innerHeight,
         behavior: 'smooth',
       })
-      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
+      await AsyncUtilities.delay(DELAYS.CRAWL_INTERVAL)
     }
   }
 }

@@ -1,13 +1,13 @@
 import { OtherPages } from '../../pages/other-pages'
 import { URLS, DELAYS } from '../../core/constants'
 import { Storage } from '../../core/storage'
-import { AsyncUtils } from '../../utils/async'
+import { AsyncUtilities } from '../../utils/async'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 // Import mock before the module under test
 import { clearMockStorage } from '../../__mocks__/userscript'
 
@@ -41,24 +41,24 @@ describe('OtherPages', () => {
     jest.clearAllTimers()
 
     // Setup default mock implementations
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(AsyncUtilities.delay as jest.Mock).mockResolvedValue(undefined)
     ;(Storage.isLoginNotified as jest.Mock).mockReturnValue(false)
     ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
     ;(PageErrorHandler.logAction as jest.Mock).mockImplementation(() => {})
     ;(PageErrorHandler.logError as jest.Mock).mockImplementation(() => {})
 
-    // Mock history.back
-    Object.defineProperty(globalThis, 'history', {
-      value: {
-        back: jest.fn(),
+    // Mock history.back and window.open
+    Object.defineProperties(globalThis, {
+      history: {
+        value: {
+          back: jest.fn(),
+        },
+        writable: true,
       },
-      writable: true,
-    })
-
-    // Mock window.open
-    Object.defineProperty(globalThis, 'open', {
-      value: jest.fn(),
-      writable: true,
+      open: {
+        value: jest.fn(),
+        writable: true,
+      },
     })
 
     // Mock setInterval and clearInterval
@@ -153,7 +153,7 @@ describe('OtherPages', () => {
       let intervalCallback: (() => void) | undefined
 
         // Mock setInterval to capture the callback
-      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+      ;(setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
         return 123 // Mock interval ID
       })
@@ -164,7 +164,7 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'waiting for 60 seconds to process queue.'
       )
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.PROCESSING_WAIT)
+      expect(AsyncUtilities.delay).toHaveBeenCalledWith(DELAYS.PROCESSING_WAIT)
 
       // Wait for the initial delay to complete
       await Promise.resolve()
@@ -172,7 +172,7 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'checking for #injected-blue-block-toasts > div.toast'
       )
-      expect(globalThis.setInterval).toHaveBeenCalledWith(
+      expect(setInterval).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.CRAWL_INTERVAL
       )
@@ -187,7 +187,7 @@ describe('OtherPages', () => {
       )
 
       // Remove toasts
-      toastContainer.innerHTML = ''
+      toastContainer.replaceChildren()
 
       // Execute interval callback again with no toasts
       if (intervalCallback) {
@@ -197,10 +197,10 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'all toasts are gone.'
       )
-      expect(globalThis.clearInterval).toHaveBeenCalledWith(123)
+      expect(clearInterval).toHaveBeenCalledWith(123)
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that the interval was cleared
-      expect(globalThis.clearInterval).toHaveBeenCalled()
+      expect(clearInterval).toHaveBeenCalled()
 
       await promise
     })
@@ -216,7 +216,7 @@ describe('OtherPages', () => {
       document.body.append(toastContainer)
 
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+      ;(setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
         return 456
       })
@@ -234,10 +234,10 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'all toasts are gone.'
       )
-      expect(globalThis.clearInterval).toHaveBeenCalledWith(456)
+      expect(clearInterval).toHaveBeenCalledWith(456)
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that the interval was cleared
-      expect(globalThis.clearInterval).toHaveBeenCalled()
+      expect(clearInterval).toHaveBeenCalled()
 
       await promise
     })
@@ -251,7 +251,7 @@ describe('OtherPages', () => {
       toastContainer.id = 'injected-blue-block-toasts'
 
       // Start with 3 toasts
-      for (let i = 0; i < 3; i++) {
+      for (let index = 0; index < 3; index++) {
         const toast = document.createElement('div')
         toast.className = 'toast'
         toastContainer.append(toast)
@@ -260,7 +260,7 @@ describe('OtherPages', () => {
       document.body.append(toastContainer)
 
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+      ;(setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
         return 789
       })
@@ -329,14 +329,14 @@ describe('OtherPages', () => {
      */
     it('should start periodic check with proper interval and incrementing count', () => {
       let intervalCallback: (() => void) | undefined
-      ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
+      ;(setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
         return 555
       })
 
       OtherPages.startPeriodicUnlockCheck()
 
-      expect(globalThis.setInterval).toHaveBeenCalledWith(
+      expect(setInterval).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.LOCKED_CHECK_INTERVAL
       )

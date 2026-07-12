@@ -1,12 +1,12 @@
 import { ExplorePage } from '../../pages/explore-page'
 import { StateService } from '../../services/state-service'
-import { DomUtils } from '../../utils/dom'
+import { DomUtilities } from '../../utils/dom'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
   setupUserscriptMocks,
   setupConsoleMocks,
   restoreConsoleMocks,
-} from '../utils/page-test-utils'
+} from '../utils/page-test-utilities'
 
 // Mock dependencies
 jest.mock('../../services/state-service')
@@ -22,10 +22,10 @@ jest.useFakeTimers()
 function setupExplorePageDOM(trendCount = 3): HTMLElement[] {
   const trends: HTMLElement[] = []
 
-  for (let i = 0; i < trendCount; i++) {
+  for (let index = 0; index < trendCount; index++) {
     const trend = document.createElement('div')
     trend.dataset.testid = 'trend'
-    trend.textContent = `Trend ${i + 1}`
+    trend.textContent = `Trend ${index + 1}`
 
     const clickSpy = jest.fn()
     trend.click = clickSpy
@@ -48,7 +48,7 @@ describe('ExplorePage', () => {
 
   beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
 
     // Setup mocks
     setupUserscriptMocks()
@@ -59,9 +59,9 @@ describe('ExplorePage', () => {
     jest.clearAllTimers()
 
     // Setup default mock implementations
-    ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
-    ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
-    ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
+    ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
+    ;(DomUtilities.waitElement as jest.Mock).mockResolvedValue(undefined)
+    ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(false)
     ;(StateService.resetState as jest.Mock).mockImplementation(() => {})
     ;(PageErrorHandler.handlePageError as jest.Mock).mockResolvedValue(
       undefined
@@ -81,7 +81,7 @@ describe('ExplorePage', () => {
      * - ログインが必要な場合の早期リターン
      */
     it('should return early when login is required', async () => {
-      ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
       await ExplorePage.run()
 
@@ -103,7 +103,7 @@ describe('ExplorePage', () => {
       await ExplorePage.run()
 
       expect(StateService.resetState).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
+      expect(DomUtilities.waitElement).toHaveBeenCalledWith(
         'div[data-testid="trend"]'
       )
 
@@ -119,7 +119,7 @@ describe('ExplorePage', () => {
      * - エラー待機時間後のページリロード
      */
     it('should handle waitElement error and reload page', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
 
@@ -137,14 +137,14 @@ describe('ExplorePage', () => {
 
     /**
      * 失敗ページ検出時のエラーログ出力をテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
+     * - DomUtilities.isFailedPage()がtrueを返す場合
      * - 専用エラーメッセージの出力確認
      */
     it('should log error when failed page is detected', async () => {
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+      ;(DomUtilities.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
       )
-      ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
+      ;(DomUtilities.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await ExplorePage.run()
 
@@ -223,7 +223,7 @@ describe('ExplorePage', () => {
       await expect(ExplorePage.run()).rejects.toThrow()
 
       expect(StateService.resetState).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalled()
+      expect(DomUtilities.waitElement).toHaveBeenCalled()
 
       mockMathRandom.mockRestore()
     })

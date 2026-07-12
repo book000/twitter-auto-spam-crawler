@@ -46,20 +46,20 @@ describe('StateService', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       jest.spyOn(Storage, 'isLoginNotified').mockReturnValue(true)
       jest.spyOn(Storage, 'isLockedNotified').mockReturnValue(false)
-      const setLoginNotifiedSpy = jest.spyOn(Storage, 'setLoginNotified')
-      const setLockedNotifiedSpy = jest.spyOn(Storage, 'setLockedNotified')
+      const loginNotifiedSetSpy = jest.spyOn(Storage, 'setLoginNotified')
+      const lockedNotifiedSetSpy = jest.spyOn(Storage, 'setLockedNotified')
 
       StateService.resetState()
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'resetState: reset isLoginNotified'
       )
-      expect(setLoginNotifiedSpy).toHaveBeenCalledWith(false)
+      expect(loginNotifiedSetSpy).toHaveBeenCalledWith(false)
       expect(mockWindowOpen).toHaveBeenCalledWith(
         URLS.EXAMPLE_LOGIN_SUCCESS_NOTIFY,
         '_blank'
       )
-      expect(setLockedNotifiedSpy).not.toHaveBeenCalled()
+      expect(lockedNotifiedSetSpy).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
     })
@@ -75,20 +75,20 @@ describe('StateService', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       jest.spyOn(Storage, 'isLoginNotified').mockReturnValue(false)
       jest.spyOn(Storage, 'isLockedNotified').mockReturnValue(true)
-      const setLoginNotifiedSpy = jest.spyOn(Storage, 'setLoginNotified')
-      const setLockedNotifiedSpy = jest.spyOn(Storage, 'setLockedNotified')
+      const loginNotifiedSetSpy = jest.spyOn(Storage, 'setLoginNotified')
+      const lockedNotifiedSetSpy = jest.spyOn(Storage, 'setLockedNotified')
 
       StateService.resetState()
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'resetState: reset isLockedNotified'
       )
-      expect(setLockedNotifiedSpy).toHaveBeenCalledWith(false)
+      expect(lockedNotifiedSetSpy).toHaveBeenCalledWith(false)
       expect(mockWindowOpen).toHaveBeenCalledWith(
         URLS.EXAMPLE_UNLOCKED_NOTIFY,
         '_blank'
       )
-      expect(setLoginNotifiedSpy).not.toHaveBeenCalled()
+      expect(loginNotifiedSetSpy).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
     })
@@ -104,8 +104,8 @@ describe('StateService', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       jest.spyOn(Storage, 'isLoginNotified').mockReturnValue(true)
       jest.spyOn(Storage, 'isLockedNotified').mockReturnValue(true)
-      const setLoginNotifiedSpy = jest.spyOn(Storage, 'setLoginNotified')
-      const setLockedNotifiedSpy = jest.spyOn(Storage, 'setLockedNotified')
+      const loginNotifiedSetSpy = jest.spyOn(Storage, 'setLoginNotified')
+      const lockedNotifiedSetSpy = jest.spyOn(Storage, 'setLockedNotified')
 
       StateService.resetState()
 
@@ -115,8 +115,8 @@ describe('StateService', () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         'resetState: reset isLockedNotified'
       )
-      expect(setLoginNotifiedSpy).toHaveBeenCalledWith(false)
-      expect(setLockedNotifiedSpy).toHaveBeenCalledWith(false)
+      expect(loginNotifiedSetSpy).toHaveBeenCalledWith(false)
+      expect(lockedNotifiedSetSpy).toHaveBeenCalledWith(false)
       expect(mockWindowOpen).toHaveBeenCalledWith(
         URLS.EXAMPLE_LOGIN_SUCCESS_NOTIFY,
         '_blank'
@@ -140,14 +140,14 @@ describe('StateService', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       jest.spyOn(Storage, 'isLoginNotified').mockReturnValue(false)
       jest.spyOn(Storage, 'isLockedNotified').mockReturnValue(false)
-      const setLoginNotifiedSpy = jest.spyOn(Storage, 'setLoginNotified')
-      const setLockedNotifiedSpy = jest.spyOn(Storage, 'setLockedNotified')
+      const loginNotifiedSetSpy = jest.spyOn(Storage, 'setLoginNotified')
+      const lockedNotifiedSetSpy = jest.spyOn(Storage, 'setLockedNotified')
 
       StateService.resetState()
 
       expect(consoleSpy).not.toHaveBeenCalled()
-      expect(setLoginNotifiedSpy).not.toHaveBeenCalled()
-      expect(setLockedNotifiedSpy).not.toHaveBeenCalled()
+      expect(loginNotifiedSetSpy).not.toHaveBeenCalled()
+      expect(lockedNotifiedSetSpy).not.toHaveBeenCalled()
       expect(mockWindowOpen).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()

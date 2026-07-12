@@ -17,7 +17,7 @@ export const NotificationService = {
    *
    * @param {string} message - 送信するメッセージ内容
    * @param {(_response: Response) => void} [callback] - レスポンス受信時のコールバック関数
-   * @param {boolean} [withReply=false] - true の場合、メッセージにメンションを付加
+   * @param {boolean} [hasReply=false] - true の場合、メッセージにメンションを付加
    * @param {string} [customWebhookUrl] - カスタムWebhook URL。指定時はConfigManagerの設定より優先される
    * @returns {Promise<void>} 送信完了を表すPromise
    *
@@ -40,13 +40,13 @@ export const NotificationService = {
    * })
    * ```
    */
-  notifyDiscord(
+  async notifyDiscord(
     message: string,
     callback?: (_response: Response) => void,
-    withReply = false,
+    hasReply = false,
     customWebhookUrl?: string
   ): Promise<void> {
-    const mention = withReply ? `<@${DISCORD_MENTION_ID}>` : ''
+    const mention = hasReply ? `<@${DISCORD_MENTION_ID}>` : ''
     const comment = ConfigManager.getComment()
     const data = JSON.stringify({
       content: `${mention} ${message}\n${comment}`,
@@ -56,28 +56,27 @@ export const NotificationService = {
     const webhookUrl = customWebhookUrl || ConfigManager.getDiscordWebhookUrl()
     if (!webhookUrl) {
       console.warn('notifyDiscord: Discord Webhook URL is not set.')
-      return Promise.resolve()
+      return
     }
 
-    return fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: data,
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log('notifyDiscord: success')
-        } else {
-          console.error('notifyDiscord: failed', response)
-        }
-        if (callback) {
-          callback(response)
-        }
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: data,
       })
-      .catch((error: unknown) => {
-        console.error('notifyDiscord: fetch error', error)
-      })
+      if (response.ok) {
+        console.log('notifyDiscord: success')
+      } else {
+        console.error('notifyDiscord: failed', response)
+      }
+      if (callback) {
+        callback(response)
+      }
+    } catch (error: unknown) {
+      console.error('notifyDiscord: fetch error', error)
+    }
   },
 }

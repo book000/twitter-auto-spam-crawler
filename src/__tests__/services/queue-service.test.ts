@@ -42,8 +42,8 @@ describe('QueueService', () => {
         .spyOn(Storage, 'getCheckedTweets')
         .mockReturnValue(['tweet1', 'tweet2'])
 
-      const result = QueueService.isCheckedTweet('tweet1')
-      expect(result).toBe(true)
+      const isResult = QueueService.isCheckedTweet('tweet1')
+      expect(isResult).toBe(true)
     })
 
     /**
@@ -55,8 +55,8 @@ describe('QueueService', () => {
         .spyOn(Storage, 'getCheckedTweets')
         .mockReturnValue(['tweet1', 'tweet2'])
 
-      const result = QueueService.isCheckedTweet('tweet3')
-      expect(result).toBe(false)
+      const isResult = QueueService.isCheckedTweet('tweet3')
+      expect(isResult).toBe(false)
     })
 
     /**
@@ -66,8 +66,8 @@ describe('QueueService', () => {
     it('should return false for empty checked tweets list', () => {
       jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue([])
 
-      const result = QueueService.isCheckedTweet('tweet1')
-      expect(result).toBe(false)
+      const isResult = QueueService.isCheckedTweet('tweet1')
+      expect(isResult).toBe(false)
     })
   })
 
@@ -87,8 +87,8 @@ describe('QueueService', () => {
         .spyOn(Storage, 'getWaitingTweets')
         .mockReturnValue(['waiting1', 'waiting2'])
 
-      const result = QueueService.isWaitingTweet('waiting1')
-      expect(result).toBe(true)
+      const isResult = QueueService.isWaitingTweet('waiting1')
+      expect(isResult).toBe(true)
     })
 
     /**
@@ -100,8 +100,8 @@ describe('QueueService', () => {
         .spyOn(Storage, 'getWaitingTweets')
         .mockReturnValue(['waiting1', 'waiting2'])
 
-      const result = QueueService.isWaitingTweet('waiting3')
-      expect(result).toBe(false)
+      const isResult = QueueService.isWaitingTweet('waiting3')
+      expect(isResult).toBe(false)
     })
 
     /**
@@ -111,8 +111,8 @@ describe('QueueService', () => {
     it('should return false for empty waiting tweets list', () => {
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue([])
 
-      const result = QueueService.isWaitingTweet('waiting1')
-      expect(result).toBe(false)
+      const isResult = QueueService.isWaitingTweet('waiting1')
+      expect(isResult).toBe(false)
     })
   })
 
@@ -132,13 +132,13 @@ describe('QueueService', () => {
     it('should add tweets to waiting list', async () => {
       const existingTweets = ['existing1', 'existing2']
       const newTweets = ['new1', 'new2']
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+      const waitingTweetsSetSpy = jest.spyOn(Storage, 'setWaitingTweets')
 
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingTweets)
 
       const promise = QueueService.addWaitingTweets(newTweets)
 
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith([
+      expect(waitingTweetsSetSpy).toHaveBeenCalledWith([
         'existing1',
         'existing2',
         'new1',
@@ -157,13 +157,13 @@ describe('QueueService', () => {
      */
     it('should handle empty new tweets array', async () => {
       const existingTweets = ['existing1']
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+      const waitingTweetsSetSpy = jest.spyOn(Storage, 'setWaitingTweets')
 
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingTweets)
 
       const promise = QueueService.addWaitingTweets([])
 
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith(['existing1'])
+      expect(waitingTweetsSetSpy).toHaveBeenCalledWith(['existing1'])
 
       jest.advanceTimersByTime(1000)
       await promise
@@ -223,8 +223,8 @@ describe('QueueService', () => {
       const existingChecked = ['checked1']
       const existingWaiting = ['test123', 'waiting2']
 
-      const setCheckedTweetsSpy = jest.spyOn(Storage, 'setCheckedTweets')
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+      const checkedTweetsSetSpy = jest.spyOn(Storage, 'setCheckedTweets')
+      const waitingTweetsSetSpy = jest.spyOn(Storage, 'setWaitingTweets')
 
       jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue(existingChecked)
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingWaiting)
@@ -233,8 +233,8 @@ describe('QueueService', () => {
 
       const promise = QueueService.checkedTweet(tweetId)
 
-      expect(setCheckedTweetsSpy).toHaveBeenCalledWith(['checked1', 'test123'])
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith(['waiting2'])
+      expect(checkedTweetsSetSpy).toHaveBeenCalledWith(['checked1', 'test123'])
+      expect(waitingTweetsSetSpy).toHaveBeenCalledWith(['waiting2'])
       expect(consoleSpy).toHaveBeenCalledWith('checkedTweet: test123')
 
       jest.advanceTimersByTime(1000)
@@ -254,20 +254,20 @@ describe('QueueService', () => {
       const existingChecked = ['checked1']
       const existingWaiting = ['waiting1', 'waiting2']
 
-      const setCheckedTweetsSpy = jest.spyOn(Storage, 'setCheckedTweets')
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+      const checkedTweetsSetSpy = jest.spyOn(Storage, 'setCheckedTweets')
+      const waitingTweetsSetSpy = jest.spyOn(Storage, 'setWaitingTweets')
 
       jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue(existingChecked)
       jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingWaiting)
 
       const promise = QueueService.checkedTweet(tweetId)
 
-      expect(setCheckedTweetsSpy).toHaveBeenCalledWith([
+      expect(checkedTweetsSetSpy).toHaveBeenCalledWith([
         'checked1',
         'notInWaiting',
       ])
       // When tweet is not in waiting list, setWaitingTweets should not be called
-      expect(setWaitingTweetsSpy).not.toHaveBeenCalled()
+      expect(waitingTweetsSetSpy).not.toHaveBeenCalled()
 
       jest.advanceTimersByTime(1000)
       await promise
@@ -286,11 +286,11 @@ describe('QueueService', () => {
      * - ストレージ更新の適切な呼び出し確認
      */
     it('should clear waiting tweets list', () => {
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+      const waitingTweetsSetSpy = jest.spyOn(Storage, 'setWaitingTweets')
 
       QueueService.resetWaitingQueue()
 
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith([])
+      expect(waitingTweetsSetSpy).toHaveBeenCalledWith([])
     })
   })
 })

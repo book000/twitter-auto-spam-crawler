@@ -150,8 +150,8 @@ describe('Storage', () => {
      * 初期状態ではログイン通知が送信されていないことを確認
      */
     it('should return false by default', () => {
-      const result = Storage.isLoginNotified()
-      expect(result).toBe(false)
+      const isResult = Storage.isLoginNotified()
+      expect(isResult).toBe(false)
       expect(GM_getValue).toHaveBeenCalledWith('isLoginNotified', false)
     })
 
@@ -176,8 +176,8 @@ describe('Storage', () => {
      * 初期状態ではアカウントロック通知が送信されていないことを確認
      */
     it('should return false by default', () => {
-      const result = Storage.isLockedNotified()
-      expect(result).toBe(false)
+      const isResult = Storage.isLockedNotified()
+      expect(isResult).toBe(false)
       expect(GM_getValue).toHaveBeenCalledWith('isLockedNotified', false)
     })
 
@@ -228,15 +228,18 @@ describe('Storage', () => {
      * 大量データでも一定の処理時間を維持
      */
     it('should provide O(1) lookup for checked tweets', () => {
-      const testTweets = Array.from({ length: 10_000 }, (_, i) => `tweet${i}`)
+      const testTweets = Array.from(
+        { length: 10_000 },
+        (_, index) => `tweet${index}`
+      )
       Storage.setCheckedTweets(testTweets)
 
       const startTime = performance.now()
       const set = Storage.getCheckedTweetsSet()
-      const exists = set.has('tweet5000')
+      const isExists = set.has('tweet5000')
       const endTime = performance.now()
 
-      expect(exists).toBe(true)
+      expect(isExists).toBe(true)
       expect(endTime - startTime).toBeLessThan(10) // 10ms 以内
     })
 
@@ -245,15 +248,18 @@ describe('Storage', () => {
      * 線形検索からハッシュテーブル検索への改善を確認
      */
     it('should provide O(1) lookup for waiting tweets', () => {
-      const testTweets = Array.from({ length: 10_000 }, (_, i) => `waiting${i}`)
+      const testTweets = Array.from(
+        { length: 10_000 },
+        (_, index) => `waiting${index}`
+      )
       Storage.setWaitingTweets(testTweets)
 
       const startTime = performance.now()
       const set = Storage.getWaitingTweetsSet()
-      const exists = set.has('waiting7500')
+      const isExists = set.has('waiting7500')
       const endTime = performance.now()
 
-      expect(exists).toBe(true)
+      expect(isExists).toBe(true)
       expect(endTime - startTime).toBeLessThan(10) // 10ms 以内
     })
 
@@ -262,13 +268,13 @@ describe('Storage', () => {
      * 大量のツイートデータでも高速アクセスを実現
      */
     it('should provide O(1) lookup for saved tweets', () => {
-      const testTweets: Tweet[] = Array.from({ length: 1000 }, (_, i) => ({
-        url: `https://x.com/user/status/${i}`,
-        tweetText: `Test tweet ${i}`,
-        tweetHtml: `<span>Test tweet ${i}</span>`,
-        elementHtml: `<article>Element ${i}</article>`,
+      const testTweets: Tweet[] = Array.from({ length: 1000 }, (_, index) => ({
+        url: `https://x.com/user/status/${index}`,
+        tweetText: `Test tweet ${index}`,
+        tweetHtml: `<span>Test tweet ${index}</span>`,
+        elementHtml: `<article>Element ${index}</article>`,
         screenName: 'testuser',
-        tweetId: `${i}`,
+        tweetId: String(index),
         replyCount: '1',
         retweetCount: '2',
         likeCount: '3',
@@ -290,7 +296,10 @@ describe('Storage', () => {
      * 複数操作の効率的な一括処理を確認
      */
     it('should handle batch operations efficiently', () => {
-      const tweetIds = Array.from({ length: 1000 }, (_, i) => `batch${i}`)
+      const tweetIds = Array.from(
+        { length: 1000 },
+        (_, index) => `batch${index}`
+      )
 
       const startTime = performance.now()
       Storage.addCheckedTweetsBatch(tweetIds)

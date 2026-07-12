@@ -69,16 +69,16 @@ export function setupUserscriptMocks(): void {
   // We'll create a minimal mock that doesn't interfere with JSDOM
   // Individual tests can mock location properties as needed using Object.defineProperty
 
-  // Mock window.scrollBy
-  Object.defineProperty(globalThis, 'scrollBy', {
-    value: jest.fn(),
-    writable: true,
-  })
-
-  // Mock window.innerHeight
-  Object.defineProperty(globalThis, 'innerHeight', {
-    value: 800,
-    writable: true,
+  // Mock window.scrollBy and window.innerHeight
+  Object.defineProperties(globalThis, {
+    scrollBy: {
+      value: jest.fn(),
+      writable: true,
+    },
+    innerHeight: {
+      value: 800,
+      writable: true,
+    },
   })
 }
 

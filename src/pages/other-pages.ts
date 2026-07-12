@@ -1,6 +1,6 @@
 import { URLS, DELAYS } from '@/core/constants'
 import { Storage } from '@/core/storage'
-import { AsyncUtils } from '@/utils/async'
+import { AsyncUtilities } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
 /**
@@ -32,7 +32,7 @@ export const OtherPages = {
         `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
       )
 
-      location.href = URLS.BOOKMARK
+      location.assign(URLS.BOOKMARK)
     }, DELAYS.LOCKED_CHECK_INTERVAL)
   },
 
@@ -45,7 +45,7 @@ export const OtherPages = {
     PageErrorHandler.logAction('start')
 
     PageErrorHandler.logAction('waiting for 60 seconds to process queue.')
-    await AsyncUtils.delay(DELAYS.PROCESSING_WAIT)
+    await AsyncUtilities.delay(DELAYS.PROCESSING_WAIT)
 
     PageErrorHandler.logAction(
       'checking for #injected-blue-block-toasts > div.toast'
@@ -57,7 +57,7 @@ export const OtherPages = {
       if (toastElements.length === 0) {
         PageErrorHandler.logAction('all toasts are gone.')
         clearInterval(interval)
-        location.href = URLS.HOME
+        location.assign(URLS.HOME)
       } else {
         PageErrorHandler.logAction(
           `still waiting for toasts: ${toastElements.length}`
