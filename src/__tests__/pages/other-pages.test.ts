@@ -152,7 +152,7 @@ describe('OtherPages', () => {
 
       let intervalCallback: (() => void) | undefined
 
-        // Mock setInterval to capture the callback
+      // Mock setInterval to capture the callback
       ;(globalThis.setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
         return 123 // Mock interval ID
