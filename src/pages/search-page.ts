@@ -16,7 +16,7 @@ export const SearchPage = {
 
     if (!location.search.includes('f=live')) {
       await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
-      location.search = location.search + '&f=live'
+      location.search += '&f=live'
       return
     }
 

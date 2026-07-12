@@ -36,7 +36,7 @@ describe('SearchPage', () => {
 
   beforeEach(() => {
     // Reset DOM
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
 
     // Setup mocks
     setupUserscriptMocks()

@@ -12,7 +12,7 @@ import {
   OtherPages,
 } from '@/pages'
 import packageJson from '../package.json'
-;(function () {
+{
   const methods: PageMethod[] = [
     {
       url: URLS.HOME,
@@ -125,7 +125,8 @@ import packageJson from '../package.json'
         location.href.startsWith(method.url as string)
       ) {
         return true
-      } else if (
+      }
+      if (
         method.urlType === 'regex' &&
         (method.url as RegExp).test(location.href)
       ) {
@@ -199,4 +200,4 @@ import packageJson from '../package.json'
       }, 2000)
     })
   }
-})()
+}

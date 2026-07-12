@@ -268,7 +268,7 @@ describe('Storage', () => {
         tweetHtml: `<span>Test tweet ${i}</span>`,
         elementHtml: `<article>Element ${i}</article>`,
         screenName: 'testuser',
-        tweetId: `${i}`,
+        tweetId: String(i),
         replyCount: '1',
         retweetCount: '2',
         likeCount: '3',

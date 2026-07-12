@@ -75,7 +75,7 @@ export const DomUtils = {
     for (const tweetArticleElement of tweetArticleElements) {
       const text = tweetArticleElement.textContent
 
-      if (!text || !texts.some((t) => text.includes(t))) {
+      if (!text || texts.every((t) => !text.includes(t))) {
         continue
       }
 

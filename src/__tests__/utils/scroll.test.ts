@@ -15,14 +15,15 @@ jest.useFakeTimers()
 
 // Mock window.scrollBy and window.innerHeight
 const mockScrollBy = jest.fn()
-Object.defineProperty(globalThis, 'scrollBy', {
-  value: mockScrollBy,
-  writable: true,
-})
-
-Object.defineProperty(globalThis, 'innerHeight', {
-  value: 800,
-  writable: true,
+Object.defineProperties(globalThis, {
+  scrollBy: {
+    value: mockScrollBy,
+    writable: true,
+  },
+  innerHeight: {
+    value: 800,
+    writable: true,
+  },
 })
 
 // Mock document.body.scrollHeight
