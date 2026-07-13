@@ -68,10 +68,12 @@ export class CrawlerService {
    * 自動クローリングプロセスを停止し、インターバルタイマーをクリア。
    */
   static stopCrawling(): void {
-    if (this.crawlTweetInterval) {
-      clearInterval(this.crawlTweetInterval)
-      this.crawlTweetInterval = null
+    if (!this.crawlTweetInterval) {
+      return
     }
+
+    clearInterval(this.crawlTweetInterval)
+    this.crawlTweetInterval = null
   }
 
   /**

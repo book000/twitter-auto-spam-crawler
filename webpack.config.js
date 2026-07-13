@@ -105,15 +105,17 @@ export default function webpackConfig(environment, argv) {
                 for (const [filename, source] of Object.entries(
                   compilation.assets
                 )) {
-                  if (filename.endsWith('.js')) {
-                    const content = source.source()
-                    const modifiedSource = banner + content
-
-                    compilation.updateAsset(
-                      filename,
-                      new compiler.webpack.sources.RawSource(modifiedSource)
-                    )
+                  if (!filename.endsWith('.js')) {
+                    continue
                   }
+
+                  const content = source.source()
+                  const modifiedSource = banner + content
+
+                  compilation.updateAsset(
+                    filename,
+                    new compiler.webpack.sources.RawSource(modifiedSource)
+                  )
                 }
               }
             )

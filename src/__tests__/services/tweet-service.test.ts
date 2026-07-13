@@ -16,8 +16,8 @@ const originalCreateElement = document.createElement.bind(document)
 const originalAppend = document.body.append.bind(document.body)
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-globalThis.URL.createObjectURL = jest.fn(() => 'mock-blob-url')
-globalThis.URL.revokeObjectURL = jest.fn()
+URL.createObjectURL = jest.fn(() => 'mock-blob-url')
+URL.revokeObjectURL = jest.fn()
 
 // Mock Blob
 globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
@@ -36,7 +36,7 @@ globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
  */
 describe('TweetService', () => {
   beforeEach(() => {
-    document.body.innerHTML = ''
+    document.body.replaceChildren()
     jest.clearAllMocks()
     mockCreateElement.mockClear()
     mockAppend.mockClear()
@@ -486,7 +486,7 @@ describe('TweetService', () => {
       const result = TweetService.downloadTweets()
 
       expect(consoleSpy).toHaveBeenCalledWith('downloadTweets: download tweets')
-      expect(globalThis.Blob).toHaveBeenCalledWith(
+      expect(Blob).toHaveBeenCalledWith(
         [
           JSON.stringify({
             type: 'tweets',
@@ -495,7 +495,7 @@ describe('TweetService', () => {
         ],
         { type: 'application/json' }
       )
-      expect(globalThis.URL.createObjectURL).toHaveBeenCalled()
+      expect(URL.createObjectURL).toHaveBeenCalled()
       expect(mockAnchor.href).toBe('mock-blob-url')
       expect(mockAnchor.download).toMatch(
         /^tweets-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z\.json$/

@@ -386,20 +386,20 @@ describe('ExamplePages', () => {
       expect(globalThis.alert).toHaveBeenCalledWith(
         'Successfully reset waitingTweets. Navigate to the home page in 3 seconds.'
       )
-      expect(globalThis.setTimeout).toHaveBeenCalledWith(
+      expect(setTimeout).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.RESET_REDIRECT_WAIT
       )
 
       // Execute the setTimeout callback
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const setTimeoutCallback = (globalThis.setTimeout as any).mock.calls[0][0]
+      const setTimeoutCallback = (setTimeout as any).mock.calls[0][0]
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       setTimeoutCallback()
 
       // Since we can't mock location.href in JSDOM, we verify the behavior by checking
       // that setTimeout was called with the correct parameters
-      expect(globalThis.setTimeout).toHaveBeenCalledWith(
+      expect(setTimeout).toHaveBeenCalledWith(
         expect.any(Function),
         DELAYS.RESET_REDIRECT_WAIT
       )

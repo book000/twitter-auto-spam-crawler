@@ -218,7 +218,7 @@ describe('PageErrorHandler', () => {
       jest.mocked(DomUtils.waitElement).mockResolvedValue(undefined)
 
       // Create a named function to ensure stack trace detection
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       const waitElementTest = async () => {
         return await PageErrorHandler.waitForElementWithErrorHandling(
           '.test-selector',
@@ -237,7 +237,7 @@ describe('PageErrorHandler', () => {
       jest.mocked(DomUtils.waitElement).mockRejectedValue(testError)
 
       // Create a named function to ensure stack trace detection
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       const waitElementErrorTest = async () => {
         return await PageErrorHandler.waitForElementWithErrorHandling(
           '.test-selector',
@@ -369,7 +369,7 @@ describe('PageErrorHandler', () => {
 
     it('should auto-detect caller name when not provided', () => {
       // Create a named function to ensure stack trace detection
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       const startTest = () => {
         PageErrorHandler.logPageStart('Test')
       }
@@ -410,7 +410,7 @@ describe('PageErrorHandler', () => {
 
     it('should auto-detect caller name when not provided', () => {
       // Create a named function to ensure stack trace detection
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       const processItems = () => {
         PageErrorHandler.logAction('Processing 10 items')
       }
@@ -470,7 +470,7 @@ describe('PageErrorHandler', () => {
 
     it('should auto-detect caller name when not provided', () => {
       // Create a named function to ensure stack trace detection
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       const errorTest = () => {
         PageErrorHandler.logError('Failed to process items')
       }
@@ -518,7 +518,7 @@ describe('PageErrorHandler', () => {
 
     it('should handle when Error constructor throws', () => {
       // Mock Error constructor to throw
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => {
         throw new OriginalError('Error constructor failed')
       }) as any
@@ -532,7 +532,7 @@ describe('PageErrorHandler', () => {
 
     it('should return unknown for malformed stack traces', () => {
       // Mock Error to return a malformed stack
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: 'malformed stack trace without function names',
       })) as any
@@ -546,7 +546,7 @@ describe('PageErrorHandler', () => {
 
     it('should return unknown when stack is undefined', () => {
       // Mock Error to return no stack
-      const OriginalError = globalThis.Error
+      const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: undefined,
       })) as any
