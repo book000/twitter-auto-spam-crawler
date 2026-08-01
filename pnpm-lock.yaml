@@ -67,10 +67,10 @@ importers:
         version: 6.0.3
       webpack:
         specifier: 5.109.2
-        version: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.1)
+        version: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.2)
       webpack-cli:
-        specifier: 7.2.1
-        version: 7.2.1(json5@2.2.3)(webpack@5.109.2)
+        specifier: 7.2.2
+        version: 7.2.2(json5@2.2.3)(webpack@5.109.2)
 
 packages:
 
@@ -3000,8 +3000,8 @@ packages:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
     engines: {node: '>=20'}
 
-  webpack-cli@7.2.1:
-    resolution: {integrity: sha512-YwSGbcZdfz12DM8JIseVPr3oBb09IgVCVc4vY3oDvZnI/mALTGPAP1QiqOi4/bBLSJrRHaqDIXeHcNA0+G38aw==}
+  webpack-cli@7.2.2:
+    resolution: {integrity: sha512-lD0pALneslq8FfV+rwvm1BMW0AFAJrHHhNupAGN4asYjMvqrtRsenU4iKpiBo09gS4ntMxKGUxl9jhTEzVt0oA==}
     engines: {node: '>=20.9.0'}
     hasBin: true
     peerDependencies:
@@ -5861,7 +5861,7 @@ snapshots:
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.49.0
-      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.1)
+      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.2)
     optionalDependencies:
       uglify-js: 3.19.3
 
@@ -6511,7 +6511,7 @@ snapshots:
       picomatch: 4.0.5
       source-map: 0.7.6
       typescript: 6.0.3
-      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.1)
+      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.2)
 
   tsconfig-paths@3.15.0:
     dependencies:
@@ -6658,7 +6658,7 @@ snapshots:
 
   webidl-conversions@8.0.1: {}
 
-  webpack-cli@7.2.1(json5@2.2.3)(webpack@5.109.2):
+  webpack-cli@7.2.2(json5@2.2.3)(webpack@5.109.2):
     dependencies:
       '@discoveryjs/json-ext': 1.1.0
       commander: 14.0.3
@@ -6667,7 +6667,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.1)
+      webpack: 5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.2)
       webpack-merge: 6.0.1
     optionalDependencies:
       json5: 2.2.3
@@ -6680,7 +6680,7 @@ snapshots:
 
   webpack-sources@3.5.1: {}
 
-  webpack@5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.1):
+  webpack@5.109.2(uglify-js@3.19.3)(webpack-cli@7.2.2):
     dependencies:
       '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
@@ -6703,7 +6703,7 @@ snapshots:
       watchpack: 2.5.2
       webpack-sources: 3.5.1
     optionalDependencies:
-      webpack-cli: 7.2.1(json5@2.2.3)(webpack@5.109.2)
+      webpack-cli: 7.2.2(json5@2.2.3)(webpack@5.109.2)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
