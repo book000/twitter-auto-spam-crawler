@@ -97,7 +97,7 @@ export const PageErrorHandler = {
 
     // 必要に応じて待機してリロード
     if (!shouldReload) {
-    	return;
+      return
     }
 
     await AsyncUtils.delay(waitTime)

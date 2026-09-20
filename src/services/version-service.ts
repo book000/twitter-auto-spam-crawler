@@ -19,7 +19,7 @@ export const VersionService = {
     }
 
     if (storedVersion === currentVersion) {
-    	return;
+      return
     }
 
     console.log(

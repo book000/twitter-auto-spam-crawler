@@ -417,7 +417,7 @@ describe('ExamplePages', () => {
       const mockGet = jest.fn()
       mockGet.mockImplementation((key: string) => {
         if (key === 'old') return '1.0.0'
-        return key === 'new' ? '1.1.0' : null;
+        return key === 'new' ? '1.1.0' : null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).URLSearchParams = jest
@@ -471,7 +471,7 @@ describe('ExamplePages', () => {
       const mockGet = jest.fn()
       mockGet.mockImplementation((key: string) => {
         if (key === 'old') return '1.0.0'
-        return key === 'new' ? null : null;
+        return key === 'new' ? null : null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).URLSearchParams = jest
@@ -497,7 +497,7 @@ describe('ExamplePages', () => {
       const mockGet = jest.fn()
       mockGet.mockImplementation((key: string) => {
         if (key === 'old') return '1.0.0'
-        return key === 'new' ? '1.1.0' : null;
+        return key === 'new' ? '1.1.0' : null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).URLSearchParams = jest
@@ -529,7 +529,7 @@ describe('ExamplePages', () => {
       const mockGet = jest.fn()
       mockGet.mockImplementation((key: string) => {
         if (key === 'old') return ''
-        return key === 'new' ? '1.1.0' : null;
+        return key === 'new' ? '1.1.0' : null
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       ;(globalThis as any).URLSearchParams = jest

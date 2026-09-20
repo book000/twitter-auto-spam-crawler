@@ -57,7 +57,7 @@ export const DomUtils = {
       'div[data-testid="primaryColumn"] div[data-testid="cellInnerDiv"] > div > div > button[role="button"]'
     )
     if (!moreRepliesButton) {
-    	return;
+      return
     }
 
     console.log('clickMoreReplies: clicked moreRepliesButton')
@@ -85,7 +85,7 @@ export const DomUtils = {
         'button[role="button"]'
       )
       if (!moreRepliesAggressiveButton) {
-      	continue;
+        continue
       }
 
       console.log(

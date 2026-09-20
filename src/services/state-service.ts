@@ -10,7 +10,7 @@ export const StateService = {
     }
 
     if (!Storage.isLockedNotified()) {
-    	return;
+      return
     }
 
     console.log('resetState: reset isLockedNotified')

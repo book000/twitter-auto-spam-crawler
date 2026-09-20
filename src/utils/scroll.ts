@@ -54,7 +54,7 @@ export class ScrollUtils {
         previousHeight = newHeight
 
         if (!(failScrollCount >= THRESHOLDS.MAX_FAIL_SCROLL_COUNT)) {
-        	return;
+          return
         }
 
         if (this.scrollPageInterval) {
