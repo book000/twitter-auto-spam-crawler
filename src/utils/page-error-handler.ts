@@ -96,10 +96,12 @@ export const PageErrorHandler = {
     console.log(message)
 
     // 必要に応じて待機してリロード
-    if (shouldReload) {
-      await AsyncUtils.delay(waitTime)
-      location.reload()
+    if (!shouldReload) {
+      return
     }
+
+    await AsyncUtils.delay(waitTime)
+    location.reload()
   },
 
   /**

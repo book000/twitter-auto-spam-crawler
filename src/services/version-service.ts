@@ -18,23 +18,25 @@ export const VersionService = {
       return
     }
 
-    if (storedVersion !== currentVersion) {
-      console.log(
-        `VersionService: Version updated from ${storedVersion} to ${currentVersion}`
-      )
+    if (storedVersion === currentVersion) {
+      return
+    }
 
-      try {
-        VersionService.notifyVersionUpdate(storedVersion, currentVersion)
-        Storage.setStoredVersion(currentVersion)
-        console.log(
-          'VersionService: Update notification sent and version updated'
-        )
-      } catch (error) {
-        console.error(
-          'VersionService: Failed to send update notification:',
-          error
-        )
-      }
+    console.log(
+      `VersionService: Version updated from ${storedVersion} to ${currentVersion}`
+    )
+
+    try {
+      VersionService.notifyVersionUpdate(storedVersion, currentVersion)
+      Storage.setStoredVersion(currentVersion)
+      console.log(
+        'VersionService: Update notification sent and version updated'
+      )
+    } catch (error) {
+      console.error(
+        'VersionService: Failed to send update notification:',
+        error
+      )
     }
   },
 

@@ -9,10 +9,12 @@ export const StateService = {
       window.open(URLS.EXAMPLE_LOGIN_SUCCESS_NOTIFY, '_blank')
     }
 
-    if (Storage.isLockedNotified()) {
-      console.log('resetState: reset isLockedNotified')
-      Storage.setLockedNotified(false)
-      window.open(URLS.EXAMPLE_UNLOCKED_NOTIFY, '_blank')
+    if (!Storage.isLockedNotified()) {
+      return
     }
+
+    console.log('resetState: reset isLockedNotified')
+    Storage.setLockedNotified(false)
+    window.open(URLS.EXAMPLE_UNLOCKED_NOTIFY, '_blank')
   },
 }

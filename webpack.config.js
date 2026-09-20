@@ -92,12 +92,9 @@ export default function webpackConfig(environment, argv) {
                   '// ==UserScript==\n' +
                   Object.entries(metadata)
                     .map(([key, value]) => {
-                      if (Array.isArray(value)) {
-                        return value
+                      return Array.isArray(value) ? value
                           .map((v) => `// @${key.padEnd(12)} ${v}`)
-                          .join('\n')
-                      }
-                      return `// @${key.padEnd(12)} ${value}`
+                          .join('\n') : `// @${key.padEnd(12)} ${value}`;
                     })
                     .join('\n') +
                   '\n// ==/UserScript==\n\n'
