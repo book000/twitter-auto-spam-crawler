@@ -1,4 +1,5 @@
 allowBuilds:
   unrs-resolver: true
+  '@parcel/watcher': true
 minimumReleaseAgeExclude:
   - '@book000/*'
