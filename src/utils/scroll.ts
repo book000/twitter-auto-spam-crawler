@@ -53,13 +53,15 @@ export class ScrollUtils {
         }
         previousHeight = newHeight
 
-        if (failScrollCount >= THRESHOLDS.MAX_FAIL_SCROLL_COUNT) {
-          if (this.scrollPageInterval) {
-            clearInterval(this.scrollPageInterval)
-          }
-          this.scrollPageInterval = null
-          resolve()
+        if (!(failScrollCount >= THRESHOLDS.MAX_FAIL_SCROLL_COUNT)) {
+        	return;
         }
+
+        if (this.scrollPageInterval) {
+          clearInterval(this.scrollPageInterval)
+        }
+        this.scrollPageInterval = null
+        resolve()
       }, DELAYS.SCROLL_INTERVAL)
     })
   }

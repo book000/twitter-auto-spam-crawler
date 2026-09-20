@@ -56,10 +56,12 @@ export const DomUtils = {
     const moreRepliesButton = document.querySelector(
       'div[data-testid="primaryColumn"] div[data-testid="cellInnerDiv"] > div > div > button[role="button"]'
     )
-    if (moreRepliesButton) {
-      console.log('clickMoreReplies: clicked moreRepliesButton')
-      ;(moreRepliesButton as HTMLButtonElement).click()
+    if (!moreRepliesButton) {
+    	return;
     }
+
+    console.log('clickMoreReplies: clicked moreRepliesButton')
+    ;(moreRepliesButton as HTMLButtonElement).click()
   },
 
   /**
@@ -82,12 +84,14 @@ export const DomUtils = {
       const moreRepliesAggressiveButton = tweetArticleElement.querySelector(
         'button[role="button"]'
       )
-      if (moreRepliesAggressiveButton) {
-        console.log(
-          'clickMoreRepliesAggressive: clicked moreRepliesAggressiveButton'
-        )
-        ;(moreRepliesAggressiveButton as HTMLElement).click()
+      if (!moreRepliesAggressiveButton) {
+      	continue;
       }
+
+      console.log(
+        'clickMoreRepliesAggressive: clicked moreRepliesAggressiveButton'
+      )
+      ;(moreRepliesAggressiveButton as HTMLElement).click()
     }
   },
 

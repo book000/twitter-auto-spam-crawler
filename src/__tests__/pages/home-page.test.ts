@@ -190,10 +190,7 @@ describe('HomePage', () => {
       // Mock waitElement to fail only for tweet elements
       ;(DomUtils.waitElement as jest.Mock).mockImplementation(
         (selector: string) => {
-          if (selector.includes('article[data-testid="tweet"]')) {
-            return Promise.reject(new Error('Tweet not found'))
-          }
-          return Promise.resolve()
+          return selector.includes('article[data-testid="tweet"]') ? Promise.reject(new Error('Tweet not found')) : Promise.resolve();
         }
       )
 
@@ -211,10 +208,7 @@ describe('HomePage', () => {
       setupTwitterDOM()
       ;(DomUtils.waitElement as jest.Mock).mockImplementation(
         (selector: string) => {
-          if (selector.includes('article[data-testid="tweet"]')) {
-            return Promise.reject(new Error('Tweet not found'))
-          }
-          return Promise.resolve()
+          return selector.includes('article[data-testid="tweet"]') ? Promise.reject(new Error('Tweet not found')) : Promise.resolve();
         }
       )
       ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)

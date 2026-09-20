@@ -44,20 +44,25 @@ export const TweetPage = {
         return
       }
 
-      if (dialogMessage.includes('削除') || dialogMessage.includes('deleted')) {
-        PageErrorHandler.logError('tweet deleted. Skip this tweet.')
-
-        const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
-        if (tweetUrlMatch) {
-          const tweetId = tweetUrlMatch[2]
-          await QueueService.checkedTweet(tweetId)
-          CrawlerService.resetCrawledTweetCount()
-        }
-
-        TweetPage.run(true).catch((error: unknown) => {
-          PageErrorHandler.logError('Error in TweetPage.run', error)
-        })
+      if (
+        !dialogMessage.includes('削除') &&
+        !dialogMessage.includes('deleted')
+      ) {
+        return
       }
+
+      PageErrorHandler.logError('tweet deleted. Skip this tweet.')
+
+      const tweetUrlMatch = TWEET_URL_REGEX.exec(location.href)
+      if (tweetUrlMatch) {
+        const tweetId = tweetUrlMatch[2]
+        await QueueService.checkedTweet(tweetId)
+        CrawlerService.resetCrawledTweetCount()
+      }
+
+      TweetPage.run(true).catch((error: unknown) => {
+        PageErrorHandler.logError('Error in TweetPage.run', error)
+      })
     }, 300_000).catch((error: unknown) => {
       PageErrorHandler.logError('Error in handleErrorDialog', error)
     })

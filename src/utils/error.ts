@@ -29,27 +29,29 @@ export const ErrorHandler = {
         }
 
         const element = document.querySelector(selector)
-        if (element) {
-          clearInterval(intervalId)
-          callback(element)
-            .then(() => {
-              console.log(
-                `ErrorHandler: Successfully processed element: ${selector}`
-              )
-              resolve()
-            })
-            .catch((error: unknown) => {
-              console.error(
-                `ErrorHandler: Callback failed for ${selector}:`,
-                error
-              )
-              if (error instanceof Error) {
-                reject(error)
-              } else {
-                reject(new Error(String(error)))
-              }
-            })
+        if (!element) {
+          return
         }
+
+        clearInterval(intervalId)
+        callback(element)
+          .then(() => {
+            console.log(
+              `ErrorHandler: Successfully processed element: ${selector}`
+            )
+            resolve()
+          })
+          .catch((error: unknown) => {
+            console.error(
+              `ErrorHandler: Callback failed for ${selector}:`,
+              error
+            )
+            if (error instanceof Error) {
+              reject(error)
+            } else {
+              reject(new Error(String(error)))
+            }
+          })
       }, 100)
     })
   },
@@ -80,27 +82,29 @@ export const ErrorHandler = {
         }
 
         const elements = document.querySelectorAll(selector)
-        if (elements.length > 0) {
-          clearInterval(intervalId)
-          callback(elements)
-            .then(() => {
-              console.log(
-                `ErrorHandler: Successfully processed ${elements.length} elements: ${selector}`
-              )
-              resolve()
-            })
-            .catch((error: unknown) => {
-              console.error(
-                `ErrorHandler: Callback failed for ${selector}:`,
-                error
-              )
-              if (error instanceof Error) {
-                reject(error)
-              } else {
-                reject(new Error(String(error)))
-              }
-            })
+        if (elements.length === 0) {
+          return
         }
+
+        clearInterval(intervalId)
+        callback(elements)
+          .then(() => {
+            console.log(
+              `ErrorHandler: Successfully processed ${elements.length} elements: ${selector}`
+            )
+            resolve()
+          })
+          .catch((error: unknown) => {
+            console.error(
+              `ErrorHandler: Callback failed for ${selector}:`,
+              error
+            )
+            if (error instanceof Error) {
+              reject(error)
+            } else {
+              reject(new Error(String(error)))
+            }
+          })
       }, 100)
     })
   },
@@ -127,25 +131,27 @@ export const ErrorHandler = {
         }
 
         const dialog = document.querySelector('div#layers div[role="alert"]')
-        if (dialog) {
-          clearInterval(interval)
-          if (typeof callback === 'function') {
-            const result = callback(dialog)
-            if (result instanceof Promise) {
-              result
-                .then(() => {
-                  resolve()
-                })
-                .catch((error: unknown) => {
-                  console.error('ErrorHandler callback error:', error)
-                  resolve()
-                })
-            } else {
-              resolve()
-            }
+        if (!dialog) {
+          return
+        }
+
+        clearInterval(interval)
+        if (typeof callback === 'function') {
+          const result = callback(dialog)
+          if (result instanceof Promise) {
+            result
+              .then(() => {
+                resolve()
+              })
+              .catch((error: unknown) => {
+                console.error('ErrorHandler callback error:', error)
+                resolve()
+              })
           } else {
             resolve()
           }
+        } else {
+          resolve()
         }
       }, 500)
     })
@@ -187,21 +193,23 @@ export const ErrorHandler = {
         }
 
         const text = tweetArticleElement.textContent
-        if (text && keywords.some((keyword) => text.includes(keyword))) {
-          clearInterval(interval)
-          const result = callback(tweetArticleElement)
-          if (result instanceof Promise) {
-            result
-              .then(() => {
-                resolve()
-              })
-              .catch((error: unknown) => {
-                console.error('ErrorHandler callback error:', error)
-                resolve()
-              })
-          } else {
-            resolve()
-          }
+        if (!text || keywords.every((keyword) => !text.includes(keyword))) {
+          return
+        }
+
+        clearInterval(interval)
+        const result = callback(tweetArticleElement)
+        if (result instanceof Promise) {
+          result
+            .then(() => {
+              resolve()
+            })
+            .catch((error: unknown) => {
+              console.error('ErrorHandler callback error:', error)
+              resolve()
+            })
+        } else {
+          resolve()
         }
       }, 500)
     })

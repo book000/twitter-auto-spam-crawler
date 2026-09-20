@@ -51,11 +51,7 @@ export const QueueService = {
    */
   getNextWaitingTweet(): string | null {
     const waitingTweets = Storage.getWaitingTweets()
-    if (waitingTweets.length === 0) {
-      return null
-    }
-
-    return waitingTweets[0]
+    return waitingTweets.length === 0 ? null : waitingTweets[0];
   },
 
   /**
