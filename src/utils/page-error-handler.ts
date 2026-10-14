@@ -80,7 +80,7 @@ export const PageErrorHandler = {
     const {
       shouldReload = true,
       waitTime = DELAYS.ERROR_RELOAD_WAIT,
-      customMessage,
+      customMessage = 'Wait 1 minute and reload.',
     } = options
 
     // 失敗ページかどうかチェック
@@ -92,8 +92,7 @@ export const PageErrorHandler = {
     console.error(`${methodName} (${pageName}):`, error)
 
     // エラーメッセージをログ出力
-    const message = customMessage ?? 'Wait 1 minute and reload.'
-    console.log(message)
+    console.log(customMessage)
 
     // 必要に応じて待機してリロード
     if (!shouldReload) {
