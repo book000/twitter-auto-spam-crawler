@@ -43,11 +43,11 @@ declare function GM_registerMenuCommand(
 declare function GM_unregisterMenuCommand(menuCommandId: number): void
 
 // GM_config from Tampermonkey Config library (from @require)
- 
+
 declare const GM_config: (fields: GMConfigFields, init?: boolean) => void
 
 // Event name fired by GM_config when configuration changes
- 
+
 declare const GM_config_event: string
 
 // Additional Tampermonkey APIs that might be available but not currently granted:
