@@ -5,12 +5,7 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Read package.json for metadata
-const packageJson = JSON.parse(
-  readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')
-)
-
-// Extract metadata from package.json
+// Read package.json for metadata and extract the fields we need
 const {
   name,
   version,
@@ -18,7 +13,7 @@ const {
   author,
   repository,
   userscript: userscriptConfig,
-} = packageJson
+} = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8'))
 const homepage =
   repository?.url?.replace(/\.git$/, '') ||
   'https://github.com/book000/twitter-auto-spam-crawler'
@@ -92,9 +87,11 @@ export default function webpackConfig(environment, argv) {
                   '// ==UserScript==\n' +
                   Object.entries(metadata)
                     .map(([key, value]) => {
-                      return Array.isArray(value) ? value
-                          .map((v) => `// @${key.padEnd(12)} ${v}`)
-                          .join('\n') : `// @${key.padEnd(12)} ${value}`;
+                      return Array.isArray(value)
+                        ? value
+                            .map((v) => `// @${key.padEnd(12)} ${v}`)
+                            .join('\n')
+                        : `// @${key.padEnd(12)} ${value}`
                     })
                     .join('\n') +
                   '\n// ==/UserScript==\n\n'
