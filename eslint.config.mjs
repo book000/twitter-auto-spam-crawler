@@ -19,6 +19,8 @@ export default [
     rules: {
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      // global mocks are intentionally installed on import
+      'unicorn/no-top-level-side-effects': 'off',
     },
   },
 ]
