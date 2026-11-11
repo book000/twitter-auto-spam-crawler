@@ -234,11 +234,7 @@ describe('TweetPage', () => {
         globalThis.location.href = `https://x.com/user/status/${tweetId}`
         jest
           .spyOn(TWEET_URL_REGEX, 'exec')
-          .mockReturnValue([
-            '',
-            'user',
-            tweetId,
-          ] as unknown as RegExpExecArray)
+          .mockReturnValue(['', 'user', tweetId] as unknown as RegExpExecArray)
 
         await TweetPage.run()
       }
