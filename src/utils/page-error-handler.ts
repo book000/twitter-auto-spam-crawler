@@ -80,66 +80,6 @@ export const PageErrorHandler = {
   },
 
   /**
-   * Waits for an element with DomUtils.waitElement; if that fails, handles
-   * the error with `handlePageError` and rethrows it.
-   *
-   * @param selector - CSS selector of the element to wait for
-   * @param pageName - Page name used in the log output
-   * @param methodNameOrOptions - The method name, or the options when the
-   *   method name is omitted
-   * @param optionsArg - Options, when a method name is given.
-   *   `timeout` is in seconds, as in DomUtils.waitElement.
-   * @returns The element once it is found
-   * @throws The original error, after it has been handled
-   */
-  async waitForElementWithErrorHandling(
-    selector: string,
-    pageName: string,
-    methodNameOrOptions?:
-      | string
-      | {
-          timeout?: number
-          errorOptions?: PageErrorOptions
-        },
-    optionsArg?: {
-      timeout?: number
-      errorOptions?: PageErrorOptions
-    }
-  ): Promise<HTMLElement> {
-    let methodName: string
-    let options: {
-      timeout?: number
-      errorOptions?: PageErrorOptions
-    }
-
-    if (typeof methodNameOrOptions === 'string') {
-      methodName = methodNameOrOptions
-      options = optionsArg ?? {}
-    } else {
-      methodName = PageErrorHandler._getCallerName()
-      options = methodNameOrOptions ?? {}
-    }
-
-    try {
-      await DomUtils.waitElement(selector, options.timeout)
-      // waitElement resolves without the element, so query it again
-      const element = document.querySelector(selector)
-      if (!element) {
-        throw new Error(`Element ${selector} not found after waiting`)
-      }
-      return element as HTMLElement
-    } catch (error) {
-      await PageErrorHandler.handlePageError(
-        pageName,
-        methodName,
-        error,
-        options.errorOptions
-      )
-      throw error // Callers must still stop after a failed wait
-    }
-  },
-
-  /**
    * Runs an async operation and handles any error with `handlePageError`
    * instead of propagating it.
    *

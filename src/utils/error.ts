@@ -146,20 +146,16 @@ export const ErrorHandler = {
         }
 
         clearInterval(interval)
-        if (typeof callback === 'function') {
-          const result = callback(dialog)
-          if (result instanceof Promise) {
-            result
-              .then(() => {
-                resolve()
-              })
-              .catch((error: unknown) => {
-                console.error('ErrorHandler callback error:', error)
-                resolve()
-              })
-          } else {
-            resolve()
-          }
+        const result = callback(dialog)
+        if (result instanceof Promise) {
+          result
+            .then(() => {
+              resolve()
+            })
+            .catch((error: unknown) => {
+              console.error('ErrorHandler callback error:', error)
+              resolve()
+            })
         } else {
           resolve()
         }

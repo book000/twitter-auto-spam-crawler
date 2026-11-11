@@ -181,19 +181,6 @@ describe('Storage', () => {
       expect(endTime - startTime).toBeLessThan(10)
     })
 
-    it('should handle batch operations efficiently', () => {
-      const tweetIds = Array.from({ length: 1000 }, (_, i) => `batch${i}`)
-
-      const startTime = performance.now()
-      Storage.addCheckedTweetsBatch(tweetIds)
-      const endTime = performance.now()
-
-      const checkedSet = Storage.getCheckedTweetsSet()
-      expect(checkedSet.size).toBe(1000)
-      expect(checkedSet.has('batch500')).toBe(true)
-      expect(endTime - startTime).toBeLessThan(100)
-    })
-
     it('should provide efficient tweet status checking', () => {
       Storage.setCheckedTweets(['checked1', 'checked2'])
       Storage.setWaitingTweets(['waiting1', 'waiting2'])

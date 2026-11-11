@@ -32,6 +32,7 @@ declare function GM_getValue<T>(key: string, defaultValue: T): T
 declare function GM_setValue(key: string, value: unknown): void
 
 // Menu commands (from @grant)
+// Only the @require'd Tampermonkey Config library calls these; keep them granted while it is required
 // Returns a menu command ID that can be used to unregister
 declare function GM_registerMenuCommand(
   name: string,

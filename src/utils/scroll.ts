@@ -1,6 +1,5 @@
 import { DELAYS, THRESHOLDS } from '@/core/constants'
 import { DomUtils } from './dom'
-import { AsyncUtils } from './async'
 
 /** Auto-scrolling helpers for loading a page's lazily loaded content. */
 export class ScrollUtils {
@@ -68,20 +67,5 @@ export class ScrollUtils {
         resolve()
       }, DELAYS.SCROLL_INTERVAL)
     })
-  }
-
-  /**
-   * Scrolls down one viewport per step, waiting DELAYS.CRAWL_INTERVAL after each.
-   *
-   * @param count - Number of scroll steps
-   */
-  static async scrollWithCount(count: number): Promise<void> {
-    for (let scrollCount = 0; scrollCount < count; scrollCount++) {
-      window.scrollBy({
-        top: window.innerHeight,
-        behavior: 'smooth',
-      })
-      await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
-    }
   }
 }

@@ -11,7 +11,8 @@ describe('main.ts version import', () => {
 
   it('should construct correct version log message', () => {
     const expectedMessage = `${packageJson.name} v${packageJson.version}`
-    expect(expectedMessage).toBe('twitter-auto-spam-crawler v1.25.1')
+    // package.json stays at 0.0.0; the release workflow embeds the real version.
+    expect(expectedMessage).toBe('twitter-auto-spam-crawler v0.0.0')
     expect(expectedMessage).toMatch(
       /^twitter-auto-spam-crawler v\d+\.\d+\.\d+$/
     )
