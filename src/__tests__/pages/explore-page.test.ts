@@ -8,17 +8,12 @@ import {
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
 
-// Mock dependencies
 jest.mock('../../services/state-service')
 jest.mock('../../utils/dom')
 jest.mock('../../utils/page-error-handler')
 
-// Mock timers
 jest.useFakeTimers()
 
-/**
- * 探索ページ用のトレンドDOM構造をセットアップ
- */
 function setupExplorePageDOM(trendCount = 3): HTMLElement[] {
   const trends: HTMLElement[] = []
 
@@ -37,28 +32,18 @@ function setupExplorePageDOM(trendCount = 3): HTMLElement[] {
   return trends
 }
 
-/**
- * ExplorePageクラスのテストスイート
- * 探索ページでのトレンド検出とランダム選択機能を検証する
- * - トレンド要素の待機とエラーハンドリング
- * - ランダムなトレンド選択とクリック処理
- */
 describe('ExplorePage', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
   beforeEach(() => {
-    // Reset DOM
     document.body.replaceChildren()
 
-    // Setup mocks
     setupUserscriptMocks()
     consoleMocks = setupConsoleMocks()
 
-    // Clear all mocks
     jest.clearAllMocks()
     jest.clearAllTimers()
 
-    // Setup default mock implementations
     ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
     ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
     ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
@@ -76,10 +61,6 @@ describe('ExplorePage', () => {
   })
 
   describe('run', () => {
-    /**
-     * ログインリダイレクト処理をテスト
-     * - ログインが必要な場合の早期リターン
-     */
     it('should return early when login is required', async () => {
       ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
@@ -88,16 +69,9 @@ describe('ExplorePage', () => {
       expect(StateService.resetState).not.toHaveBeenCalled()
     })
 
-    /**
-     * 正常なトレンド選択処理をテスト
-     * - 状態リセット
-     * - トレンド要素の待機
-     * - ランダムなトレンドの選択とクリック
-     */
     it('should select and click a random trend', async () => {
       const trends = setupExplorePageDOM(5)
 
-      // Mock Math.random to return predictable value
       const mockRandom = jest.spyOn(Math, 'random').mockReturnValue(0.4)
 
       await ExplorePage.run()
@@ -113,11 +87,6 @@ describe('ExplorePage', () => {
       mockRandom.mockRestore()
     })
 
-    /**
-     * トレンド要素待機失敗時のエラーハンドリングをテスト
-     * - DOM要素が見つからない場合の処理
-     * - エラー待機時間後のページリロード
-     */
     it('should handle waitElement error and reload page', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -135,11 +104,6 @@ describe('ExplorePage', () => {
       )
     })
 
-    /**
-     * 失敗ページ検出時のエラーログ出力をテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
-     * - 専用エラーメッセージの出力確認
-     */
     it('should log error when failed page is detected', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -158,11 +122,6 @@ describe('ExplorePage', () => {
       )
     })
 
-    /**
-     * 単一トレンドでの選択処理をテスト
-     * - トレンドが1つしかない場合
-     * - 確実にそのトレンドが選択されることを確認
-     */
     it('should handle single trend selection', async () => {
       const trends = setupExplorePageDOM(1)
 
@@ -171,15 +130,9 @@ describe('ExplorePage', () => {
       expect(trends[0].click).toHaveBeenCalled()
     })
 
-    /**
-     * 複数トレンドでのランダム選択の確認
-     * - 異なるランダム値での選択結果
-     * - 境界値での正しい選択動作
-     */
     it('should select different trends based on random value', async () => {
       const trends = setupExplorePageDOM(10)
 
-      // Test different random values
       const testCases = [
         { random: 0, expectedIndex: 0 },
         { random: 0.15, expectedIndex: 1 },
@@ -188,7 +141,6 @@ describe('ExplorePage', () => {
       ]
 
       for (const testCase of testCases) {
-        // Reset mocks for each test
         jest.clearAllMocks()
         for (const trend of trends) {
           trend.click = jest.fn()
@@ -206,16 +158,9 @@ describe('ExplorePage', () => {
       }
     })
 
-    /**
-     * トレンド要素が0個の場合のエラー処理をテスト
-     * - querySelectorAllが空配列を返す場合
-     * - Math.floor(Math.random() * 0)の動作確認
-     */
     it('should handle case when no trends are found after wait', async () => {
-      // Setup DOM with no trends
       document.body.innerHTML = '<div>No trends here</div>'
 
-      // Mock Math.random to return a valid index (0)
       const mockMathRandom = jest.spyOn(Math, 'random').mockReturnValue(0)
 
       // Since ExplorePage doesn't handle empty trends gracefully, this test will
@@ -228,13 +173,7 @@ describe('ExplorePage', () => {
       mockMathRandom.mockRestore()
     })
 
-    /**
-     * DOM構造の詳細確認をテスト
-     * - data-testid="trend"属性の正確な検出
-     * - querySelectorAllの動作確認
-     */
     it('should find trends with correct selector', async () => {
-      // Create some elements with and without trend testid
       const trendElement = document.createElement('div')
       trendElement.dataset.testid = 'trend'
       trendElement.click = jest.fn()

@@ -13,7 +13,6 @@ import {
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
 
-// Mock dependencies
 jest.mock('../../core/config')
 jest.mock('../../services/state-service')
 jest.mock('../../services/crawler-service')
@@ -21,32 +20,20 @@ jest.mock('../../utils/dom')
 jest.mock('../../utils/async')
 jest.mock('../../utils/page-error-handler')
 
-// Mock timers
 jest.useFakeTimers()
 
-/**
- * HomePageクラスのテストスイート
- * ホームページでのツイートクロール処理とページナビゲーション機能を検証する
- * - DOM要素の待機とエラーハンドリング
- * - タブ切り替えとスクロール処理
- * - 設定に基づくページ遷移
- */
 describe('HomePage', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
   beforeEach(() => {
-    // Reset DOM
     document.body.replaceChildren()
 
-    // Setup mocks
     setupUserscriptMocks()
     consoleMocks = setupConsoleMocks()
 
-    // Clear all mocks
     jest.clearAllMocks()
     jest.clearAllTimers()
 
-    // Reset mock implementations
     ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
     ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
     ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
@@ -67,13 +54,6 @@ describe('HomePage', () => {
   })
 
   describe('run', () => {
-    /**
-     * 正常なホームページ処理フローをテスト
-     * - 状態リセットとクロール開始
-     * - タブナビゲーション要素の待機
-     * - 各タブでのクリックとスクロール処理
-     * - 探索ページへの遷移
-     */
     it('should process home page successfully and navigate to explore', async () => {
       setupTwitterDOM()
 
@@ -90,11 +70,6 @@ describe('HomePage', () => {
       expect(DomUtils.waitElement).toHaveBeenCalled()
     })
 
-    /**
-     * ログインページへのリダイレクト処理をテスト
-     * - ログインが必要な場合の早期リターン
-     * - 他の処理が実行されないことを確認
-     */
     it('should return early when login is required', async () => {
       ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
@@ -104,11 +79,6 @@ describe('HomePage', () => {
       expect(CrawlerService.startCrawling).not.toHaveBeenCalled()
     })
 
-    /**
-     * タブナビゲーション要素の待機失敗時のエラーハンドリングをテスト
-     * - DOM要素が見つからない場合の処理
-     * - エラー待機時間後のページリロード
-     */
     it('should handle waitElement error and reload page', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -123,11 +93,6 @@ describe('HomePage', () => {
       )
     })
 
-    /**
-     * 失敗ページ検出時のエラーハンドリングをテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
-     * - PageErrorHandler.handlePageError()の呼び出し確認
-     */
     it('should handle error when failed page is detected', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -143,16 +108,9 @@ describe('HomePage', () => {
       )
     })
 
-    /**
-     * タブクリック処理とツイート待機のテスト
-     * - 各タブの順次クリック処理
-     * - ツイート要素の待機処理
-     * - スクロール処理の実行
-     */
     it('should click tabs and wait for tweets', async () => {
       setupTwitterDOM()
 
-      // Mock tab clicking
       const tabs = document.querySelectorAll('a[role="tab"]')
       const clickSpies = [...tabs].map((tab) => {
         const spy = jest.fn()
@@ -162,12 +120,10 @@ describe('HomePage', () => {
 
       await HomePage.run()
 
-      // Verify all tabs were clicked
       for (const spy of clickSpies) {
         expect(spy).toHaveBeenCalled()
       }
 
-      // Verify tweet waiting was called for each tab
       expect(DomUtils.waitElement).toHaveBeenCalledWith(
         'article[data-testid="tweet"]'
       )
@@ -179,11 +135,6 @@ describe('HomePage', () => {
       )
     })
 
-    /**
-     * ツイート待機失敗時の次タブへのスキップ処理をテスト
-     * - 特定タブでツイートが見つからない場合
-     * - 失敗ページでない場合の継続処理
-     */
     it('should skip to next tab when tweet waiting fails', async () => {
       setupTwitterDOM()
 
@@ -201,11 +152,6 @@ describe('HomePage', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith('Next tab')
     })
 
-    /**
-     * ツイート待機失敗時の失敗ページ処理をテスト
-     * - ツイート要素が見つからずかつ失敗ページの場合
-     * - エラー待機後のページリロード
-     */
     it('should reload when tweet waiting fails on failed page', async () => {
       setupTwitterDOM()
       ;(DomUtils.waitElement as jest.Mock).mockImplementation(
@@ -229,11 +175,6 @@ describe('HomePage', () => {
       )
     })
 
-    /**
-     * isOnlyHome設定がtrueの場合のホームページ遷移をテスト
-     * - ConfigManager.getIsOnlyHome()がtrueを返す場合
-     * - 探索ページではなくホームページへの遷移
-     */
     it('should navigate to home when isOnlyHome is true', async () => {
       setupTwitterDOM()
       ;(ConfigManager.getIsOnlyHome as jest.Mock).mockReturnValue(true)
@@ -248,32 +189,19 @@ describe('HomePage', () => {
       expect(ConfigManager.getIsOnlyHome).toHaveBeenCalled()
     })
 
-    /**
-     * スクロール処理の詳細な動作確認
-     * - 各タブで10回のスクロール実行
-     * - スクロール間隔の適切な待機時間
-     */
     it('should perform scroll actions with correct intervals', async () => {
       setupTwitterDOM()
 
       await HomePage.run()
 
-      // Verify scroll behavior
       expect(window.scrollBy).toHaveBeenCalledWith({
         top: window.innerHeight,
         behavior: 'smooth',
       })
 
-      // Verify scroll delay
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
     })
 
-    /**
-     * ログ出力の詳細確認
-     * - タブ数の正確な出力
-     * - 各タブ処理開始時のログ
-     * - 最終的な探索ページ遷移ログ
-     */
     it('should log correct tab information', async () => {
       setupTwitterDOM()
       const tabs = document.querySelectorAll('a[role="tab"]')
@@ -284,7 +212,6 @@ describe('HomePage', () => {
         `tabs=${tabs.length}`
       )
 
-      // Check individual tab logs
       for (let i = 0; i < tabs.length; i++) {
         expect(PageErrorHandler.logAction).toHaveBeenCalledWith(`open tab=${i}`)
       }
