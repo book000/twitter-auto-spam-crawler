@@ -74,6 +74,38 @@ describe('ConfigManager', () => {
     })
   })
 
+  describe('GM_config_event logging', () => {
+    it('should mask webhook URLs in the logged event detail', () => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+      ConfigManager.registerMenuCommand()
+      const calls = (addEventListener as jest.Mock).mock.calls as [
+        string,
+        (event: unknown) => void,
+      ][]
+      const listener = calls.at(-1)?.[1]
+      if (!listener) throw new Error('GM_config_event listener not registered')
+
+      listener({
+        detail: {
+          name: 'discordWebhookUrl',
+          before: '',
+          after: 'https://discord.com/api/webhooks/123/secret-token',
+          nested: ['see https://example.com/hook?x=1 now'],
+          count: 2,
+        },
+      })
+
+      expect(logSpy).toHaveBeenCalledWith({
+        name: 'discordWebhookUrl',
+        before: '',
+        after: '[masked URL]',
+        nested: ['see [masked URL] now'],
+        count: 2,
+      })
+      logSpy.mockRestore()
+    })
+  })
+
   describe('getDiscordWebhookUrl', () => {
     it('should return empty string by default', () => {
       const result = ConfigManager.getDiscordWebhookUrl()

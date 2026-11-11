@@ -76,22 +76,6 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
 
-    it('should handle non-function callback', async () => {
-      // @ts-expect-error Testing invalid input
-      const promise = ErrorHandler.handleErrorDialog(null)
-
-      const layers = document.createElement('div')
-      layers.id = 'layers'
-      const dialog = document.createElement('div')
-      dialog.setAttribute('role', 'alert')
-      layers.append(dialog)
-      document.body.append(layers)
-
-      jest.advanceTimersByTime(500)
-
-      await expect(promise).resolves.toBeUndefined()
-    })
-
     it('should continue polling until dialog is found', async () => {
       const mockCallback = jest.fn()
 

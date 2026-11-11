@@ -21,12 +21,9 @@ export const OtherPages = {
    * test whether the account is still locked.
    */
   startPeriodicUnlockCheck(): void {
-    let checkCount = 0
-
     setInterval(() => {
-      checkCount++
       PageErrorHandler.logAction(
-        `Periodic check ${checkCount} - navigating to bookmark page to test unlock status`
+        'Periodic check - navigating to bookmark page to test unlock status'
       )
 
       location.href = URLS.BOOKMARK

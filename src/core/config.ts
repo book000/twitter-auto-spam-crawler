@@ -2,6 +2,21 @@
 
 let isMenuCommandRegistered = false
 
+const maskUrls = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return value.replaceAll(/https?:\/\/\S+/gi, '[masked URL]')
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => maskUrls(item))
+  }
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, maskUrls(item)])
+    )
+  }
+  return value
+}
+
 /**
  * Reads and registers the user settings, which are stored through the
  * GM_config library and read back with GM_getValue.
@@ -9,7 +24,8 @@ let isMenuCommandRegistered = false
 export const ConfigManager = {
   /**
    * Registers the settings menu in Tampermonkey and logs the event detail
-   * whenever the configuration changes. Calls after the first are no-ops.
+   * whenever the configuration changes, with URLs masked because the detail
+   * can carry webhook URLs. Calls after the first are no-ops.
    */
   registerMenuCommand(): void {
     if (isMenuCommandRegistered) {
@@ -49,7 +65,7 @@ export const ConfigManager = {
     )
 
     addEventListener(GM_config_event, (event: Event) => {
-      console.log((event as CustomEvent).detail)
+      console.log(maskUrls((event as CustomEvent).detail))
     })
   },
 
