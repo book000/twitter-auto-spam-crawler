@@ -158,8 +158,8 @@ export const TweetService = {
 
   /**
    * Downloads the saved tweets as a JSON file by clicking a link appended to
-   * `document.body` (neither the link nor the object URL is cleaned up), then
-   * clears the saved tweets right away without waiting for the download.
+   * `document.body`, removes the link and revokes the object URL right after
+   * the click, then clears the saved tweets without waiting for the download.
    *
    * @returns Always `true`.
    */
@@ -180,6 +180,8 @@ export const TweetService = {
     a.innerHTML = 'download'
     document.body.append(a)
     a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
 
     Storage.setSavedTweets([])
 
