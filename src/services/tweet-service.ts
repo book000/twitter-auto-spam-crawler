@@ -16,7 +16,8 @@ interface CachedTweetElements {
  * ticks do not re-run the selectors. Entries are keyed weakly and are dropped
  * with their DOM nodes.
  *
- * A lookup that found nothing is cached as well and is not retried.
+ * An article whose tweet link element is not rendered yet is not cached, so
+ * it is looked up again on the next call.
  */
 class TweetElementCache {
   private static cache = new WeakMap<Element, CachedTweetElements>()
@@ -43,7 +44,9 @@ class TweetElementCache {
         ),
       }
 
-      this.cache.set(articleElement, cached)
+      if (cached.tweetElement) {
+        this.cache.set(articleElement, cached)
+      }
     }
 
     return cached

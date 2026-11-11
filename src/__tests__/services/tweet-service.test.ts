@@ -13,6 +13,8 @@ const mockClick = jest.fn()
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 const originalCreateElement = document.createElement.bind(document)
 const originalAppend = document.body.append.bind(document.body)
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const originalQuerySelectorAll = document.querySelectorAll.bind(document)
 
 URL.createObjectURL = jest.fn(() => 'mock-blob-url')
 URL.revokeObjectURL = jest.fn()
@@ -21,6 +23,16 @@ globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
   data,
   options,
 }))
+
+function createTweetLink(): HTMLAnchorElement {
+  const link = document.createElement('a')
+  link.setAttribute('role', 'link')
+  link.href = 'https://x.com/user/status/1'
+  const time = document.createElement('time')
+  time.setAttribute('datetime', '2024-01-01T12:00:00Z')
+  link.append(time)
+  return link
+}
 
 describe('TweetService', () => {
   beforeEach(() => {
@@ -33,6 +45,8 @@ describe('TweetService', () => {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     document.createElement = originalCreateElement
     document.body.append = originalAppend
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    document.querySelectorAll = originalQuerySelectorAll
     Storage.clearCache()
   })
 
@@ -93,6 +107,26 @@ describe('TweetService', () => {
         retweetCount: '10',
         likeCount: '20',
       })
+    })
+
+    it('should return the tweet once its link element has been rendered', () => {
+      TweetElementCache.clearCache()
+      const article = document.createElement('article')
+      article.dataset.testid = 'tweet'
+      document.body.append(article)
+
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
+      expect(TweetService.getTweets()).toBeNull()
+      consoleWarnSpy.mockRestore()
+
+      article.append(createTweetLink())
+
+      const tweets = TweetService.getTweets()
+      expect(tweets).toHaveLength(1)
+      expect(tweets?.[0].tweetId).toBe('1')
+      expect(tweets?.[0].screenName).toBe('user')
     })
 
     it('should return null when tweet element is not found', () => {
@@ -540,6 +574,7 @@ describe('TweetService', () => {
       const link = document.createElement('a')
       link.setAttribute('role', 'link')
       const time = document.createElement('time')
+      time.setAttribute('datetime', '2024-01-01T12:00:00Z')
       link.append(time)
       article.append(link)
 
@@ -560,14 +595,28 @@ describe('TweetService', () => {
     it('should clear cache when requested', () => {
       const article = document.createElement('article')
       article.dataset.testid = 'tweet'
+      article.append(createTweetLink())
 
       const firstResult = TweetElementCache.getElements(article)
+      expect(TweetElementCache.getElements(article)).toBe(firstResult)
 
       TweetElementCache.clearCache()
 
       const secondResult = TweetElementCache.getElements(article)
 
       expect(secondResult).not.toBe(firstResult)
+    })
+
+    it('should not cache an article whose tweet link is not rendered yet', () => {
+      const article = document.createElement('article')
+      article.dataset.testid = 'tweet'
+
+      expect(TweetElementCache.getElements(article).tweetElement).toBeNull()
+
+      const link = createTweetLink()
+      article.append(link)
+
+      expect(TweetElementCache.getElements(article).tweetElement).toBe(link)
     })
   })
 
