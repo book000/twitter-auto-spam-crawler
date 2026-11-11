@@ -36,4 +36,4 @@ Array values (`@match`, `@grant`) produce one header line per entry. To change t
 
 ## Release
 
-`.github/workflows/release.yml` runs on every push to the default branch. It computes the next version from the commit types with `mathieudutour/github-tag-action`, writes it into `package.json` with `pnpm version`, runs `pnpm run build` and attaches `dist/twitter-auto-spam-crawler.user.js` to the GitHub release. The version in `package.json` on the default branch is therefore not the released version.
+`.github/workflows/release.yml` runs on every push to the default branch. It computes the next version from the commit types with `mathieudutour/github-tag-action`, writes it into `package.json` with `pnpm version`, runs `pnpm run build` and attaches `dist/twitter-auto-spam-crawler.user.js` to the GitHub release. The version in `package.json` on the default branch is therefore not the released version; it is kept at the placeholder `0.0.0`.
