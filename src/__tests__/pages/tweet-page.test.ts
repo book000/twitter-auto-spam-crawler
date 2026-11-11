@@ -209,48 +209,6 @@ describe('TweetPage', () => {
       expect(CrawlerService.getCrawledTweetCount).toHaveBeenCalled()
     })
 
-    it('should handle error dialog callback for deleted tweet', async () => {
-      globalThis.location.href = 'https://x.com/user/status/111222333'
-
-      jest
-        .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue([
-          '',
-          'user',
-          '111222333',
-        ] as unknown as RegExpExecArray)
-
-      // This test is no longer applicable with PageErrorHandler
-      // The error handling is now done through PageErrorHandler.handlePageError
-
-      await TweetPage.run()
-
-      // Test that error dialog handling is set up (it calls ErrorHandler.handleErrorDialog)
-      expect(StateService.resetState).toHaveBeenCalled()
-      expect(CrawlerService.startCrawling).toHaveBeenCalled()
-    })
-
-    it('should handle unprocessable post detection callback', async () => {
-      globalThis.location.href = 'https://x.com/user/status/444555666'
-
-      jest
-        .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue([
-          '',
-          'user',
-          '444555666',
-        ] as unknown as RegExpExecArray)
-
-      // This test is no longer applicable with PageErrorHandler
-      // The error handling is now done through PageErrorHandler.handlePageError
-
-      await TweetPage.run()
-
-      // Test that unprocessable post detection is set up (it calls ErrorHandler.detectUnprocessablePost)
-      expect(StateService.resetState).toHaveBeenCalled()
-      expect(CrawlerService.startCrawling).toHaveBeenCalled()
-    })
-
     it('should reset retry count on successful processing', async () => {
       setupTweetPageDOM()
       globalThis.location.href = 'https://x.com/user/status/777888999'
@@ -268,25 +226,86 @@ describe('TweetPage', () => {
       expect(Storage.setRetryCount).toHaveBeenCalledWith(0)
     })
 
-    it('should handle English deleted tweet message', async () => {
-      globalThis.location.href = 'https://x.com/user/status/555666777'
+    describe('error dialog and unprocessable post handling', () => {
+      const openTweetWithoutArticle = async (tweetId: string) => {
+        ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
+          new Error('Element not found')
+        )
+        globalThis.location.href = `https://x.com/user/status/${tweetId}`
+        jest
+          .spyOn(TWEET_URL_REGEX, 'exec')
+          .mockReturnValue([
+            '',
+            'user',
+            tweetId,
+          ] as unknown as RegExpExecArray)
 
-      jest
-        .spyOn(TWEET_URL_REGEX, 'exec')
-        .mockReturnValue([
-          '',
-          'user',
-          '555666777',
-        ] as unknown as RegExpExecArray)
+        await TweetPage.run()
+      }
 
-      // This test is no longer applicable with PageErrorHandler
-      // The error handling is now done through PageErrorHandler.handlePageError
+      const showErrorDialog = async (message: string) => {
+        const layers = document.createElement('div')
+        layers.id = 'layers'
+        const dialog = document.createElement('div')
+        dialog.setAttribute('role', 'alert')
+        dialog.textContent = message
+        layers.append(dialog)
+        document.body.append(layers)
 
-      await TweetPage.run()
+        await jest.advanceTimersByTimeAsync(500)
+      }
 
-      // Test that English deleted tweet handling is set up (it calls ErrorHandler.handleErrorDialog)
-      expect(StateService.resetState).toHaveBeenCalled()
-      expect(CrawlerService.startCrawling).toHaveBeenCalled()
+      it.each([
+        'このポストは、ポストの作成者により削除されました。',
+        'This post was deleted by the author.',
+      ])(
+        'should skip a tweet when the error dialog says it was deleted (%s)',
+        async (message) => {
+          await openTweetWithoutArticle('111222333')
+
+          await showErrorDialog(message)
+
+          expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+            'tweet deleted. Skip this tweet.'
+          )
+          expect(QueueService.checkedTweet).toHaveBeenCalledWith('111222333')
+          expect(CrawlerService.resetCrawledTweetCount).toHaveBeenCalled()
+        }
+      )
+
+      it('should not skip a tweet when the error dialog is unrelated to deletion', async () => {
+        const message = 'Something went wrong. Try reloading.'
+        await openTweetWithoutArticle('222333444')
+
+        await showErrorDialog(message)
+
+        expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+          'found error dialog',
+          message
+        )
+        expect(QueueService.checkedTweet).not.toHaveBeenCalled()
+      })
+
+      it('should skip a tweet when an unprocessable post notice is shown', async () => {
+        await openTweetWithoutArticle('333444555')
+
+        document.body.innerHTML = `
+          <div data-testid="primaryColumn">
+            <div data-testid="cellInnerDiv">
+              <div><div>
+                <article tabindex="-1">このポストはXルールに違反しています。</article>
+              </div></div>
+            </div>
+          </div>
+        `
+        await jest.advanceTimersByTimeAsync(500)
+
+        expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+          "found can't processing post",
+          expect.anything()
+        )
+        expect(QueueService.checkedTweet).toHaveBeenCalledWith('333444555')
+      })
     })
   })
 })

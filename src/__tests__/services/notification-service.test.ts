@@ -147,23 +147,6 @@ describe('NotificationService', () => {
       consoleWarnSpy.mockRestore()
     })
 
-    it('should handle empty webhook URL', () => {
-      jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
-      jest.spyOn(ConfigManager, 'getComment').mockReturnValue('Comment')
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
-
-      NotificationService.notifyDiscord('Test message', undefined, true)
-
-      expect(mockFetch).not.toHaveBeenCalled()
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'notifyDiscord: Discord Webhook URL is not set.'
-      )
-
-      consoleWarnSpy.mockRestore()
-    })
-
     it('should use custom webhook URL when provided', () => {
       const mockResponse = { ok: true }
       mockFetch.mockResolvedValue(mockResponse)

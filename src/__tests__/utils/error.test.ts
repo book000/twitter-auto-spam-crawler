@@ -76,7 +76,7 @@ describe('ErrorHandler', () => {
       expect(mockCallback).toHaveBeenCalledWith(dialog)
     })
 
-    it('should handle non-function callback', async () => {
+    it('should resolve and stop polling when the callback is not a function', async () => {
       // @ts-expect-error Testing invalid input
       const promise = ErrorHandler.handleErrorDialog(null)
 
@@ -90,6 +90,7 @@ describe('ErrorHandler', () => {
       jest.advanceTimersByTime(500)
 
       await expect(promise).resolves.toBeUndefined()
+      expect(jest.getTimerCount()).toBe(0)
     })
 
     it('should continue polling until dialog is found', async () => {
