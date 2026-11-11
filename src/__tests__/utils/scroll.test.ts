@@ -112,56 +112,57 @@ describe('ScrollUtils', () => {
       consoleWarnSpy.mockRestore()
     })
 
-    // TODO: Re-enable after improving fakeTimers setup
-    it.skip('should return immediately if scrolling is already in progress', async () => {
+    it('should return immediately if scrolling is already in progress', async () => {
       const promise1 = ScrollUtils.scrollPage()
 
-      const promise2 = ScrollUtils.scrollPage()
+      await expect(ScrollUtils.scrollPage()).resolves.toBeUndefined()
+      expect(mockScrollBy).not.toHaveBeenCalled()
 
-      await promise2
-
-      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT; i++) {
+      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT + 1; i++) {
         jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
       }
 
-      await promise1
+      await expect(promise1).resolves.toBeUndefined()
     })
 
-    // TODO: Re-enable after improving timer mocks for state cleanup
-    it.skip('should properly reset scroll state with active interval', () => {
-      ScrollUtils.scrollPage()
+    it('should properly reset scroll state with active interval', async () => {
+      void ScrollUtils.scrollPage()
 
       ScrollUtils.resetScrollState()
 
       const promise = ScrollUtils.scrollPage()
 
+      jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
+      expect(mockScrollBy).toHaveBeenCalledTimes(1)
+
       for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT; i++) {
         jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
       }
 
-      return promise
+      await expect(promise).resolves.toBeUndefined()
     })
 
-    // TODO: Re-enable by refining fakeTimers for multiple Promise handling
-    it.skip('should handle multiple scrollPage calls correctly', async () => {
+    it('should handle multiple scrollPage calls correctly', async () => {
       const promise1 = ScrollUtils.scrollPage()
 
       const promise2 = ScrollUtils.scrollPage()
 
       let promise2Resolved = false
-      promise2.then(() => {
+      void promise2.then(() => {
         promise2Resolved = true
       })
 
-      // Allow microtasks to process
       await Promise.resolve()
       expect(promise2Resolved).toBe(true)
 
-      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT; i++) {
+      for (let i = 0; i < THRESHOLDS.MAX_FAIL_SCROLL_COUNT + 1; i++) {
         jest.advanceTimersByTime(TIMEOUTS.SCROLL_INTERVAL)
       }
 
-      await promise1
+      await expect(promise1).resolves.toBeUndefined()
+      expect(DomUtils.clickMoreReplies).toHaveBeenCalledTimes(
+        THRESHOLDS.MAX_FAIL_SCROLL_COUNT + 1
+      )
     })
 
     it('should reset fail count when scroll succeeds', async () => {
@@ -228,20 +229,17 @@ describe('ScrollUtils', () => {
       expect(mockScrollBy).not.toHaveBeenCalled()
     })
 
-    // TODO: Re-enable by extending fakeTimers or jest.setTimeout for timing logic
-    it.skip('should wait between scrolls', async () => {
-      const count = 2
-      const promise = ScrollUtils.scrollWithCount(count)
+    it('should wait between scrolls', async () => {
+      const promise = ScrollUtils.scrollWithCount(2)
 
-      // First scroll happens immediately
       expect(mockScrollBy).toHaveBeenCalledTimes(1)
 
-      for (let i = 0; i < count; i++) {
-        jest.advanceTimersByTime(TIMEOUTS.CRAWL_INTERVAL)
-      }
+      await jest.advanceTimersByTimeAsync(TIMEOUTS.CRAWL_INTERVAL)
+      expect(mockScrollBy).toHaveBeenCalledTimes(2)
 
+      await jest.advanceTimersByTimeAsync(TIMEOUTS.CRAWL_INTERVAL)
       await promise
-      expect(mockScrollBy).toHaveBeenCalledTimes(count)
+      expect(mockScrollBy).toHaveBeenCalledTimes(2)
     })
 
     it('should scroll with correct parameters', async () => {
