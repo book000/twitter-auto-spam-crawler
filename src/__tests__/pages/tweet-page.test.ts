@@ -180,6 +180,7 @@ describe('TweetPage', () => {
       )
       expect(Storage.setRetryCount).toHaveBeenCalledWith(0)
       expect(QueueService.checkedTweet).toHaveBeenCalledWith('987654321')
+      expect(CrawlerService.resetCrawledTweetCount).toHaveBeenCalledTimes(1)
     })
 
     it('should log error when failed page is detected', async () => {
