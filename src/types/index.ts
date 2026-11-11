@@ -35,19 +35,6 @@ export interface PageMethod {
 }
 
 /**
- * User settings stored through GM_config. Does not list `authWebhookUrl` and
- * `lockWebhookUrl`.
- */
-export interface Config {
-  /** Default Discord webhook URL for notifications */
-  discordWebhookUrl: string
-  /** Comment appended to every Discord message */
-  comment: string
-  /** Whether to crawl only the home page, stored as `"true"` or `"false"` */
-  isOnlyHome: string
-}
-
-/**
  * Values persisted through GM_getValue / GM_setValue, keyed by storage key.
  */
 export interface StorageData {

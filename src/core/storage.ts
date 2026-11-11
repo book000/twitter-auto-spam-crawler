@@ -164,40 +164,6 @@ export class Storage {
     Storage._savedTweetsMap = null
   }
 
-  /** Adds tweet IDs to the checked set with a single storage write. */
-  static addCheckedTweetsBatch(tweetIds: string[]): void {
-    const checkedTweetsSet = Storage.getCheckedTweetsSet()
-    for (const tweetId of tweetIds) {
-      checkedTweetsSet.add(tweetId)
-    }
-    Storage.setCheckedTweets([...checkedTweetsSet])
-  }
-
-  /** Adds tweet IDs to the waiting set with a single storage write. */
-  static addWaitingTweetsBatch(tweetIds: string[]): void {
-    const waitingTweetsSet = Storage.getWaitingTweetsSet()
-    for (const tweetId of tweetIds) {
-      waitingTweetsSet.add(tweetId)
-    }
-    Storage.setWaitingTweets([...waitingTweetsSet])
-  }
-
-  /**
-   * Upserts tweets by ID and stores all saved tweets sorted by tweet ID (string
-   * comparison) with a single storage write.
-   */
-  static saveTweetsBatch(tweets: Tweet[]): void {
-    const savedTweetsMap = Storage.getSavedTweetsMap()
-    for (const tweet of tweets) {
-      savedTweetsMap.set(tweet.tweetId, tweet)
-    }
-    const sortedTweets = savedTweetsMap
-      .values()
-      .toArray()
-      .toSorted((a, b) => a.tweetId.localeCompare(b.tweetId))
-    Storage.setSavedTweets(sortedTweets)
-  }
-
   /** Looks up whether a tweet ID is in the checked and/or waiting set. */
   static getTweetStatus(tweetId: string): {
     isChecked: boolean
