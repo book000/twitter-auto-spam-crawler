@@ -259,7 +259,9 @@ describe('OtherPages', () => {
   })
 
   describe('startPeriodicUnlockCheck', () => {
-    it('should start periodic check with proper interval and incrementing count', () => {
+    it('should start periodic check with the proper interval and log without a count', () => {
+      const message =
+        'Periodic check - navigating to bookmark page to test unlock status'
       let intervalCallback: (() => void) | undefined
       ;(setInterval as jest.Mock).mockImplementation((callback) => {
         intervalCallback = callback
@@ -272,20 +274,15 @@ describe('OtherPages', () => {
         expect.any(Function),
         DELAYS.LOCKED_CHECK_INTERVAL
       )
+      expect(intervalCallback).toBeDefined()
 
-      if (intervalCallback) {
-        intervalCallback()
-      }
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'Periodic check 1 - navigating to bookmark page to test unlock status'
-      )
+      intervalCallback?.()
+      expect(PageErrorHandler.logAction).toHaveBeenCalledTimes(1)
+      expect(PageErrorHandler.logAction).toHaveBeenNthCalledWith(1, message)
 
-      if (intervalCallback) {
-        intervalCallback()
-      }
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'Periodic check 2 - navigating to bookmark page to test unlock status'
-      )
+      intervalCallback?.()
+      expect(PageErrorHandler.logAction).toHaveBeenCalledTimes(2)
+      expect(PageErrorHandler.logAction).toHaveBeenNthCalledWith(2, message)
     })
   })
 
