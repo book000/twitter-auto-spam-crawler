@@ -35,9 +35,6 @@ interface MockStorage {
   getWaitingTweetsSet: jest.MockedFunction<() => Set<string>>
   getSavedTweetsMap: jest.MockedFunction<() => Map<string, Tweet>>
   clearCache: jest.MockedFunction<() => void>
-  addCheckedTweetsBatch: jest.MockedFunction<(tweetIds: string[]) => void>
-  addWaitingTweetsBatch: jest.MockedFunction<(tweetIds: string[]) => void>
-  saveTweetsBatch: jest.MockedFunction<(tweets: Tweet[]) => void>
   getTweetStatus: jest.MockedFunction<
     (tweetId: string) => { isChecked: boolean; isWaiting: boolean }
   >
@@ -147,34 +144,6 @@ const mockStorage: MockStorage = {
     mockStorage._checkedTweetsSet = null
     mockStorage._waitingTweetsSet = null
     mockStorage._savedTweetsMap = null
-  }),
-
-  addCheckedTweetsBatch: jest.fn((tweetIds: string[]): void => {
-    const checkedTweetsSet = mockStorage.getCheckedTweetsSet()
-    for (const tweetId of tweetIds) {
-      checkedTweetsSet.add(tweetId)
-    }
-    mockStorage.setCheckedTweets([...checkedTweetsSet])
-  }),
-
-  addWaitingTweetsBatch: jest.fn((tweetIds: string[]): void => {
-    const waitingTweetsSet = mockStorage.getWaitingTweetsSet()
-    for (const tweetId of tweetIds) {
-      waitingTweetsSet.add(tweetId)
-    }
-    mockStorage.setWaitingTweets([...waitingTweetsSet])
-  }),
-
-  saveTweetsBatch: jest.fn((tweets: Tweet[]): void => {
-    const savedTweetsMap = mockStorage.getSavedTweetsMap()
-    for (const tweet of tweets) {
-      savedTweetsMap.set(tweet.tweetId, tweet)
-    }
-    const sortedTweets = savedTweetsMap
-      .values()
-      .toArray()
-      .toSorted((a, b) => a.tweetId.localeCompare(b.tweetId))
-    mockStorage.setSavedTweets(sortedTweets)
   }),
 
   getTweetStatus: jest.fn(
