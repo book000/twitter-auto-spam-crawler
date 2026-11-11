@@ -100,7 +100,9 @@ describe('NotificationService', () => {
 
       await expect(
         NotificationService.notifyDiscord('Test message', mockCallback)
-      ).rejects.toThrow('notifyDiscord: Discord webhook responded with status 500')
+      ).rejects.toThrow(
+        'notifyDiscord: Discord webhook responded with status 500'
+      )
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'notifyDiscord: failed',
