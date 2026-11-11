@@ -8,8 +8,17 @@ describe('ConfigManager', () => {
   })
 
   describe('registerMenuCommand', () => {
+    let freshConfigManager: typeof ConfigManager
+
+    beforeEach(() => {
+      jest.resetModules()
+      freshConfigManager = jest.requireActual<{
+        ConfigManager: typeof ConfigManager
+      }>('../../core/config').ConfigManager
+    })
+
     it('should call GM_config with correct configuration', () => {
-      ConfigManager.registerMenuCommand()
+      freshConfigManager.registerMenuCommand()
 
       expect(GM_config).toHaveBeenCalledWith(
         {
@@ -44,8 +53,20 @@ describe('ConfigManager', () => {
     })
 
     it('should add event listener for GM_config_event', () => {
-      ConfigManager.registerMenuCommand()
+      freshConfigManager.registerMenuCommand()
 
+      expect(addEventListener).toHaveBeenCalledWith(
+        'GM_config_event',
+        expect.any(Function)
+      )
+    })
+
+    it('should register only once when called repeatedly', () => {
+      freshConfigManager.registerMenuCommand()
+      freshConfigManager.registerMenuCommand()
+
+      expect(GM_config).toHaveBeenCalledTimes(1)
+      expect(addEventListener).toHaveBeenCalledTimes(1)
       expect(addEventListener).toHaveBeenCalledWith(
         'GM_config_event',
         expect.any(Function)

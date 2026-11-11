@@ -1,5 +1,7 @@
 // Types from userscript.d.ts are globally available
 
+let isMenuCommandRegistered = false
+
 /**
  * Reads and registers the user settings, which are stored through the
  * GM_config library and read back with GM_getValue.
@@ -7,9 +9,14 @@
 export const ConfigManager = {
   /**
    * Registers the settings menu in Tampermonkey and logs the event detail
-   * whenever the configuration changes.
+   * whenever the configuration changes. Calls after the first are no-ops.
    */
   registerMenuCommand(): void {
+    if (isMenuCommandRegistered) {
+      return
+    }
+    isMenuCommandRegistered = true
+
     GM_config(
       {
         discordWebhookUrl: {
