@@ -1,76 +1,72 @@
-# コアアーキテクチャガイド
+# Architecture
 
-## ページベースルーティングシステム
+## Page routing
 
-`src/main.ts`でURL基盤のルーティングシステムを使用し、異なるTwitter/Xページを特定の機能にマッピング：
+`src/main.ts` holds a table of `{ url, urlType, run }` entries (`startsWith` or `regex`) and runs the first one that matches `location.href`. Once a second it re-evaluates the table and reloads the page if the matched entry changed (for example after an in-app navigation).
 
-- **ホーム/探索/検索ページ**: ツイートの自動クロールとスクロール
-- **ツイートページ**: 個別ツイートのインタラクション処理
-- **特別ページ**: ログイン、アカウントロック、サンプルエンドポイントの処理
-- **URLマッチング**: 文字列マッチング（`startsWith`）と正規表現パターンの両方を使用
+| URL | Handler |
+|---|---|
+| `https://x.com/home` | `HomePage.run`: opens each timeline tab and scrolls 10 times per tab, then moves to Explore (or back to home when "Only Home crawling" is `true`) |
+| `https://x.com/explore` | `ExplorePage.run`: waits for the trends and clicks a random one |
+| `https://x.com/search`, `https://x.com/i/trending/` | `SearchPage.run`: forces `f=live` (latest), scrolls 10 times, then calls `TweetPage.run(true)` |
+| `https://x.com/<user>/status/<id>` (`TWEET_URL_REGEX`) | `TweetPage.run`: scrolls the whole page to load replies, marks the tweet as checked, then calls `TweetPage.run(true)` (it goes to the bookmarks page instead if no tweet was crawled) |
+| `https://x.com/compose/post` | `OtherPages.runComposePost`: closes the compose view and goes back |
+| `https://x.com/i/bookmarks` | `OtherPages.runProcessBlueBlockerQueue`: waits 60 seconds, then until Blue Blocker's toasts (`#injected-blue-block-toasts > div.toast`) are gone, then goes home |
+| `https://x.com/i/flow/login` | `OtherPages.runLogin`: opens the login-notification window unless it was already sent |
+| `https://x.com/account/access` | `OtherPages.runLocked`: opens the lock-notification window unless it was already sent, and starts a 30-second timer that navigates to the bookmarks page to test whether the account is unlocked |
+| `https://example.com/?<command>` | `ExamplePages`: helper pages, see below |
 
-## サービス層アーキテクチャ
+`TweetPage.run(true)` (open-only mode) decides where to go next: to the download page when more than 500 tweets are saved, otherwise to the next waiting tweet, or to the bookmarks page when the queue is empty.
 
-### CrawlerService
+A tweet page that shows a "deleted" dialog or a rule-violation/deleted post is marked as checked and skipped. If the tweet cannot be loaded, the page reloads after a minute and the tweet is skipped after 3 failed retries.
 
-メインのツイートクロールワークフローを統制
+## Helper pages on example.com
 
-- 定期的にツイートを自動クロール
-- エンゲージメント閾値でツイートをフィルタリング（リツイート100+、リプライ10+）
-- クロール状態とカウントを管理
+The script opens `https://example.com/?<command>` in a new window for the notification commands, and navigates the current tab to `?download-json`. `?reset-waiting` is never opened by the script; it only runs if you visit that URL yourself. The commands are defined in `URLS` in `src/core/constants.ts`:
 
-### TweetService
+- `download-json`: downloads the saved tweets as `tweets-<timestamp>.json` and clears them if more than 500 are stored, then continues with `TweetPage.run(true)`
+- `login-notify`, `login-success-notify`, `locked-notify`, `unlocked-notify`: send the matching Discord message and close the window once the request completes (without a configured webhook URL, or if the request throws, the window stays open); `login-notify` also sets the login-notified flag at that point
+- `update-notify&old=<version>&new=<version>`: sends the update notification (`VersionService` opens it when the script version changed)
+- `reset-waiting` (manual only): clears the waiting queue and goes home after 3 seconds
 
-ツイートの抽出と保存を処理
+## Services (`src/services/`)
 
-- 特定のセレクターを使用してDOMからツイートを抽出
-- エンゲージメント指標（リツイート、リプライ、いいね）を解析
-- ツイートの保存と自動ダウンロードを管理
+- `CrawlerService`: `startCrawling()` runs `crawlTweets()` every second. It extracts the tweets on screen, saves them, and puts those that pass the threshold and are neither checked nor waiting into the waiting queue. It also counts the tweets crawled in the current page.
+- `TweetService`: extracts tweets from `article[data-testid="tweet"]` elements (with a `WeakMap` element cache), saves them sorted by tweet ID, filters by engagement, and builds the JSON download.
+- `QueueService`: waiting queue and checked list on top of `Storage`.
+- `NotificationService`: posts to a Discord webhook; the `Comment` setting is appended to each message.
+- `StateService`: clears the "login notified" and "locked notified" flags (and opens the matching success/unlock window) when a normal page loads after a login or lock notification.
+- `VersionService`: compares the stored script version with the current one and opens the update-notification window when it changed.
 
-### QueueService
+## Storage
 
-ツイート処理キューを管理
+`Storage` (`src/core/storage.ts`) wraps `GM_getValue` / `GM_setValue`. The keys are typed by `StorageData` in `src/types/index.ts`:
 
-- localStorageを使用して「待機中」と「確認済み」のツイートリストを維持
-- 処理に応じてツイートを状態間で移動
-- 重複処理を防止
+| Key | Content |
+|---|---|
+| `waitingTweets` | Tweet IDs still to visit |
+| `checkedTweets` | Tweet IDs already visited |
+| `savedTweets` | Full tweet objects collected for the JSON download |
+| `isLoginNotified` / `isLockedNotified` | Whether the login / lock notification was already sent |
+| `retryCount` | Failed tweet-page loads in a row |
+| `storedVersion` | Script version seen on the previous run |
 
-### NotificationService
+`Storage` keeps `Set` / `Map` caches of the three tweet collections for fast lookup; the setters refresh them.
 
-アラート用のDiscord webhook統合
+The settings edited in the userscript manager menu (`discordWebhookUrl`, `authWebhookUrl`, `lockWebhookUrl`, `comment`, `isOnlyHome`) are stored by `GM_config` and read through `ConfigManager` (`src/core/config.ts`) with `GM_getValue`.
 
-## データフロー
+## Constants
 
-1. **クロール**: CrawlerServiceがツイートを抽出 → TweetServiceがエンゲージメントでフィルタリング → QueueServiceが待機キューに追加
-2. **処理**: ページが待機中のツイートを処理 → QueueServiceが確認済み状態に移動
-3. **保存**: TweetServiceが500ツイート制限に達すると自動ダウンロード
+`src/core/constants.ts` holds `URLS`, `THRESHOLDS` (retweet and reply thresholds, saved-tweet limit, retry and failed-scroll limits), `TIMEOUTS`, `DELAYS` and `SELECTORS`.
 
-## ストレージシステム
+## Error handling and DOM helpers
 
-永続化にGM_getValue/GM_setValue（ユーザースクリプトAPI）を使用：
+- `PageErrorHandler` (`src/utils/page-error-handler.ts`): `handlePageError` logs the error, waits (default one minute) and reloads the page; `logAction` and `logError` prefix log lines with the caller's name taken from the stack trace. Page handlers catch the failure of the awaited operation (for example `DomUtils.waitElement`) and pass it to `handlePageError` instead of logging and reloading themselves.
+- `DomUtils`: `waitElement` (polls every 500 ms, rejects after a timeout, default 30 seconds), `isFailedPage` (X's error page with the reload icon), `clickMoreReplies*`, `checkAndNavigateToLogin`.
+- `ScrollUtils.scrollPage`: scrolls every 2 seconds and clicks "show more replies" buttons until the page height has not changed 10 times in a row.
+- `ErrorHandler`: watches for the error dialog and for unprocessable posts, with timeouts.
+- `AsyncUtils`: `delay` and related promise helpers.
 
-- `waitingTweets`: 処理待ちのツイートIDの配列
-- `checkedTweets`: 処理済みツイートIDの配列
-- `savedTweets`: エクスポート用の完全なツイートオブジェクト
-- `config`: ユーザー設定
+## Dependencies between layers
 
-## DOM操作パターン
-
-- サイトの変更に応じて更新が必要な可能性があるX.com固有のDOMセレクターを使用
-- スクロール自動化と「さらに読み込む」ボタンのクリックを実装
-- タイムアウトベースの待機で動的コンテンツの読み込みを処理
-
-## サービス層の依存関係
-
-- **CrawlerService** → TweetService, QueueService, NotificationService
-- **TweetService** → DOM操作, StorageAPI
-- **QueueService** → StorageAPI
-- **StateService** → 状態管理ユーティリティ
-
-## 定数とグローバル値
-
-`src/core/constants.ts`で管理：
-
-- エンゲージメント閾値（リツイート100+、リプライ10+）
-- タイムアウト値（クロール、スクロール、要素待機）
-- 自動ダウンロード閾値（500ツイート）
+Pages call services, utilities, `Storage` and `ConfigManager` (`SearchPage` and `ExamplePages` also call `TweetPage`). Services call `Storage`, `ConfigManager`, the constants and `AsyncUtils`; only `CrawlerService` calls other services. Utilities depend on the constants and on each other. `core` and `types` depend on nothing above them (`core/storage.ts` only imports types).

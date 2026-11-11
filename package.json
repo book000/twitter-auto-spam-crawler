@@ -1,7 +1,7 @@
 {
   "name": "twitter-auto-spam-crawler",
   "version": "1.25.1",
-  "description": "Twitterのツイートを自動でクロールするスクリプト。Blue Blockerと組み合わせて使うことを想定。",
+  "description": "A userscript that automatically crawls tweets on Twitter/X. Designed to be used with Blue Blocker.",
   "homepage": "https://github.com/book000/twitter-auto-spam-crawler",
   "bugs": {
     "url": "https://github.com/book000/twitter-auto-spam-crawler/issues/new"
