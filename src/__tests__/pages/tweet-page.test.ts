@@ -16,7 +16,6 @@ import {
   restoreConsoleMocks,
 } from '../utils/page-test-utils'
 
-// Mock dependencies
 jest.mock('../../core/storage')
 jest.mock('../../services/state-service')
 jest.mock('../../services/crawler-service')
@@ -27,32 +26,20 @@ jest.mock('../../utils/scroll')
 jest.mock('../../utils/page-error-handler')
 jest.mock('../../utils/async')
 
-// Mock timers
 jest.useFakeTimers()
 
-/**
- * TweetPageクラスのテストスイート
- * 個別ツイートページでの処理とエラーハンドリング機能を検証する
- * - onlyOpenモードでの次ツイート取得とナビゲーション
- * - エラーダイアログの検出と削除ツイート処理
- * - リトライ機能とツイート処理完了後の遷移
- */
 describe('TweetPage', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
   beforeEach(() => {
-    // Reset DOM
     document.body.replaceChildren()
 
-    // Setup mocks
     setupUserscriptMocks()
     consoleMocks = setupConsoleMocks()
 
-    // Clear all mocks
     jest.clearAllMocks()
     jest.clearAllTimers()
 
-    // Setup default mock implementations
     ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(false)
     ;(DomUtils.waitElement as jest.Mock).mockResolvedValue(undefined)
     ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(false)
@@ -84,10 +71,6 @@ describe('TweetPage', () => {
   })
 
   describe('run', () => {
-    /**
-     * ログインリダイレクト処理をテスト
-     * - ログインが必要な場合の早期リターン
-     */
     it('should return early when login is required', async () => {
       ;(DomUtils.checkAndNavigateToLogin as jest.Mock).mockReturnValue(true)
 
@@ -96,11 +79,6 @@ describe('TweetPage', () => {
       expect(StateService.resetState).not.toHaveBeenCalled()
     })
 
-    /**
-     * onlyOpen=trueでダウンロードが必要な場合のテスト
-     * - TweetService.isNeedDownload()がtrueを返す場合
-     * - ダウンロードページへの遷移
-     */
     it('should navigate to download page when download is needed (onlyOpen=true)', async () => {
       ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(true)
 
@@ -111,11 +89,6 @@ describe('TweetPage', () => {
       expect(TweetService.isNeedDownload).toHaveBeenCalled()
     })
 
-    /**
-     * onlyOpen=trueで次の待機ツイートがない場合のテスト
-     * - QueueService.getNextWaitingTweet()がnullを返す場合
-     * - ブックマークページへの遷移
-     */
     it('should navigate to bookmark when no waiting tweets (onlyOpen=true)', async () => {
       ;(QueueService.getNextWaitingTweet as jest.Mock).mockReturnValue(null)
 
@@ -126,11 +99,6 @@ describe('TweetPage', () => {
       expect(QueueService.getNextWaitingTweet).toHaveBeenCalled()
     })
 
-    /**
-     * onlyOpen=trueで次ツイートへの遷移テスト
-     * - 正常な次ツイートIDの取得
-     * - 該当ツイートURLへの遷移
-     */
     it('should navigate to next tweet (onlyOpen=true)', async () => {
       const nextTweetId = '123456789'
       ;(QueueService.getNextWaitingTweet as jest.Mock).mockReturnValue(
@@ -144,18 +112,10 @@ describe('TweetPage', () => {
       expect(QueueService.getNextWaitingTweet).toHaveBeenCalled()
     })
 
-    /**
-     * 正常なツイートページ処理フローをテスト
-     * - 状態リセットとクロール開始
-     * - エラーハンドラーの設定
-     * - ツイート要素の待機とスクロール処理
-     * - ツイート処理完了後の次ツイートへの遷移
-     */
     it('should process tweet page successfully', async () => {
       setupTweetPageDOM()
       globalThis.location.href = 'https://x.com/user/status/123456789'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([
@@ -175,12 +135,6 @@ describe('TweetPage', () => {
       expect(QueueService.checkedTweet).toHaveBeenCalledWith('123456789')
     })
 
-    /**
-     * ツイート要素待機失敗時のリトライ処理をテスト
-     * - リトライ回数が制限内の場合
-     * - Storage.setRetryCount()での回数増加
-     * - 待機後のページリロード
-     */
     it('should retry when tweet element is not found', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -202,13 +156,6 @@ describe('TweetPage', () => {
       // so we don't need to verify it separately
     })
 
-    /**
-     * 最大リトライ回数到達時の処理をテスト
-     * - リトライ回数がTHRESHOLDS.MAX_RETRY_COUNTに達した場合
-     * - リトライ回数のリセット
-     * - ツイートのチェック完了マーキング
-     * - 次ツイートへの遷移
-     */
     it('should skip tweet after max retries', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -218,7 +165,6 @@ describe('TweetPage', () => {
       )
       globalThis.location.href = 'https://x.com/user/status/987654321'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([
@@ -236,11 +182,6 @@ describe('TweetPage', () => {
       expect(QueueService.checkedTweet).toHaveBeenCalledWith('987654321')
     })
 
-    /**
-     * 失敗ページ検出時のエラーログ出力をテスト
-     * - DomUtils.isFailedPage()がtrueを返す場合
-     * - 専用エラーメッセージの出力確認
-     */
     it('should log error when failed page is detected', async () => {
       ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
         new Error('Element not found')
@@ -249,7 +190,6 @@ describe('TweetPage', () => {
 
       await TweetPage.run()
 
-      // With PageErrorHandler, failed page detection is handled by handlePageError
       expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
         'Tweet',
         'runTweet',
@@ -258,11 +198,6 @@ describe('TweetPage', () => {
       )
     })
 
-    /**
-     * クロール済みツイート数が0の場合のブックマーク遷移をテスト
-     * - CrawlerService.getCrawledTweetCount()が0を返す場合
-     * - ブックマークページへの遷移
-     */
     it('should navigate to bookmark when no tweets were crawled', async () => {
       setupTweetPageDOM()
       ;(CrawlerService.getCrawledTweetCount as jest.Mock).mockReturnValue(0)
@@ -274,16 +209,9 @@ describe('TweetPage', () => {
       expect(CrawlerService.getCrawledTweetCount).toHaveBeenCalled()
     })
 
-    /**
-     * エラーダイアログハンドラーのコールバック処理をテスト
-     * - 削除ツイートダイアログの検出
-     * - ツイートIDの抽出とチェック完了マーキング
-     * - クロール数のリセット
-     */
     it('should handle error dialog callback for deleted tweet', async () => {
       globalThis.location.href = 'https://x.com/user/status/111222333'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([
@@ -302,16 +230,9 @@ describe('TweetPage', () => {
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
     })
 
-    /**
-     * 処理不可能ポスト検出ハンドラーのコールバック処理をテスト
-     * - ErrorHandler.detectUnprocessablePost()のコールバック実行
-     * - ツイートIDの抽出とチェック完了マーキング
-     * - クロール数のリセット
-     */
     it('should handle unprocessable post detection callback', async () => {
       globalThis.location.href = 'https://x.com/user/status/444555666'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([
@@ -330,16 +251,10 @@ describe('TweetPage', () => {
       expect(CrawlerService.startCrawling).toHaveBeenCalled()
     })
 
-    /**
-     * 正常処理完了後のリトライ回数リセットをテスト
-     * - ツイート要素の正常待機完了
-     * - Storage.setRetryCount(0)での回数リセット
-     */
     it('should reset retry count on successful processing', async () => {
       setupTweetPageDOM()
       globalThis.location.href = 'https://x.com/user/status/777888999'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([
@@ -353,15 +268,9 @@ describe('TweetPage', () => {
       expect(Storage.setRetryCount).toHaveBeenCalledWith(0)
     })
 
-    /**
-     * 英語の削除ツイートメッセージ処理をテスト
-     * - 'deleted'を含む英語のエラーダイアログ
-     * - 適切な削除処理の実行
-     */
     it('should handle English deleted tweet message', async () => {
       globalThis.location.href = 'https://x.com/user/status/555666777'
 
-      // Mock regex match
       jest
         .spyOn(TWEET_URL_REGEX, 'exec')
         .mockReturnValue([

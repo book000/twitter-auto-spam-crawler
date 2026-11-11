@@ -14,11 +14,9 @@ describe('AsyncUtils', () => {
     it('should delay for specified time', async () => {
       const promise = AsyncUtils.delay(1000)
 
-      // まだ解決されていないことを確認
       jest.advanceTimersByTime(999)
       expect(jest.getTimerCount()).toBe(1)
 
-      // 時間を進めて解決を確認
       jest.advanceTimersByTime(1)
       await expect(promise).resolves.toBeUndefined()
     })
@@ -47,7 +45,7 @@ describe('AsyncUtils', () => {
       controller.abort()
 
       await expect(promise).rejects.toThrow('Delay was aborted')
-      expect(jest.getTimerCount()).toBe(0) // タイマーがクリアされている
+      expect(jest.getTimerCount()).toBe(0)
     })
   })
 
@@ -167,15 +165,12 @@ describe('AsyncUtils', () => {
 
       const promise = AsyncUtils.retry(operation, { maxAttempts: 3 })
 
-      // 1回目の失敗
       await jest.advanceTimersByTimeAsync(0)
       expect(operation).toHaveBeenCalledTimes(1)
 
-      // 1回目のリトライ遅延 (exponential backoff: 1000ms)
       await jest.advanceTimersByTimeAsync(1000)
       expect(operation).toHaveBeenCalledTimes(2)
 
-      // 2回目のリトライ遅延 (exponential backoff: 2000ms)
       await jest.advanceTimersByTimeAsync(2000)
       expect(operation).toHaveBeenCalledTimes(3)
 
@@ -200,7 +195,7 @@ describe('AsyncUtils', () => {
       await expect(promise).rejects.toThrow('3rd fail')
       expect(operation).toHaveBeenCalledTimes(3)
 
-      jest.useFakeTimers() // Restore fake timers
+      jest.useFakeTimers()
     })
 
     it('should use fixed delay when exponential backoff is disabled', async () => {
@@ -216,15 +211,12 @@ describe('AsyncUtils', () => {
         useExponentialBackoff: false,
       })
 
-      // 1回目の失敗
       await jest.advanceTimersByTimeAsync(0)
       expect(operation).toHaveBeenCalledTimes(1)
 
-      // 固定遅延 500ms
       await jest.advanceTimersByTimeAsync(500)
       expect(operation).toHaveBeenCalledTimes(2)
 
-      // 固定遅延 500ms
       await jest.advanceTimersByTimeAsync(500)
       expect(operation).toHaveBeenCalledTimes(3)
 
@@ -240,7 +232,6 @@ describe('AsyncUtils', () => {
         signal: controller.signal,
       })
 
-      // 1回目の失敗後、キャンセル
       await jest.advanceTimersByTimeAsync(0)
       controller.abort()
 
@@ -265,7 +256,6 @@ describe('AsyncUtils', () => {
 
       const promise = AsyncUtils.retry(operation)
 
-      // デフォルトの指数バックオフ遅延
       await jest.advanceTimersByTimeAsync(0)
       await jest.advanceTimersByTimeAsync(1000)
 

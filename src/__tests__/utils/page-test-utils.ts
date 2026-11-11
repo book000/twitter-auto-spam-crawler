@@ -60,15 +60,9 @@ export function setupFailedPageDOM(): void {
  * Mocks common userscript globals that are expected in page tests
  */
 export function setupUserscriptMocks(): void {
-  // IMPORTANT: In JSDOM, the location object is immutable and cannot be replaced or modified
-  // This is a known limitation when testing code that uses location
-  // Tests should focus on verifying the behavior around location changes,
-  // not the actual location changes themselves
-
-  // We'll create a minimal mock that doesn't interfere with JSDOM
-  // Individual tests can mock location properties as needed using Object.defineProperty
-
-  // Mock window.scrollBy and window.innerHeight
+  // JSDOM's location object is immutable, so location is not mocked here.
+  // Tests should verify the behavior around location changes, not the changes
+  // themselves, or override single properties with Object.defineProperty.
   Object.defineProperties(globalThis, {
     scrollBy: {
       value: jest.fn(),

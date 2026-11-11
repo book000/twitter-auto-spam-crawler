@@ -3,7 +3,6 @@ import { DomUtils } from '@/utils/dom'
 import { AsyncUtils } from '@/utils/async'
 import { DELAYS } from '@/core/constants'
 
-// Mock dependencies
 jest.mock('@/utils/dom')
 jest.mock('@/utils/async')
 
@@ -19,7 +18,6 @@ describe('PageErrorHandler', () => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
 
-    // Setup default mocks
     jest.mocked(DomUtils.isFailedPage).mockReturnValue(false)
     jest.mocked(AsyncUtils.delay).mockResolvedValue()
   })
@@ -87,7 +85,6 @@ describe('PageErrorHandler', () => {
       )
 
       expect(AsyncUtils.delay).not.toHaveBeenCalled()
-      // Note: shouldReload=false prevents location.reload from being called
     })
 
     it('should auto-detect caller name when not provided', async () => {
@@ -144,7 +141,6 @@ describe('PageErrorHandler', () => {
         undefined
       )
 
-      // Clean up
       mockElement.remove()
     })
 
@@ -184,7 +180,6 @@ describe('PageErrorHandler', () => {
         customTimeout
       )
 
-      // Clean up
       mockElement.remove()
     })
 
@@ -207,7 +202,6 @@ describe('PageErrorHandler', () => {
       ).rejects.toThrow(testError)
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Custom wait error')
-      // Note: shouldReload=false prevents location.reload
     })
 
     it('should auto-detect caller name when not provided', async () => {
@@ -300,7 +294,6 @@ describe('PageErrorHandler', () => {
       )
 
       expect(consoleLogSpy).toHaveBeenCalledWith('Operation failed gracefully')
-      // Note: custom shouldReload=false prevents location.reload
     })
 
     it('should auto-detect caller name when not provided', async () => {
@@ -517,7 +510,6 @@ describe('PageErrorHandler', () => {
     })
 
     it('should handle when Error constructor throws', () => {
-      // Mock Error constructor to throw
       const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => {
         throw new OriginalError('Error constructor failed')
@@ -526,12 +518,10 @@ describe('PageErrorHandler', () => {
       const result = PageErrorHandler._getCallerName()
       expect(result).toBe('unknown')
 
-      // Restore original Error constructor
       globalThis.Error = OriginalError
     })
 
     it('should return unknown for malformed stack traces', () => {
-      // Mock Error to return a malformed stack
       const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: 'malformed stack trace without function names',
@@ -540,12 +530,10 @@ describe('PageErrorHandler', () => {
       const result = PageErrorHandler._getCallerName()
       expect(result).toBe('unknown')
 
-      // Restore original Error constructor
       globalThis.Error = OriginalError
     })
 
     it('should return unknown when stack is undefined', () => {
-      // Mock Error to return no stack
       const OriginalError = Error
       globalThis.Error = jest.fn().mockImplementation(() => ({
         stack: undefined,
@@ -554,7 +542,6 @@ describe('PageErrorHandler', () => {
       const result = PageErrorHandler._getCallerName()
       expect(result).toBe('unknown')
 
-      // Restore original Error constructor
       globalThis.Error = OriginalError
     })
   })
