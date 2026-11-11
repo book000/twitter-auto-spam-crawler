@@ -85,9 +85,10 @@ describe('NotificationService', () => {
       expect(mockCallback).toHaveBeenCalledWith(mockResponse)
     })
 
-    it('should handle failed response', async () => {
-      const mockResponse = { ok: false }
+    it('should reject and skip the callback when the response is not ok', async () => {
+      const mockResponse = { ok: false, status: 500 }
       mockFetch.mockResolvedValue(mockResponse)
+      const mockCallback = jest.fn()
 
       jest
         .spyOn(ConfigManager, 'getDiscordWebhookUrl')
@@ -97,20 +98,23 @@ describe('NotificationService', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      NotificationService.notifyDiscord('Test message')
+      await expect(
+        NotificationService.notifyDiscord('Test message', mockCallback)
+      ).rejects.toThrow('notifyDiscord: Discord webhook responded with status 500')
 
-      await Promise.resolve()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'notifyDiscord: failed',
         mockResponse
       )
+      expect(mockCallback).not.toHaveBeenCalled()
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should handle fetch error', async () => {
+    it('should reject with the fetch error and skip the callback', async () => {
       const mockError = new Error('Network error')
       mockFetch.mockRejectedValue(mockError)
+      const mockCallback = jest.fn()
 
       jest
         .spyOn(ConfigManager, 'getDiscordWebhookUrl')
@@ -120,26 +124,54 @@ describe('NotificationService', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      await NotificationService.notifyDiscord('Test message')
+      await expect(
+        NotificationService.notifyDiscord('Test message', mockCallback)
+      ).rejects.toBe(mockError)
 
       expect(mockFetch).toHaveBeenCalled()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'notifyDiscord: fetch error',
         mockError
       )
+      expect(mockCallback).not.toHaveBeenCalled()
 
       consoleErrorSpy.mockRestore()
     })
 
-    it('should not send notification when webhook URL is not set', () => {
+    it('should reject when the callback throws after an ok response', async () => {
+      mockFetch.mockResolvedValue({ ok: true })
+      const callbackError = new Error('callback failed')
+
+      jest
+        .spyOn(ConfigManager, 'getDiscordWebhookUrl')
+        .mockReturnValue('https://discord.com/api/webhooks/test')
+      jest.spyOn(ConfigManager, 'getComment').mockReturnValue('')
+      const consoleLogSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+
+      await expect(
+        NotificationService.notifyDiscord('Test message', () => {
+          throw callbackError
+        })
+      ).rejects.toBe(callbackError)
+
+      consoleLogSpy.mockRestore()
+    })
+
+    it('should resolve without sending or calling the callback when webhook URL is not set', async () => {
       jest.spyOn(ConfigManager, 'getDiscordWebhookUrl').mockReturnValue('')
+      const mockCallback = jest.fn()
       const consoleWarnSpy = jest
         .spyOn(console, 'warn')
         .mockImplementation(() => {})
 
-      NotificationService.notifyDiscord('Test message')
+      await expect(
+        NotificationService.notifyDiscord('Test message', mockCallback)
+      ).resolves.toBeUndefined()
 
       expect(mockFetch).not.toHaveBeenCalled()
+      expect(mockCallback).not.toHaveBeenCalled()
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'notifyDiscord: Discord Webhook URL is not set.'
       )

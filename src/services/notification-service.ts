@@ -9,13 +9,15 @@ export const NotificationService = {
    * Posts a message to a Discord webhook, followed by the user comment from
    * `ConfigManager`.
    *
-   * Never rejects: if the webhook URL is empty a warning is logged, and fetch
-   * errors and non-2xx responses are logged and swallowed.
+   * Resolves once Discord accepted the message, or immediately without sending
+   * when no webhook URL is set (a warning is logged). Rejects when the request
+   * fails or Discord answers with a non-2xx status, so callers can retry.
    *
    * @param message - Message body
-   * @param callback - Called with the response once the request completes,
-   * including non-2xx responses. Not called when the request fails or when no
-   * webhook URL is set.
+   * @param callback - Called with the response only when Discord answered with
+   * an ok status. Not called when the request fails, when the response is
+   * non-2xx, or when no webhook URL is set. An error it throws rejects the
+   * returned promise.
    * @param withReply - Prefix the message with a mention of
    * `DISCORD_MENTION_ID`
    * @param customWebhookUrl - Webhook URL that takes precedence over the
@@ -46,19 +48,23 @@ export const NotificationService = {
         'Content-Type': 'application/json',
       },
       body: data,
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log('notifyDiscord: success')
-        } else {
+    }).then(
+      (response) => {
+        if (!response.ok) {
           console.error('notifyDiscord: failed', response)
+          throw new Error(
+            `notifyDiscord: Discord webhook responded with status ${response.status}`
+          )
         }
+        console.log('notifyDiscord: success')
         if (callback) {
           callback(response)
         }
-      })
-      .catch((error: unknown) => {
+      },
+      (error: unknown) => {
         console.error('notifyDiscord: fetch error', error)
-      })
+        throw error
+      }
+    )
   },
 }

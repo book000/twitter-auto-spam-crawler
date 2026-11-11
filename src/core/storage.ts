@@ -92,14 +92,15 @@ export class Storage {
     return Storage._savedTweetsMap
   }
 
-  /** Whether the login-required notification got a response from Discord. */
+  /** Whether the login-required notification was accepted by Discord. */
   static isLoginNotified(): boolean {
     return Storage.getValue('isLoginNotified', false)
   }
 
   /**
    * Whether the account-locked notification has been requested. It is set
-   * before the notify window opens and is not cleared if sending fails.
+   * before the notify window opens and is cleared by
+   * `ExamplePages.runLockedNotify` if sending fails.
    */
   static isLockedNotified(): boolean {
     return Storage.getValue('isLockedNotified', false)
@@ -129,7 +130,7 @@ export class Storage {
     )
   }
 
-  /** Stores whether the login-required notification got a response. */
+  /** Stores whether the login-required notification was accepted by Discord. */
   static setLoginNotified(value: boolean): void {
     Storage.setValue('isLoginNotified', value)
   }
