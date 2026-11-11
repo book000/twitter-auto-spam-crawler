@@ -1,193 +1,39 @@
-# ビルドシステムガイド
+# Build system
 
-## Webpack構成
+## Webpack
 
-- **エントリーポイント**: `src/main.ts`
-- **出力**: `dist/twitter-auto-spam-crawler.user.js`
-- **TypeScript**: ES2020ターゲット、ES2015モジュール、strictモード
-- **パスエイリアス**: `@/` → `src/` マッピング
-- **最小化なし**: ユーザースクリプトの可読性とセキュリティ検証のため
-- **ソースマップ**: 開発モードでのみ有効
+`webpack.config.js` (ESM) builds `src/main.ts` into `dist/twitter-auto-spam-crawler.user.js` (the file name is `<package name>.user.js`).
 
-## ユーザースクリプトメタデータ自動生成
+- TypeScript is compiled by `ts-loader`; the `@` alias resolves to `src/`.
+- `optimization.minimize` is `false` on purpose, so the userscript stays readable and reviewable.
+- Source maps (`inline-source-map`) are emitted only with `--mode=development`.
+- `pnpm run build` = `webpack --mode=production`, `pnpm run build:dev` = `webpack --mode=development`, `pnpm run watch` = development mode with `--watch`.
 
-package.jsonの`userscript`フィールドから以下を自動生成：
+## UserScript header
 
-- `@name`, `@namespace`, `@version`, `@description`
-- `@match`: x.com/*, example.com/*
-- `@grant`: GM_getValue, GM_setValue, GM_registerMenuCommand, GM_unregisterMenuCommand
-- `@require`: Tampermonkey Config外部スクリプト
+A small inline plugin in `webpack.config.js` prepends a `// ==UserScript==` block to every emitted `.js` asset. The block is built from `package.json`:
 
-### メタデータ生成ロジック
+| Header field | Source |
+|---|---|
+| `@name` | the package name, split on `-` and capitalized (`Twitter Auto Spam Crawler`) |
+| `@version`, `@description`, `@author` | `version`, `description`, `author` |
+| `@homepage` | `repository.url` without the `.git` suffix |
+| `@namespace`, `@match`, `@icon`, `@updateURL`, `@downloadURL`, `@grant`, `@require` | the `userscript` object |
 
-webpack.config.jsのカスタムプラグインで実装：
+Array values (`@match`, `@grant`) produce one header line per entry. To change the header, edit `package.json`; `@description` is the `description` field, so keep it in English.
 
-```javascript
-// Convert package name to user-friendly script name
-const scriptName = name
-  .split('-')
-  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-  .join(' ')
+`@match` contains `https://x.com/*` and `https://example.com/*` (the latter for the helper pages, see `architecture.md`). `@grant` lists `GM_getValue`, `GM_setValue`, `GM_registerMenuCommand` and `GM_unregisterMenuCommand`, and `@require` loads the Tampermonkey Config library that provides `GM_config`. A new Tampermonkey `GM_*` API called from app code needs an entry in `userscript.grant` and a declaration in `src/types/userscript.d.ts`.
 
-// Generate header from metadata object
-const banner =
-  '// ==UserScript==\n' +
-  Object.entries(metadata)
-    .map(([key, value]) => {
-      if (Array.isArray(value)) {
-        return value
-          .map((v) => `// @${key.padEnd(12)} ${v}`)
-          .join('\n')
-      }
-      return `// @${key.padEnd(12)} ${value}`
-    })
-    .join('\n') +
-  '\n// ==/UserScript==\n\n'
-```
+## TypeScript
 
-## TypeScript設定
+`tsconfig.json` highlights: target `es2020`, module `ES2015`, `moduleResolution: bundler`, `strict` plus `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns` and `noFallthroughCasesInSwitch`, `rootDir: ./src`, `types: ["node", "jest"]`, and `paths` mapping `@/*` to `./src/*`. Only `src/**/*` is included. `pnpm run lint:tsc` runs `tsc --noEmit`.
 
-### tsconfig.json設定
+## Lint and format
 
-- **ターゲット**: ES2020（モダン JS 機能使用）
-- **モジュール**: ES2015（Webpack 用）
-- **モジュール解決**: bundler（Webpack 専用）
-- **ライブラリ**: ESNext, DOM, DOM.Iterable（ブラウザ環境対応）
-- **strict**: 全ての厳密チェック有効
-- **ルートディレクトリ**: `./src`（TypeScript 6 の `outDir` 利用要件に対応）
-- **型定義**: `node`, `jest` を明示指定（TypeScript 6 のグローバル型解決変更に対応）
-- **非推奨警告抑制**: `ignoreDeprecations: "6.0"`（`baseUrl` の移行猶予設定）
-- **パスマッピング**: `@/*` → `src/*`
+- `pnpm run lint` runs `lint:prettier` (`prettier --check src`), `lint:eslint` (`eslint . -c eslint.config.mjs`) and `lint:tsc` in parallel through `run-z`. `pnpm run fix` applies the Prettier and ESLint fixes.
+- `eslint.config.mjs` extends `@book000/eslint-config` and relaxes some rules for `src/__tests__/**` (for example non-null assertions, floating promises, empty functions; `camelcase` allows `GM_*`) and for `src/__mocks__/**` (`any` and top-level side effects).
+- Prettier settings are in `.prettierrc.yml`.
 
-### 重要な設定項目
+## Release
 
-```json
-{
-  "compilerOptions": {
-    "target": "es2020",
-    "module": "ES2015",
-    "moduleResolution": "bundler",
-    "rootDir": "./src",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "types": ["node", "jest"],
-    "ignoreDeprecations": "6.0"
-  }
-}
-```
-
-## ESLint構成
-
-### 基本設定
-
-- **ベース**: @book000/eslint-config
-- **パーサー**: @typescript-eslint/parser
-
-### テストファイル固有ルール
-
-```javascript
-{
-  files: ['src/__tests__/**/*.ts'],
-  rules: {
-    '@typescript-eslint/no-empty-function': 'off',
-    '@typescript-eslint/unbound-method': 'off', 
-    '@typescript-eslint/no-floating-promises': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'off',
-    'import/no-duplicates': 'off',
-    camelcase: ['error', { allow: ['^GM_'] }], // ユーザースクリプトAPI許可
-    'unicorn/no-useless-undefined': 'off',
-  },
-}
-```
-
-### モックファイル固有ルール
-
-```javascript
-{
-  files: ['src/__mocks__/**/*.ts'],
-  rules: {
-    '@typescript-eslint/no-unsafe-member-access': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-  },
-}
-```
-
-## ビルドプロセス
-
-### 本番ビルド
-
-```bash
-pnpm run build
-# webpack --mode=production
-```
-
-- 最小化なし（可読性維持）
-- ソースマップなし
-- ユーザースクリプトヘッダー自動追加
-
-### 開発ビルド
-
-```bash
-pnpm run build:dev
-# webpack --mode=development
-```
-
-- ソースマップ付き（inline-source-map）
-- 開発用の詳細エラー情報
-
-### ウォッチモード
-
-```bash
-pnpm run watch
-# webpack --mode=development --watch
-```
-
-- ファイル変更の自動検知とリビルド
-- 開発効率向上
-
-## 出力ファイル構造
-
-```text
-dist/
-└── twitter-auto-spam-crawler.user.js  # 単一の結合ファイル
-```
-
-### ユーザースクリプトヘッダー例
-
-```javascript
-// ==UserScript==
-// @name         Twitter Auto Spam Crawler
-// @namespace    https://tomacheese.com
-// @version      1.25.1
-// @description  Twitterのツイートを自動でクロールするスクリプト。Blue Blockerと組み合わせて使うことを想定。
-// @author       Tomachi
-// @homepage     https://github.com/book000/twitter-auto-spam-crawler
-// @match        https://x.com/*
-// @match        https://example.com/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=x.com
-// @updateURL    https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js
-// @downloadURL  https://github.com/book000/twitter-auto-spam-crawler/releases/latest/download/twitter-auto-spam-crawler.user.js
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_registerMenuCommand
-// @grant        GM_unregisterMenuCommand
-// @require      https://update.greasyfork.org/scripts/470224/1303666/Tampermonkey%20Config.js
-// ==/UserScript==
-```
-
-## パフォーマンス最適化
-
-### バンドルサイズ最適化
-
-- 不要なライブラリの除外
-- Tree shakingによる未使用コードの削除
-- TypeScriptの最適化設定
-
-### ユーザースクリプト特有の考慮事項
-
-- **最小化を無効**: セキュリティ検証とデバッグの容易さ
-- **外部依存関係の最小化**: ユーザースクリプト環境での安定性
-- **DOM準備完了の確実な待機**: ページ読み込みタイミング対応
+`.github/workflows/release.yml` runs on every push to the default branch. It computes the next version from the commit types with `mathieudutour/github-tag-action`, writes it into `package.json` with `pnpm version`, runs `pnpm run build` and attaches `dist/twitter-auto-spam-crawler.user.js` to the GitHub release. The version in `package.json` on the default branch is therefore not the released version.

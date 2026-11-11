@@ -50,7 +50,7 @@ export default function webpackConfig(environment, argv) {
       clean: true,
     },
     optimization: {
-      minimize: false, // UserScriptでは可読性を保つため最小化しない
+      minimize: false, // Do not minify, so the userscript stays readable and reviewable
     },
     devtool: isProduction ? false : 'inline-source-map',
     mode: argv.mode,

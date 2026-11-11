@@ -1,146 +1,96 @@
 # 🛠️ Contributing
 
-Thanks for your interest in contributing to twitter-auto-spam-crawler! 🙏  
+Thanks for your interest in contributing to twitter-auto-spam-crawler! 🙏
 Any contribution to this project is more than welcome 🚀
 
-開発に参加する場合は、本文書をお読みください。
+Please read this document before you start.
 
 ## 📩 Reporting Issues
 
-新機能の提案・不具合の報告は、このリポジトリの Issues に記載してください。
-
-重複を避けるため、既に存在している Issue がないか確認をおねがいします。また、複数の問題がある場合は、それぞれ個別に追加してください。
+Report bugs and propose features in this repository's Issues. Check that a similar Issue does not exist yet, and file separate Issues for separate problems.
 
 ## 🚀 Pull Requests
 
-単純な誤字や小さな変更でも、プルリクエストは大歓迎です！
+Pull requests are welcome, even for typos and small changes.
 
 ### Development Setup
 
-開発を開始するには、以下の手順で準備を行ってください。
+**Requirements:** the Node.js version in [`.node-version`](../.node-version) and the pnpm version in the `packageManager` field of [`package.json`](../package.json).
 
-**Requirements:**
-- Node.js 24.1.0
-- pnpm 9.15.4+
+1. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository and [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) it.
+2. Run `pnpm install`.
+3. Start the development build: `pnpm run watch`. The bundle is written to `dist/twitter-auto-spam-crawler.user.js`; install it in your userscript manager to try it.
 
-**Setup:**
-1. リポジトリを [Fork](https://docs.github.com/ja/github/getting-started-with-github/fork-a-repo) し、ローカルへ [clone](https://docs.github.com/ja/github/creating-cloning-and-archiving-repositories/cloning-a-repository) します。
-2. `pnpm install` を実行し、必要なパッケージをインストールします。
-3. 開発用ビルドで開発を開始します: `pnpm run watch`
+Do not run the script against real X accounts while developing automated tests; the tests use jsdom and mocks only.
 
 ### Development Commands
 
 | Command | Description |
 |---------|-------------|
-| `pnpm run build` | Build production userscript |
-| `pnpm run build:dev` | Build with source maps |
-| `pnpm run watch` | Development watch mode |
-| `pnpm test` | Run tests with coverage |
-| `pnpm run lint` | Lint code (ESLint + Prettier + TypeScript) |
-| `pnpm run fix` | Auto-fix linting issues |
-| `pnpm run clean` | Clean dist directory |
+| `pnpm run build` | Build the production userscript |
+| `pnpm run build:dev` | Build with inline source maps |
+| `pnpm run watch` | Rebuild on change |
+| `pnpm test` | Run the tests with coverage |
+| `pnpm run lint` | Run Prettier, ESLint and the TypeScript type check |
+| `pnpm run fix` | Auto-fix Prettier and ESLint issues |
+| `pnpm run clean` | Remove the `dist` directory |
 
 ### Git Workflow
 
-このプロジェクトでは以下のGitワークフローに従ってください：
-
-1. **ブランチ作成**: `git checkout -b feature/your-feature origin/master --no-track`
-2. **開発**: コードを変更し、テストを追加
-3. **品質チェック**: `pnpm run lint && pnpm test` を実行
-4. **コミット**: 適切なコミットメッセージでコミット
-5. **プッシュ**: `git push origin HEAD`
-6. **Pull Request**: GitHubでPRを作成
+1. Create a branch from the default branch: `git checkout -b feat/your-feature origin/master --no-track`
+2. Change the code and add or update tests.
+3. Run `pnpm run lint && pnpm test`.
+4. Commit using the conventions below.
+5. Push the branch to your fork and open a pull request on GitHub.
 
 ### Commit Conventions
 
-コミットメッセージの規約として [Conventional Commits](https://www.conventionalcommits.org/) を採用しています。以下ルールに従って、コミットメッセージを記述してください。
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/), written in English. The allowed types are:
 
-**許可されている型:**
-- **feat**: 新しい機能の追加
-- **fix**: 不具合の修正
-- **docs**: ドキュメントの更新
-- **perf**: パフォーマンスの改善
-- **refactor**: リファクタリング
-- **style**: コードスタイルの変更
-- **test**: テストに関連する変更
-- **chore**: その他の変更
+- **feat**: a new feature
+- **fix**: a bug fix
+- **docs**: documentation changes
+- **perf**: performance improvements
+- **refactor**: refactoring
+- **style**: code style changes
+- **test**: test changes
+- **chore**: everything else
 
-**例:**
+The type decides the version bump of the automated release (`.github/workflows/release.yml`), so pick it carefully.
+
+Example:
+
 ```
 feat: add Discord webhook integration
 
 - Add NotificationService for Discord alerts
 - Support webhook URL configuration
-- Include embed formatting for spam detection alerts
 ```
 
 ### Code Quality Standards
 
-このプロジェクトでは以下の品質基準を維持しています：
-
 - **TypeScript**: strict mode
 - **ESLint**: [@book000/eslint-config](https://www.npmjs.com/package/@book000/eslint-config)
-- **Prettier**: コードフォーマット
-- **Jest**: テストカバレッジ
-- **120秒タイムアウト**: 長時間テスト対応
+- **Prettier**: code formatting
+- **Jest**: tests with coverage (120 second test timeout, fake timers enabled globally)
 
-変更をコミットする前に `pnpm run lint` を実行してエラーとならないことを確認してください。
+Make sure `pnpm run lint` and `pnpm test` pass before you commit.
 
-### Project Architecture
+### Userscript specifics
 
-このプロジェクトは以下のアーキテクチャに従っています：
+- The script uses userscript-only APIs (`GM_getValue`, `GM_setValue`, ...). Each Tampermonkey `GM_*` API the code calls must be listed in `package.json` under `userscript.grant`; globals from the `@require`d library (`GM_config`) are not granted.
+- It relies on X.com specific selectors, which can break when the site changes.
+- Webpack builds `src/main.ts` into a single `.user.js` file; the `==UserScript==` header is generated from `package.json`.
 
-```
-src/
-├── core/           # Configuration, constants, storage
-├── pages/          # Page-specific handlers  
-├── services/       # Business logic services
-├── types/          # TypeScript definitions
-└── utils/          # Utility functions
-```
-
-**主要サービス:**
-- `CrawlerService` - メインクロール処理の統制
-- `TweetService` - ツイート抽出・保存
-- `QueueService` - ツイートキュー管理
-- `NotificationService` - Discord Webhook連携
-
-### Userscript Specifics
-
-このプロジェクトはユーザースクリプトとして動作するため、以下の特殊事項があります：
-
-- **GM_* APIs**: ユーザースクリプト専用API（GM_getValue/GM_setValue等）を使用
-- **DOM操作**: X.com固有のセレクターを使用（サイト変更で影響を受ける可能性）
-- **ビルドターゲット**: Webpack でコンパイルし .user.js ファイルを生成
-- **実行環境**: Tampermonkey/Greasemonkey での動作を前提
-
-### Testing Guidelines
-
-テストは以下の方針で実装してください：
-
-- **Jest + jsdom**: ブラウザ環境をシミュレート
-- **フェイクタイマー**: `jest.useFakeTimers()` でタイマー依存テストを実装
-- **モック**: `src/__mocks__/userscript.ts` でGM_*APIをモック
-- **カバレッジ**: 新機能には適切なテストを追加
-
-### IDE Setup
-
-[Visual Studio Code](https://code.visualstudio.com/) の使用を推奨しています。
-
-**推奨拡張機能:**
-- ESLint
-- Prettier
-- TypeScript and JavaScript Language Features
+For the architecture, build and test details, see the guides below.
 
 ## 📚 Additional Resources
 
-詳細なアーキテクチャ情報については、以下のドキュメントを参照してください：
-
-- [Architecture Guide](.claude/architecture.md)
-- [Build System](.claude/build-system.md)
-- [Development Patterns](.claude/development-patterns.md)
-- [Testing Guide](.claude/testing-guide.md)
+- [AGENTS.md](../AGENTS.md): conventions and project structure
+- [Architecture Guide](../.claude/architecture.md)
+- [Build System](../.claude/build-system.md)
+- [Testing Guide](../.claude/testing-guide.md)
 
 ## 📑 License
 
-このプロジェクトに貢献することで、あなたの貢献が MIT License の下でライセンスされることに同意したものとみなされます。
+By contributing to this project, you agree that your contributions are licensed under the MIT License.
