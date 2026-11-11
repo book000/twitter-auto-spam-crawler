@@ -1,27 +1,26 @@
 import type { StorageData, StorageKey, Tweet } from '@/types'
 
 /**
- * ユーザースクリプトGM_getValue/GM_setValue APIを使用したタイプセーフなストレージ抽象化層。
- * ツイートデータとアプリケーション状態のための強力に型付けされた永続ストレージアクセスを提供。
+ * Typed wrapper around GM_getValue / GM_setValue for the persisted crawler
+ * state.
  *
- * パフォーマンス最適化:
- * - チェック済み/待機中ツイートIDにSetを使用してO(1)ルックアップを実現
- * - 保存済みツイートにMapを使用して効率的な更新を実現
+ * The checked and waiting tweet IDs are cached as Sets and the saved tweets as
+ * a Map, because they are looked up and updated on every crawl tick. Every
+ * setter that writes one of these collections refreshes its cache.
  */
 export class Storage {
-  /** チェック済みツイートIDのキャッシュ */
+  /** Cache of the checked tweet IDs */
   private static _checkedTweetsSet: Set<string> | null = null
-  /** 待機中ツイートIDのキャッシュ */
+  /** Cache of the waiting tweet IDs */
   private static _waitingTweetsSet: Set<string> | null = null
-  /** 保存済みツイートのキャッシュ */
+  /** Cache of the saved tweets, keyed by tweet ID */
   private static _savedTweetsMap: Map<string, Tweet> | null = null
 
   /**
-   * ストレージから値を取得する
+   * Reads a value from storage.
    *
-   * @param key - 取得するキー
-   * @param defaultValue - デフォルト値
-   * @returns 取得した値
+   * @param key - Storage key to read
+   * @param defaultValue - Value returned when the key is not stored
    */
   static getValue<K extends StorageKey>(
     key: K,
@@ -31,69 +30,60 @@ export class Storage {
   }
 
   /**
-   * ストレージに値を保存する
+   * Writes a value to storage.
    *
-   * @param key - 保存するキー
-   * @param value - 保存する値
+   * @param key - Storage key to write
+   * @param value - Value to store
    */
   static setValue<K extends StorageKey>(key: K, value: StorageData[K]): void {
     GM_setValue(key, value)
   }
 
-  /**
-   * チェック済みツイートIDの配列を取得する
-   *
-   * @returns チェック済みツイートIDの配列
-   */
+  /** Reads the checked tweet IDs from storage, bypassing the cache. */
   static getCheckedTweets(): string[] {
     return Storage.getValue('checkedTweets', [])
   }
 
   /**
-   * チェック済みツイートIDのSetを取得（キャッシュ付き）
-   * O(1)ルックアップのための最適化
+   * Gets the cached Set of checked tweet IDs, loading it from storage on first
+   * use.
    *
-   * @returns チェック済みツイートIDのSet
+   * The returned Set is the cache itself: mutations are visible to later
+   * callers but are persisted only through a setter.
    */
   static getCheckedTweetsSet(): Set<string> {
     Storage._checkedTweetsSet ??= new Set(Storage.getCheckedTweets())
     return Storage._checkedTweetsSet
   }
 
-  /**
-   * 待機中ツイートIDの配列を取得する
-   *
-   * @returns 待機中ツイートIDの配列
-   */
+  /** Reads the waiting tweet IDs from storage, bypassing the cache. */
   static getWaitingTweets(): string[] {
     return Storage.getValue('waitingTweets', [])
   }
 
   /**
-   * 待機中ツイートIDのSetを取得（キャッシュ付き）
-   * O(1)ルックアップのための最適化
+   * Gets the cached Set of waiting tweet IDs, loading it from storage on first
+   * use.
    *
-   * @returns 待機中ツイートIDのSet
+   * The returned Set is the cache itself: mutations are visible to later
+   * callers but are persisted only through a setter.
    */
   static getWaitingTweetsSet(): Set<string> {
     Storage._waitingTweetsSet ??= new Set(Storage.getWaitingTweets())
     return Storage._waitingTweetsSet
   }
 
-  /**
-   * 保存済みツイートの配列を取得する
-   *
-   * @returns 保存済みツイートの配列
-   */
+  /** Reads the saved tweets from storage, bypassing the cache. */
   static getSavedTweets() {
     return Storage.getValue('savedTweets', [])
   }
 
   /**
-   * 保存済みツイートのMapを取得（キャッシュ付き）
-   * O(1)ルックアップと更新のための最適化
+   * Gets the cached Map of saved tweets keyed by tweet ID, loading it from
+   * storage on first use.
    *
-   * @returns 保存済みツイートのMap（キー: tweetId）
+   * The returned Map is the cache itself: mutations are visible to later
+   * callers but are persisted only through a setter.
    */
   static getSavedTweetsMap(): Map<string, Tweet> {
     Storage._savedTweetsMap ??= new Map(
@@ -102,127 +92,79 @@ export class Storage {
     return Storage._savedTweetsMap
   }
 
-  /**
-   * ログイン通知済みかどうかを取得する
-   *
-   * @returns ログイン通知済みの場合 true
-   */
+  /** Whether the login-required notification got a response from Discord. */
   static isLoginNotified(): boolean {
     return Storage.getValue('isLoginNotified', false)
   }
 
   /**
-   * ロック通知済みかどうかを取得する
-   *
-   * @returns ロック通知済みの場合 true
+   * Whether the account-locked notification has been requested. It is set
+   * before the notify window opens and is not cleared if sending fails.
    */
   static isLockedNotified(): boolean {
     return Storage.getValue('isLockedNotified', false)
   }
 
-  /**
-   * リトライ回数を取得する
-   *
-   * @returns 現在のリトライ回数
-   */
   static getRetryCount(): number {
     return Storage.getValue('retryCount', 0)
   }
 
-  /**
-   * チェック済みツイートIDの配列を保存する
-   *
-   * @param tweets - 保存するツイートIDの配列
-   */
+  /** Replaces the checked tweet IDs in storage and refreshes the cache. */
   static setCheckedTweets(tweets: string[]): void {
     Storage.setValue('checkedTweets', tweets)
-    // キャッシュを更新
     Storage._checkedTweetsSet = new Set(tweets)
   }
 
-  /**
-   * 待機中ツイートIDの配列を保存する
-   *
-   * @param tweets - 保存するツイートIDの配列
-   */
+  /** Replaces the waiting tweet IDs in storage and refreshes the cache. */
   static setWaitingTweets(tweets: string[]): void {
     Storage.setValue('waitingTweets', tweets)
-    // キャッシュを更新
     Storage._waitingTweetsSet = new Set(tweets)
   }
 
-  /**
-   * 保存済みツイートの配列を保存する
-   *
-   * @param tweets - 保存するツイートの配列
-   */
+  /** Replaces the saved tweets in storage and refreshes the cache. */
   static setSavedTweets(tweets: StorageData['savedTweets']): void {
     Storage.setValue('savedTweets', tweets)
-    // キャッシュを更新
     Storage._savedTweetsMap = new Map(
       tweets.map((tweet) => [tweet.tweetId, tweet])
     )
   }
 
-  /**
-   * ログイン通知済みフラグを保存する
-   *
-   * @param value - 保存する値
-   */
+  /** Stores whether the login-required notification got a response. */
   static setLoginNotified(value: boolean): void {
     Storage.setValue('isLoginNotified', value)
   }
 
-  /**
-   * ロック通知済みフラグを保存する
-   *
-   * @param value - 保存する値
-   */
+  /** Stores whether the account-locked notification has been requested. */
   static setLockedNotified(value: boolean): void {
     Storage.setValue('isLockedNotified', value)
   }
 
-  /**
-   * リトライ回数を保存する
-   *
-   * @param count - 保存するリトライ回数
-   */
   static setRetryCount(count: number): void {
     Storage.setValue('retryCount', count)
   }
 
   /**
-   * 保存済みバージョンを取得する
+   * Gets the script version recorded by the last version check.
    *
-   * @returns 保存済みバージョン文字列
+   * @returns The version, or an empty string if none has been recorded.
    */
   static getStoredVersion(): string {
     return Storage.getValue('storedVersion', '')
   }
 
-  /**
-   * バージョンを保存する
-   *
-   * @param version - 保存するバージョン文字列
-   */
+  /** Records the script version for the next version check. */
   static setStoredVersion(version: string): void {
     Storage.setValue('storedVersion', version)
   }
 
-  /**
-   * キャッシュをクリア（主にテスト用）
-   */
+  /** Drops all in-memory caches so they reload from storage (for tests). */
   static clearCache(): void {
     Storage._checkedTweetsSet = null
     Storage._waitingTweetsSet = null
     Storage._savedTweetsMap = null
   }
 
-  /**
-   * バッチ処理: 複数のツイートIDを一度にチェック済みに追加
-   *
-   * @param tweetIds - 追加するツイートIDの配列
-   */
+  /** Adds tweet IDs to the checked set with a single storage write. */
   static addCheckedTweetsBatch(tweetIds: string[]): void {
     const checkedTweetsSet = Storage.getCheckedTweetsSet()
     for (const tweetId of tweetIds) {
@@ -231,11 +173,7 @@ export class Storage {
     Storage.setCheckedTweets([...checkedTweetsSet])
   }
 
-  /**
-   * バッチ処理: 複数のツイートIDを一度に待機中に追加
-   *
-   * @param tweetIds - 追加するツイートIDの配列
-   */
+  /** Adds tweet IDs to the waiting set with a single storage write. */
   static addWaitingTweetsBatch(tweetIds: string[]): void {
     const waitingTweetsSet = Storage.getWaitingTweetsSet()
     for (const tweetId of tweetIds) {
@@ -245,9 +183,8 @@ export class Storage {
   }
 
   /**
-   * バッチ処理: 複数のツイートを一度に保存
-   *
-   * @param tweets - 保存するツイートの配列
+   * Upserts tweets by ID and stores all saved tweets sorted by tweet ID (string
+   * comparison) with a single storage write.
    */
   static saveTweetsBatch(tweets: Tweet[]): void {
     const savedTweetsMap = Storage.getSavedTweetsMap()
@@ -261,12 +198,7 @@ export class Storage {
     Storage.setSavedTweets(sortedTweets)
   }
 
-  /**
-   * 特定のツイートIDがチェック済みか待機中かを一度にチェック
-   *
-   * @param tweetId - チェックするツイートID
-   * @returns チェック済みと待機中の状態を含むオブジェクト
-   */
+  /** Looks up whether a tweet ID is in the checked and/or waiting set. */
   static getTweetStatus(tweetId: string): {
     isChecked: boolean
     isWaiting: boolean
@@ -277,20 +209,17 @@ export class Storage {
     }
   }
 
-  /**
-   * 保存済みツイートから特定のIDで検索
-   *
-   * @param tweetId - 検索するツイートID
-   * @returns ツイートオブジェクトまたはundefined
-   */
+  /** Finds a saved tweet by ID, or `undefined` if it is not saved. */
   static getSavedTweetById(tweetId: string): Tweet | undefined {
     return Storage.getSavedTweetsMap().get(tweetId)
   }
 
   /**
-   * ストレージの統計情報を取得
+   * Gets the number of checked, waiting and saved tweets, plus the sizes of the
+   * in-memory caches.
    *
-   * @returns ストレージの統計情報（件数とメモリ使用状況）
+   * Reading the counts loads any cache that is still empty, so the cache sizes
+   * always equal the counts.
    */
   static getStorageStats(): {
     checkedTweetsCount: number

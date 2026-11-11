@@ -3,51 +3,41 @@ import { DELAYS } from '@/core/constants'
 import { AsyncUtils } from '@/utils/async'
 
 /**
- * ツイート処理キューと状態遷移を管理するサービス。
- * 待機状態と確認済み状態間のツイートステータス追跡を処理。
+ * Tracks which tweets are waiting to be processed and which are done.
+ *
+ * Membership checks use the cached Sets from `Storage`.
  */
 export const QueueService = {
-  /**
-   * ツイートが既に処理済みかどうかをチェック。
-   * @param tweetId - チェックするツイートID
-   * @returns ツイートが処理済みの場合true
-   */
+  /** Whether the tweet has already been processed. */
   isCheckedTweet(tweetId: string): boolean {
-    // O(1)ルックアップのためにSetを使用
     const checkedTweetsSet = Storage.getCheckedTweetsSet()
     return checkedTweetsSet.has(tweetId)
   },
 
-  /**
-   * ツイートが現在待機キューにあるかどうかをチェック。
-   * @param tweetId - チェックするツイートID
-   * @returns ツイートが処理待ちの場合true
-   */
+  /** Whether the tweet is in the waiting queue. */
   isWaitingTweet(tweetId: string): boolean {
-    // O(1)ルックアップのためにSetを使用
     const waitingTweetsSet = Storage.getWaitingTweetsSet()
     return waitingTweetsSet.has(tweetId)
   },
 
   /**
-   * 複数のツイートを処理用の待機キューに追加。
-   * @param tweetIds - キューに追加するツイートIDの配列
+   * Adds tweet IDs to the waiting queue (IDs already queued are ignored), then
+   * waits one crawl interval.
    */
   async addWaitingTweets(tweetIds: string[]): Promise<void> {
     const waitingTweetsSet = Storage.getWaitingTweetsSet()
-    // 重複を自動的に除去して追加
     for (const tweetId of tweetIds) {
       waitingTweetsSet.add(tweetId)
     }
-    // Setを配列に変換して保存
     Storage.setWaitingTweets([...waitingTweetsSet])
 
     await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
 
   /**
-   * 待機キューから次のツイートIDを取得。
-   * @returns 処理する次のツイートID、またはキューが空の場合null
+   * Gets the oldest waiting tweet ID without removing it.
+   *
+   * @returns The tweet ID, or `null` if the queue is empty.
    */
   getNextWaitingTweet(): string | null {
     const waitingTweets = Storage.getWaitingTweets()
@@ -55,18 +45,16 @@ export const QueueService = {
   },
 
   /**
-   * ツイートを処理済みとしてマークし、待機キューから削除。
-   * @param tweetId - 処理済みとしてマークするツイートID
+   * Marks the tweet as checked and removes it from the waiting queue, then
+   * waits one crawl interval.
    */
   async checkedTweet(tweetId: string): Promise<void> {
     console.log(`checkedTweet: ${tweetId}`)
 
-    // チェック済みに追加
     const checkedTweetsSet = Storage.getCheckedTweetsSet()
     checkedTweetsSet.add(tweetId)
     Storage.setCheckedTweets([...checkedTweetsSet])
 
-    // 待機中から削除
     const waitingTweetsSet = Storage.getWaitingTweetsSet()
     if (waitingTweetsSet.has(tweetId)) {
       waitingTweetsSet.delete(tweetId)
@@ -76,9 +64,6 @@ export const QueueService = {
     await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
 
-  /**
-   * 待機キューからすべてのツイートをクリア。
-   */
   resetWaitingQueue(): void {
     Storage.setWaitingTweets([])
   },

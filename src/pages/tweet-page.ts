@@ -9,7 +9,23 @@ import { ScrollUtils } from '@/utils/scroll'
 import { ErrorHandler } from '@/utils/error'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
+/** The crawl loop for a single tweet page. */
 export const TweetPage = {
+  /**
+   * Crawls the current tweet page, or, with `onlyOpen`, navigates to the next
+   * page to crawl.
+   *
+   * Crawling scrolls through the replies. If no tweet was crawled it goes to
+   * the bookmark page; otherwise it marks the tweet as checked and moves on.
+   * A deleted or unprocessable tweet is marked as checked and skipped. Failing
+   * to load the tweet reloads the page up to `THRESHOLDS.MAX_RETRY_COUNT`
+   * times in a row, and the next failure skips it as well.
+   *
+   * @param onlyOpen - Do not crawl; go to the download page if the saved
+   *   tweets exceed the limit, to the next waiting tweet, or to the bookmark
+   *   page if none is waiting
+   * @returns A promise that resolves when this page's work has finished
+   */
   async run(onlyOpen = false): Promise<void> {
     if (DomUtils.checkAndNavigateToLogin()) {
       return

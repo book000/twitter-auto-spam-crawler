@@ -2,6 +2,7 @@ import type { Tweet } from '@/types'
 import { TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 
+/** Child elements of a tweet article that are read on every crawl tick. */
 interface CachedTweetElements {
   tweetElement?: Element | null
   textElement?: Element | null
@@ -10,6 +11,13 @@ interface CachedTweetElements {
   likeButton?: Element | null
 }
 
+/**
+ * Memoizes the child element lookups of each tweet article, so repeated crawl
+ * ticks do not re-run the selectors. Entries are keyed weakly and are dropped
+ * with their DOM nodes.
+ *
+ * A lookup that found nothing is cached as well and is not retried.
+ */
 class TweetElementCache {
   private static cache = new WeakMap<Element, CachedTweetElements>()
 
@@ -47,14 +55,19 @@ class TweetElementCache {
 }
 
 /**
- * DOMからツイートを抽出、フィルタリング、管理するサービス。
- * ツイートデータの抽出、エンゲージメント指標の解析、ストレージ操作を処理。
+ * Scrapes tweets from the DOM, filters them by engagement, and persists them
+ * for export.
  */
 export const TweetService = {
   /**
-   * 現在のページのDOMからツイートデータを抽出。
-   * ツイート要素を解析してメタデータ、コンテンツ、エンゲージメント指標を抽出。
-   * @returns ツイートオブジェクトの配列、または抽出失敗時はnull
+   * Extracts the tweets currently rendered on the page.
+   *
+   * Articles whose link does not match `TWEET_URL_REGEX` are skipped.
+   * Engagement counts are the first run of digits in the button's aria-label,
+   * or `"0"`.
+   *
+   * @returns The tweets (empty if no article has a matching link), or `null`
+   * as soon as one article has no tweet link element.
    */
   getTweets(): Tweet[] | null {
     const tweetArticleElements = document.querySelectorAll(
@@ -121,20 +134,15 @@ export const TweetService = {
     return tweets
   },
 
-  /**
-   * ツイートを永続ストレージに保存。既存のツイートがある場合は更新。
-   * @param tweets - 保存するツイートの配列
-   */
+  /** Saves tweets to storage, replacing any saved tweet with the same ID. */
   saveTweets(tweets: Tweet[]): void {
-    // O(1)ルックアップと更新のためにMapを使用
     const savedTweetsMap = Storage.getSavedTweetsMap()
 
-    // バッチ更新
     for (const newTweet of tweets) {
       savedTweetsMap.set(newTweet.tweetId, newTweet)
     }
 
-    // ツイートIDでソートして順序の一貫性を保証
+    // Sort by tweet ID so the stored order is stable
     const sortedTweets = savedTweetsMap
       .values()
       .toArray()
@@ -142,19 +150,18 @@ export const TweetService = {
     Storage.setSavedTweets(sortedTweets)
   },
 
-  /**
-   * 保存されたツイート数がダウンロード闾値を超えているかチェック。
-   * @returns ダウンロードが必要な場合true、そうでなければfalse
-   */
+  /** Whether the saved tweets exceed `THRESHOLDS.SAVED_TWEETS_LIMIT`. */
   isNeedDownload(): boolean {
     const tweets = Storage.getSavedTweets()
     return tweets.length > THRESHOLDS.SAVED_TWEETS_LIMIT
   },
 
   /**
-   * 保存されたツイートをJSONファイルとしてダウンロードし、ストレージをクリア。
-   * ダウンロード可能なブロブを作成し、ブラウザーのダウンロードをトリガー。
-   * @returns ダウンロードが成功した場合true
+   * Downloads the saved tweets as a JSON file by clicking a link appended to
+   * `document.body` (neither the link nor the object URL is cleaned up), then
+   * clears the saved tweets right away without waiting for the download.
+   *
+   * @returns Always `true`.
    */
   downloadTweets(): boolean {
     const tweets = Storage.getSavedTweets()
@@ -180,9 +187,8 @@ export const TweetService = {
   },
 
   /**
-   * エンゲージメント闾値（リツイートとリプライ）に基づいてツイートをフィルタリング。
-   * @param tweets - フィルタリングするツイートの配列
-   * @returns エンゲージメント条件を満たすツイートの配列
+   * Keeps the tweets whose retweet and reply counts both reach
+   * `THRESHOLDS.RETWEET_COUNT` and `THRESHOLDS.REPLY_COUNT`.
    */
   getTargetTweets(tweets: Tweet[]): Tweet[] {
     return tweets.filter(

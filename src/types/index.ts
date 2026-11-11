@@ -1,72 +1,70 @@
 /**
- * Twitter/Xのツイートとそのメタデータ、エンゲージメント指標を表す
+ * A tweet scraped from the page, with its metadata and engagement counts.
  */
 export interface Tweet {
-  /** ツイートの完全なURL */
+  /** Absolute URL of the tweet */
   url: string
-  /** ツイートのプレーンテキストコンテンツ */
+  /** Plain text of the tweet body; `null` if the body element is absent */
   tweetText: string | null
-  /** ツイートのHTMLコンテンツ */
+  /** HTML of the tweet body; `null` if the body element is absent */
   tweetHtml: string | null
-  /** ツイート要素の完全なHTML */
+  /** Inner HTML of the whole tweet article element */
   elementHtml: string
-  /** ツイート作成者のユーザー名 */
+  /** Screen name (handle) of the author, taken from the tweet URL */
   screenName: string
-  /** ツイートの一意識別子 */
+  /** Tweet ID, taken from the tweet URL */
   tweetId: string
-  /** リプライ数（文字列） */
+  /** Reply count as a digit string; `"0"` if it could not be read */
   replyCount: string
-  /** リツイート数（文字列） */
+  /** Retweet count as a digit string; `"0"` if it could not be read */
   retweetCount: string
-  /** いいね数（文字列） */
+  /** Like count as a digit string; `"0"` if it could not be read */
   likeCount: string
 }
 
 /**
- * 異なるTwitter/Xページのページルーティング設定を定義
+ * Maps a URL to the page handler that should run on it.
  */
 export interface PageMethod {
-  /** マッチするURLパターン（文字列または正規表現） */
+  /** URL prefix (`startsWith`) or pattern (`regex`) to match */
   url: string | RegExp
-  /** 実行するURLマッチングのタイプ */
+  /** How `url` is matched against `location.href` */
   urlType: 'startsWith' | 'regex'
-  /** URLがマッチした時に実行する関数 */
+  /** Handler to run when the URL matches */
   run: () => void | Promise<void>
 }
 
 /**
- * ユーザースクリプトのユーザー設定
+ * User settings stored through GM_config. Does not list `authWebhookUrl` and
+ * `lockWebhookUrl`.
  */
 export interface Config {
-  /** 通知用のDiscord Webhook URL */
+  /** Default Discord webhook URL for notifications */
   discordWebhookUrl: string
-  /** ツイートエクスポート用のユーザーコメント */
+  /** Comment appended to every Discord message */
   comment: string
-  /** ホームタイムラインのみを処理するかどうか */
+  /** Whether to crawl only the home page, stored as `"true"` or `"false"` */
   isOnlyHome: string
 }
 
 /**
- * ユーザースクリプトAPIを使用した永続ストレージのデータ構造
+ * Values persisted through GM_getValue / GM_setValue, keyed by storage key.
  */
 export interface StorageData {
-  /** 処理済みのツイートIDの配列 */
+  /** IDs of tweets that have already been processed */
   checkedTweets: string[]
-  /** 処理待ちのツイートIDの配列 */
+  /** IDs of tweets queued for processing */
   waitingTweets: string[]
-  /** エクスポート用の完全なツイートオブジェクトの配列 */
+  /** Scraped tweets waiting to be exported as JSON */
   savedTweets: Tweet[]
-  /** ログイン通知が送信されたかどうか */
+  /** Whether the login-required notification got a response from Discord */
   isLoginNotified: boolean
-  /** アカウントロック通知が送信されたかどうか */
+  /** Whether the account-locked notification has been requested */
   isLockedNotified: boolean
-  /** リトライ試行回数 */
+  /** Consecutive failed attempts to load the current tweet page */
   retryCount: number
-  /** 保存されたスクリプトバージョン */
+  /** Script version recorded by the last version check */
   storedVersion: string
 }
 
-/**
- * ストレージデータにアクセスするためのタイプセーフなキー
- */
 export type StorageKey = keyof StorageData

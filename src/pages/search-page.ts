@@ -6,7 +6,16 @@ import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
+/** The search and trending pages. */
 export const SearchPage = {
+  /**
+   * Switches the search to the live (latest) tab if it is not already; the
+   * page reloads and `run` starts over. Otherwise it scrolls the results to
+   * load tweets for the crawler and moves on to the next tweet.
+   * Reloads the page if no tweet appears.
+   *
+   * @returns A promise that resolves when the page's work has finished
+   */
   async run(): Promise<void> {
     if (DomUtils.checkAndNavigateToLogin()) {
       return

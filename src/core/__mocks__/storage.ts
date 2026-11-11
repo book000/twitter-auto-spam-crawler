@@ -1,25 +1,19 @@
 import type { StorageData, StorageKey, Tweet } from '../../types'
 
 /**
- * Storage mock for testing
- * Provides both legacy array-based methods and optimized Set/Map methods
+ * Jest mock of `Storage` that delegates to the GM_getValue / GM_setValue
+ * globals and mirrors the Set/Map caches of the real implementation.
  */
 interface MockStorage {
   _checkedTweetsSet: Set<string> | null
   _waitingTweetsSet: Set<string> | null
   _savedTweetsMap: Map<string, Tweet> | null
-  /**
-   * キーと戻り値の型相関を保持した generic 型付き getValue モック。
-   * テスト内でキーに応じた型安全な値取得を保証する。
-   */
+  /** Generic so that the value type follows the key, as in `Storage`. */
   getValue<K extends StorageKey>(
     key: K,
     defaultValue: StorageData[K]
   ): StorageData[K]
-  /**
-   * キーと値の型相関を保持した generic 型付き setValue モック。
-   * テスト内でキーに応じた型安全な値設定を保証する。
-   */
+  /** Generic so that the value type follows the key, as in `Storage`. */
   setValue<K extends StorageKey>(key: K, value: StorageData[K]): void
   getCheckedTweets: jest.MockedFunction<() => string[]>
   getWaitingTweets: jest.MockedFunction<() => string[]>
@@ -132,7 +126,6 @@ const mockStorage: MockStorage = {
     GM_setValue('storedVersion', version)
   }),
 
-  // New optimized methods
   getCheckedTweetsSet: jest.fn((): Set<string> => {
     mockStorage._checkedTweetsSet ??= new Set(mockStorage.getCheckedTweets())
     return mockStorage._checkedTweetsSet

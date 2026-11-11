@@ -1,23 +1,12 @@
-/**
- * 非同期処理用のユーティリティ関数群
- */
+/** Promise-based timing helpers: delays, timeouts and retries. */
 export const AsyncUtils = {
   /**
-   * 指定した時間だけ処理を遅延する
+   * Waits for the given time.
    *
-   * @param ms - 遅延時間（ミリ秒）
-   * @param signal - AbortSignal（キャンセル用）
-   * @returns Promise<void>
-   *
-   * @example
-   * ```typescript
-   * // 1秒待機
-   * await AsyncUtils.delay(1000)
-   *
-   * // キャンセル可能な待機
-   * const controller = new AbortController()
-   * await AsyncUtils.delay(5000, controller.signal)
-   * ```
+   * @param ms - Delay in milliseconds
+   * @param signal - Aborting it cancels the wait
+   * @returns A promise that resolves after `ms`, or rejects with an Error
+   *   if the signal is already aborted or is aborted during the wait
    */
   delay(ms: number, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -38,18 +27,12 @@ export const AsyncUtils = {
   },
 
   /**
-   * ランダムな時間だけ処理を遅延する
+   * Waits for a random time between `minMs` and `maxMs`.
    *
-   * @param minMs - 最小遅延時間
-   * @param maxMs - 最大遅延時間
-   * @param signal - AbortSignal
-   * @returns Promise<void>
-   *
-   * @example
-   * ```typescript
-   * // 500ms〜1500msの間でランダム遅延
-   * await AsyncUtils.randomDelay(500, 1500)
-   * ```
+   * @param minMs - Minimum delay in milliseconds
+   * @param maxMs - Maximum delay in milliseconds
+   * @param signal - Aborting it cancels the wait, as in {@link AsyncUtils.delay}
+   * @returns A promise with the same settle behavior as `delay`
    */
   randomDelay(
     minMs: number,
@@ -61,27 +44,13 @@ export const AsyncUtils = {
   },
 
   /**
-   * 指数バックオフによる遅延
+   * Waits for `baseMs * 2^attempt`, capped at `maxMs`.
    *
-   * @param baseMs - 基本遅延時間
-   * @param attempt - 試行回数（0から開始）
-   * @param maxMs - 最大遅延時間
-   * @param signal - AbortSignal
-   * @returns Promise<void>
-   *
-   * @example
-   * ```typescript
-   * // リトライ処理での使用
-   * for (let attempt = 0; attempt < maxRetries; attempt++) {
-   *   try {
-   *     await operation()
-   *     break
-   *   } catch (error) {
-   *     if (attempt === maxRetries - 1) throw error
-   *     await AsyncUtils.exponentialBackoff(1000, attempt, 10000)
-   *   }
-   * }
-   * ```
+   * @param baseMs - Delay for the first attempt, in milliseconds
+   * @param attempt - Zero-based attempt number
+   * @param maxMs - Upper bound of the delay in milliseconds
+   * @param signal - Aborting it cancels the wait, as in {@link AsyncUtils.delay}
+   * @returns A promise with the same settle behavior as `delay`
    */
   exponentialBackoff(
     baseMs: number,
@@ -94,21 +63,14 @@ export const AsyncUtils = {
   },
 
   /**
-   * タイムアウト付きPromise
+   * Races a promise against a timeout.
+   * The original promise is not cancelled when the timeout wins.
    *
-   * @param promise - 元のPromise
-   * @param timeoutMs - タイムアウト時間
-   * @param timeoutMessage - タイムアウト時のエラーメッセージ
-   * @returns Promise<T>
-   *
-   * @example
-   * ```typescript
-   * const result = await AsyncUtils.withTimeout(
-   *   fetchData(),
-   *   5000,
-   *   'Data fetch timed out'
-   * )
-   * ```
+   * @param promise - The promise to wait for
+   * @param timeoutMs - Timeout in milliseconds
+   * @param timeoutMessage - Message of the Error thrown on timeout
+   * @returns The settled value of `promise`
+   * @throws The rejection of `promise`, or an Error if the timeout elapses first
    */
   withTimeout<T>(
     promise: Promise<T>,
@@ -128,19 +90,13 @@ export const AsyncUtils = {
   },
 
   /**
-   * リトライ処理のヘルパー
+   * Runs an operation, retrying on failure with a delay between attempts.
    *
-   * @param operation - 実行する非同期操作
-   * @param options - リトライオプション
-   * @returns Promise<T>
-   *
-   * @example
-   * ```typescript
-   * const result = await AsyncUtils.retry(
-   *   () => unstableApiCall(),
-   *   { maxAttempts: 3, baseDelay: 1000 }
-   * )
-   * ```
+   * @param operation - The async operation to run
+   * @param options - Retry settings
+   * @returns The result of the first successful attempt
+   * @throws The error of the last attempt once `maxAttempts` is exhausted, or
+   *   the abort Error if the signal aborts while waiting between attempts
    */
   async retry<T>(
     operation: () => Promise<T>,
@@ -176,14 +132,14 @@ export const AsyncUtils = {
   },
 }
 
-/** リトライ処理のオプション */
+/** Options for {@link AsyncUtils.retry}. */
 export interface RetryOptions {
-  /** 最大試行回数（デフォルト: 3） */
+  /** Maximum number of attempts, including the first (default: 3) */
   maxAttempts?: number
-  /** 基本遅延時間（ミリ秒、デフォルト: 1000） */
+  /** Base delay between attempts in milliseconds (default: 1000) */
   baseDelay?: number
-  /** 指数バックオフを使用するか（デフォルト: true） */
+  /** Double the delay on each attempt, capped at 30 s (default: true) */
   useExponentialBackoff?: boolean
-  /** キャンセル用 AbortSignal */
+  /** Aborting it cancels the wait between attempts */
   signal?: AbortSignal
 }

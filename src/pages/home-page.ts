@@ -6,7 +6,17 @@ import { DomUtils } from '@/utils/dom'
 import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
+/** The home timeline crawl. */
 export const HomePage = {
+  /**
+   * Opens each timeline tab in turn and scrolls it to load tweets for the
+   * crawler. Afterwards it goes to the home page again if `isOnlyHome` is set,
+   * or to the explore page otherwise.
+   * A tab without tweets is skipped, but a failed page reloads the page.
+   *
+   * @returns A promise that resolves when this page's work has finished,
+   * including the early exits on a login redirect or a page error
+   */
   async run(): Promise<void> {
     if (DomUtils.checkAndNavigateToLogin()) {
       return

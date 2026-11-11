@@ -1,35 +1,13 @@
 // Types from userscript.d.ts are globally available
 
 /**
- * アプリケーション設定の管理を行うクラス
- *
- * Tampermonkey の GM_config を使用してユーザー設定の読み書きを行い、
- * メニューコマンドの登録とユーザーインターフェースを提供する。
- *
- * @example
- * ```typescript
- * // 設定メニューの登録
- * ConfigManager.registerMenuCommand()
- *
- * // Discord Webhook URL の取得
- * const webhookUrl = ConfigManager.getDiscordWebhookUrl()
- * ```
+ * Reads and registers the user settings, which are stored through the
+ * GM_config library and read back with GM_getValue.
  */
 export const ConfigManager = {
   /**
-   * Tampermonkey にユーザー設定メニューを登録する
-   *
-   * GM_config を使用して「設定」メニューを追加し、
-   * ユーザーがブラウザ上で設定を変更できるUIを提供する。
-   * Discord Webhook URL、コメント、ホーム限定モードの設定項目を含む。
-   *
-   * @throws {Error} GM_config が利用できない場合
-   *
-   * @example
-   * ```typescript
-   * // ページ読み込み時に設定メニューを登録
-   * ConfigManager.registerMenuCommand()
-   * ```
+   * Registers the settings menu in Tampermonkey and logs the event detail
+   * whenever the configuration changes.
    */
   registerMenuCommand(): void {
     GM_config(
@@ -69,40 +47,20 @@ export const ConfigManager = {
   },
 
   /**
-   * Discord Webhook URL を取得する
+   * Gets the default Discord webhook URL.
    *
-   * ユーザーが設定したDiscord Webhook URLを GM_getValue から取得する。
-   * 未設定の場合は空文字列を返す。
-   *
-   * @returns {string} ユーザーが設定したDiscord Webhook URL。
-   *                   未設定の場合は空文字列を返す。
-   *
-   * @example
-   * ```typescript
-   * const webhookUrl = ConfigManager.getDiscordWebhookUrl()
-   * if (webhookUrl) {
-   *   await NotificationService.notifyDiscord('メッセージ')
-   * }
-   * ```
+   * @returns The configured URL, or an empty string if it is not set.
    */
   getDiscordWebhookUrl(): string {
     return GM_getValue('discordWebhookUrl', '')
   },
 
   /**
-   * 認証関連通知用のDiscord Webhook URL を取得する
+   * Gets the webhook URL for login notifications (login required and login
+   * succeeded).
    *
-   * ログイン必要/ログイン成功通知用のWebhook URLを取得する。
-   * 未設定の場合はデフォルトのDiscord Webhook URLにフォールバックする。
-   *
-   * @returns {string} 認証関連通知用のWebhook URL。
-   *                   未設定の場合はデフォルトWebhook URLを返す。
-   *
-   * @example
-   * ```typescript
-   * const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
-   * await NotificationService.notifyDiscord('ログイン必要', undefined, false, authWebhookUrl)
-   * ```
+   * @returns The auth webhook URL, falling back to the default webhook URL
+   * when it is not set.
    */
   getAuthWebhookUrl(): string {
     const authUrl = GM_getValue('authWebhookUrl', '')
@@ -111,19 +69,10 @@ export const ConfigManager = {
   },
 
   /**
-   * ロック関連通知用のDiscord Webhook URL を取得する
+   * Gets the webhook URL for account lock and unlock notifications.
    *
-   * アカウントロック/ロック解除通知用のWebhook URLを取得する。
-   * 未設定の場合はデフォルトのDiscord Webhook URLにフォールバックする。
-   *
-   * @returns {string} ロック関連通知用のWebhook URL。
-   *                   未設定の場合はデフォルトWebhook URLを返す。
-   *
-   * @example
-   * ```typescript
-   * const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
-   * await NotificationService.notifyDiscord('アカウントロック', undefined, true, lockWebhookUrl)
-   * ```
+   * @returns The lock webhook URL, falling back to the default webhook URL
+   * when it is not set.
    */
   getLockWebhookUrl(): string {
     const lockUrl = GM_getValue('lockWebhookUrl', '')
@@ -132,39 +81,20 @@ export const ConfigManager = {
   },
 
   /**
-   * ツイート保存時のコメント設定を取得する
+   * Gets the user comment that is appended to every Discord message.
    *
-   * ユーザーが設定したコメント文字列を GM_getValue から取得する。
-   * このコメントはDiscord通知時にメッセージと一緒に送信される。
-   *
-   * @returns {string} ユーザーが設定したコメント文字列。
-   *                   未設定の場合は空文字列を返す。
-   *
-   * @example
-   * ```typescript
-   * const comment = ConfigManager.getComment()
-   * const tweetData = { ...tweet, comment }
-   * ```
+   * @returns The configured comment, or an empty string if it is not set.
    */
   getComment(): string {
     return GM_getValue('comment', '')
   },
 
   /**
-   * ホームページ限定モードの設定を取得する
+   * Gets whether crawling is restricted to the home page.
    *
-   * ユーザーが設定したホーム限定モードのオン/オフ状態を GM_getValue から取得する。
-   * true の場合、クロール処理はホームページでのみ実行される。
+   * The setting is stored as the string `'true'` or `'false'`.
    *
-   * @returns {boolean} true の場合、ホームページでのみクロール実行
-   *                    false の場合、全ページでクロール実行
-   *
-   * @example
-   * ```typescript
-   * if (ConfigManager.getIsOnlyHome() && !isHomePage()) {
-   *   return // ホーム限定モードでホーム以外なので終了
-   * }
-   * ```
+   * @returns `true` only when the stored value is `'true'`.
    */
   getIsOnlyHome(): boolean {
     const value = GM_getValue('isOnlyHome', 'false')
