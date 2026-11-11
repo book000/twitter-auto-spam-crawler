@@ -1,13 +1,17 @@
 import { Storage } from '@/core/storage'
 
 /**
- * バージョン管理とアップデート通知を処理するサービス
+ * Detects script updates and announces them on Discord.
  */
 export const VersionService = {
   /**
-   * 現在のスクリプトバージョンをチェックし、変更があればDiscordに通知する
+   * Compares the running version with the stored one and notifies on change.
    *
-   * @param currentVersion - 現在のスクリプトバージョン
+   * The first run only records the version. The new version is stored only
+   * after the notification window opened. A blocked popup is therefore
+   * retried on the next run. Errors are logged, not thrown.
+   *
+   * @param currentVersion - Version of the running script
    */
   checkVersionAndNotify(currentVersion: string): void {
     const storedVersion = Storage.getStoredVersion()
@@ -41,23 +45,12 @@ export const VersionService = {
   },
 
   /**
-   * バージョン更新をDiscordに通知する（example.com経由）
+   * Opens the example.com update-notify URL in a new window, which the script
+   * handles to send the Discord notification.
    *
-   * バージョン更新時に新しいウィンドウを開いてexample.comに通知情報を送信する。
-   * ポップアップブロッカーにより失敗する可能性があるため、エラーハンドリングを含む。
-   *
-   * @param {string} oldVersion - 以前のバージョン
-   * @param {string} newVersion - 新しいバージョン
-   * @throws {Error} ポップアップブロックまたはウィンドウオープンに失敗した場合
-   *
-   * @example
-   * ```typescript
-   * try {
-   *   VersionService.notifyVersionUpdate('1.0.0', '1.1.0')
-   * } catch (error) {
-   *   console.error('バージョン更新通知に失敗:', error)
-   * }
-   * ```
+   * @param oldVersion - Previously stored version
+   * @param newVersion - Current version
+   * @throws {Error} If the popup is blocked or `window.open` throws
    */
   notifyVersionUpdate(oldVersion: string, newVersion: string): void {
     const notifyUrl = `https://example.com/?update-notify&old=${encodeURIComponent(oldVersion)}&new=${encodeURIComponent(newVersion)}`

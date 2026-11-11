@@ -1,14 +1,19 @@
 import { TIMEOUTS, URLS, SELECTORS } from '@/core/constants'
 
 /**
- * DOM操作とページ状態検出のためのユーティリティ関数群。
- * 要素の待機、ページエラー検出、返信読み込みボタンのクリック処理を提供。
+ * DOM helpers for waiting on elements, detecting X's error and login states,
+ * and clicking the buttons that load more replies.
+ * The selectors depend on X's current markup and may break when it changes.
  */
 export const DomUtils = {
   /**
-   * 指定されたセレクターの要素がDOMに出現するまで待機。
-   * @param selector - 待機する要素のCSSセレクター
-   * @param limitSec - 待機のタイムアウト時間（秒）
+   * Polls until an element matching the selector appears in the DOM.
+   * The poll count is derived from `limitSec` assuming two polls per second,
+   * so it is only exact while TIMEOUTS.ELEMENT_WAIT is 500 ms.
+   *
+   * @param selector - CSS selector of the element to wait for
+   * @param limitSec - Give up after this many seconds
+   * @throws An Error if the element does not appear within `limitSec`
    */
   async waitElement(
     selector: string,
@@ -38,8 +43,9 @@ export const DomUtils = {
   },
 
   /**
-   * 現在のページがエラーページ（リフレッシュアイコン表示）かどうかを判定。
-   * @returns エラーページの場合true
+   * Checks whether X is showing its error page, identified by the refresh icon.
+   *
+   * @returns true if the refresh icon is present
    */
   isFailedPage(): boolean {
     return (
@@ -50,7 +56,8 @@ export const DomUtils = {
   },
 
   /**
-   * 「さらに返信を読み込む」ボタンをクリック（標準的な検出方法）。
+   * Clicks the "show more replies" button, found by its position in the
+   * timeline. Does nothing if there is no such button.
    */
   clickMoreReplies(): void {
     const moreRepliesButton = document.querySelector(
@@ -65,8 +72,10 @@ export const DomUtils = {
   },
 
   /**
-   * 「さらに返信を読み込む」ボタンをクリック（積極的な検出方法）。
-   * テキストコンテンツベースで対象ボタンを特定。
+   * Clicks the first button in every timeline post whose text contains the
+   * Japanese label "さらに返信を表示する". Unlike `clickMoreReplies`, which
+   * targets a button by its position, it only considers posts containing the
+   * label. `ScrollUtils.scrollPage` calls both on every tick.
    */
   clickMoreRepliesAggressive(): void {
     const texts = ['さらに返信を表示する']
@@ -96,9 +105,10 @@ export const DomUtils = {
   },
 
   /**
-   * BottomBarにログインボタンが表示されているかどうかを確認し、
-   * 表示されている場合はログイン画面に自動遷移する。
-   * @returns ログイン要素が検出され遷移が実行された場合true
+   * Navigates to the login page if the bottom bar shows a login button,
+   * which means the session is logged out.
+   *
+   * @returns true if the login button was found and navigation was started
    */
   checkAndNavigateToLogin(): boolean {
     const loginElement = document.querySelector(SELECTORS.BOTTOM_BAR_LOGIN)

@@ -43,12 +43,12 @@ export const TIMEOUTS = {
 } as const
 
 export const DELAYS = {
-  // 基本的な遅延時間
+  // Generic delays (ms)
   SHORT: 100,
   MEDIUM: 500,
   LONG: 1000,
 
-  // 機能固有の遅延時間
+  // Feature-specific delays, mostly aliases of TIMEOUTS
   CRAWL_INTERVAL: TIMEOUTS.CRAWL_INTERVAL,
   SCROLL_INTERVAL: TIMEOUTS.SCROLL_INTERVAL,
   ERROR_RELOAD_WAIT: TIMEOUTS.ERROR_RELOAD_WAIT,
@@ -59,7 +59,7 @@ export const DELAYS = {
   RESET_REDIRECT_WAIT: TIMEOUTS.RESET_REDIRECT_WAIT,
   LOCKED_CHECK_INTERVAL: TIMEOUTS.LOCKED_CHECK_INTERVAL,
 
-  // リトライ関連
+  // Currently unused; AsyncUtils.retry hard-codes 1000 ms and 30 s
   RETRY_BASE: 1000,
   RETRY_MAX: 30_000,
 } as const

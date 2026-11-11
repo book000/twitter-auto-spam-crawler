@@ -2,43 +2,24 @@ import { DISCORD_MENTION_ID } from '@/core/constants'
 import { ConfigManager } from '@/core/config'
 
 /**
- * 外部サービスへの通知機能を提供するクラス
- *
- * Discord Webhook を使用したメッセージ送信機能を提供し、
- * スパムツイート検出時やシステム更新時の通知に使用される。
+ * Sends notifications to Discord through a webhook.
  */
 export const NotificationService = {
   /**
-   * Discord Webhook を使用してメッセージを送信する
+   * Posts a message to a Discord webhook, followed by the user comment from
+   * `ConfigManager`.
    *
-   * 指定されたメッセージをDiscord Webhookを通じて送信する。
-   * メンション付きオプション、ユーザー設定コメントの自動追加、
-   * エラーハンドリングを含む包括的な通知機能を提供する。
+   * Never rejects: if the webhook URL is empty a warning is logged, and fetch
+   * errors and non-2xx responses are logged and swallowed.
    *
-   * @param {string} message - 送信するメッセージ内容
-   * @param {(_response: Response) => void} [callback] - レスポンス受信時のコールバック関数
-   * @param {boolean} [withReply=false] - true の場合、メッセージにメンションを付加
-   * @param {string} [customWebhookUrl] - カスタムWebhook URL。指定時はConfigManagerの設定より優先される
-   * @returns {Promise<void>} 送信完了を表すPromise
-   *
-   * @throws {Error} ネットワークエラーまたはDiscord API エラー
-   *
-   * @example
-   * ```typescript
-   * // 基本的な通知
-   * await NotificationService.notifyDiscord('新しいスパムツイートを検出しました')
-   *
-   * // メンション付き通知
-   * await NotificationService.notifyDiscord('緊急：大量のスパムを検出', undefined, true)
-   *
-   * // カスタムWebhook URL使用
-   * await NotificationService.notifyDiscord('ログイン必要', undefined, false, 'https://discord.com/api/webhooks/...')
-   *
-   * // コールバック付き通知
-   * NotificationService.notifyDiscord('メッセージ', (response) => {
-   *   console.log('送信ステータス:', response.status)
-   * })
-   * ```
+   * @param message - Message body
+   * @param callback - Called with the response once the request completes,
+   * including non-2xx responses. Not called when the request fails or when no
+   * webhook URL is set.
+   * @param withReply - Prefix the message with a mention of
+   * `DISCORD_MENTION_ID`
+   * @param customWebhookUrl - Webhook URL that takes precedence over the
+   * default one from `ConfigManager`
    */
   notifyDiscord(
     message: string,

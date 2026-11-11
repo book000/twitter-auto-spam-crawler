@@ -1,14 +1,21 @@
 /**
- * エラーダイアログと問題のあるコンテンツの検出・処理を行うユーティリティ。
- * アラートダイアログや削除されたポストの検出を定期的にチェック。
+ * Pollers that wait for an element, an error dialog or an unprocessable post
+ * to appear, then hand it to a callback.
+ * The `waitFor*` pollers reject on timeout or callback rejection. The dialog
+ * and post detectors never reject: a timeout or a rejected callback promise is
+ * logged and the promise resolves.
  */
 export const ErrorHandler = {
   /**
-   * 指定されたセレクターの要素が見つかるまで待機し、見つかったらコールバックを実行。
-   * @param selector - 待機する要素のCSSセレクター
-   * @param callback - 要素が見つかった時に実行するコールバック関数
-   * @param timeout - タイムアウト時間（ミリ秒）、デフォルトは30秒
-   * @returns コールバック実行完了時に解決されるPromise
+   * Polls for an element matching the selector and runs the callback with the
+   * first match.
+   *
+   * @param selector - CSS selector of the element to wait for
+   * @param callback - Called with the element once it is found
+   * @param timeout - Give up after this many milliseconds (default: 30 s)
+   * @returns A promise that resolves when the callback has completed
+   * @throws An Error if the element is not found within `timeout`, or if the
+   *   callback rejects (a non-Error reason is wrapped in an Error)
    */
   waitForElementAndCallback(
     selector: string,
@@ -53,11 +60,15 @@ export const ErrorHandler = {
   },
 
   /**
-   * 指定されたセレクターの要素群が見つかるまで待機し、見つかったらコールバックを実行。
-   * @param selector - 待機する要素のCSSセレクター
-   * @param callback - 要素群が見つかった時に実行するコールバック関数
-   * @param timeout - タイムアウト時間（ミリ秒）、デフォルトは30秒
-   * @returns コールバック実行完了時に解決されるPromise
+   * Polls until at least one element matches the selector and runs the
+   * callback with all matches.
+   *
+   * @param selector - CSS selector of the elements to wait for
+   * @param callback - Called with the matching elements once found
+   * @param timeout - Give up after this many milliseconds (default: 30 s)
+   * @returns A promise that resolves when the callback has completed
+   * @throws An Error if nothing matches within `timeout`, or if the callback
+   *   rejects (a non-Error reason is wrapped in an Error)
    */
   waitForAllElementsAndCallback(
     selector: string,
@@ -100,11 +111,18 @@ export const ErrorHandler = {
       }, 100)
     })
   },
+
   /**
-   * エラーダイアログの出現を監視し、検出時にコールバックを実行。
-   * @param callback - ダイアログ検出時に実行するコールバック関数
-   * @param timeout - タイムアウト時間（ミリ秒）、デフォルトは30秒
-   * @returns コールバック実行完了時に解決されるPromise
+   * Waits for X's error dialog (`role="alert"` in the layers container) and
+   * runs the callback with it.
+   * Never rejects: a timeout or a rejected callback promise is logged and the
+   * promise still resolves. A callback that throws synchronously is not
+   * caught, and the promise never settles.
+   *
+   * @param callback - Called with the dialog element once it is found
+   * @param timeout - Give up after this many milliseconds (default: 30 s)
+   * @returns A promise that resolves after the callback has completed, or on
+   *   timeout without calling it
    */
   handleErrorDialog(
     callback: (dialog: Element) => void | Promise<void>,
@@ -150,11 +168,16 @@ export const ErrorHandler = {
   },
 
   /**
-   * 処理不可能なポスト（ルール違反や削除済み）の検出。
-   * 特定のキーワードを含むコンテンツを定期的にチェック。
-   * @param callback - 問題のあるポスト検出時に実行するコールバック関数
-   * @param timeout - タイムアウト時間（ミリ秒）、デフォルトは30秒
-   * @returns コールバック実行完了時に解決されるPromise
+   * Waits for the first post article in the primary column to show a
+   * rule-violation or author-deleted notice and runs the callback with it.
+   * Never rejects: a timeout or a rejected callback promise is logged and the
+   * promise still resolves. A callback that throws synchronously is not
+   * caught, and the promise never settles.
+   *
+   * @param callback - Called with the post's article element once detected
+   * @param timeout - Give up after this many milliseconds (default: 30 s)
+   * @returns A promise that resolves after the callback has completed, or on
+   *   timeout without calling it
    */
   detectUnprocessablePost(
     callback: (element: Element) => void | Promise<void>,

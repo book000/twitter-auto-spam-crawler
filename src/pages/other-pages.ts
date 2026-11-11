@@ -3,13 +3,9 @@ import { Storage } from '@/core/storage'
 import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 
-/**
- * ツイートページ以外のページ処理を担当するクラス
- */
+/** Handlers for the X pages other than tweet, timeline and search pages. */
 export const OtherPages = {
-  /**
-   * 投稿作成ページから戻る処理を実行する
-   */
+  /** Closes the compose-post page and navigates back. */
   runComposePost(): void {
     const closeButton = document.querySelector(
       'button[data-testid="app-bar-close"][role="button"]'
@@ -21,7 +17,8 @@ export const OtherPages = {
   },
 
   /**
-   * ロック解除検知のための定期チェックを開始する
+   * Navigates to the bookmark page every DELAYS.LOCKED_CHECK_INTERVAL to
+   * test whether the account is still locked.
    */
   startPeriodicUnlockCheck(): void {
     let checkCount = 0
@@ -37,9 +34,11 @@ export const OtherPages = {
   },
 
   /**
-   * Blue Blocker キューの処理ページを実行する
+   * Gives Blue Blocker time to process its queue on the bookmark page, then
+   * goes to the home page once its toasts are gone.
    *
-   * @returns {Promise<void>} 処理完了を表すPromise
+   * @returns A promise that resolves after the initial wait, before polling
+   *   for the toasts begins
    */
   async runProcessBlueBlockerQueue(): Promise<void> {
     PageErrorHandler.logAction('start')
@@ -66,9 +65,7 @@ export const OtherPages = {
     }, DELAYS.CRAWL_INTERVAL)
   },
 
-  /**
-   * ログインページの処理を実行する
-   */
+  /** Opens the login-notify window unless the login notification was sent. */
   runLogin(): void {
     const isLoginNotified = Storage.isLoginNotified()
     if (isLoginNotified) {
@@ -78,10 +75,8 @@ export const OtherPages = {
   },
 
   /**
-   * アカウントロック時の処理を実行する
-   *
-   * 未通知の場合はロック通知ウィンドウを開き、
-   * ロック解除検知のための定期チェックを開始する。
+   * Handles a locked account: opens the locked-notify window if it has not
+   * been opened yet, and starts the periodic unlock check.
    */
   runLocked(): void {
     PageErrorHandler.logAction(
@@ -90,16 +85,15 @@ export const OtherPages = {
 
     const isLockedNotified = Storage.isLockedNotified()
     if (isLockedNotified) {
-      // 既に通知済みの場合は、定期チェックのみ開始
       OtherPages.startPeriodicUnlockCheck()
       return
     }
 
-    // 重複通知を防ぐため、通知ウィンドウを開く前にフラグを設定
+    // Set the flag before opening the window so the notification is only
+    // requested once; it is not cleared if sending fails
     Storage.setLockedNotified(true)
     window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
 
-    // ロック解除検知のための定期チェックを開始
     OtherPages.startPeriodicUnlockCheck()
   },
 }

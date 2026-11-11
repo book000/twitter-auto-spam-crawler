@@ -4,8 +4,8 @@ import { Storage } from '@/core/storage'
 import { DELAYS } from '@/core/constants'
 
 /**
- * 自動ツイートクローリングワークフローのメインオーケストレーターサービス。
- * エンゲージメント閾値に基づいたツイートの定期クロール、フィルタリング、キューイングを管理。
+ * Periodically scrapes tweets from the current page, saves them, and queues
+ * those that reach the engagement thresholds (see THRESHOLDS).
  */
 export class CrawlerService {
   private static crawlTweetInterval: ReturnType<typeof setInterval> | null =
@@ -14,8 +14,11 @@ export class CrawlerService {
   private static crawledTweetCount = 0
 
   /**
-   * 現在のページからツイートをクロールし、エンゲージメント闾値でフィルタリングし、
-   * 条件を満たすツイートを処理キューに追加。
+   * Runs one crawl tick: saves every tweet on the page and adds the target
+   * tweets that are neither checked nor waiting to the waiting queue.
+   *
+   * Returns immediately if extraction fails or finds no tweets; otherwise
+   * resolves after the queue's own delay.
    */
   static async crawlTweets(): Promise<void> {
     const tweets = TweetService.getTweets()
@@ -53,8 +56,7 @@ export class CrawlerService {
   }
 
   /**
-   * 1秒間隔で自動クローリングプロセスを開始。
-   * 既に実行中でない場合のみ開始。
+   * Starts crawling every `DELAYS.CRAWL_INTERVAL`; a no-op if already running.
    */
   static startCrawling(): void {
     this.crawlTweetInterval ??= setInterval(() => {
@@ -64,9 +66,7 @@ export class CrawlerService {
     }, DELAYS.CRAWL_INTERVAL)
   }
 
-  /**
-   * 自動クローリングプロセスを停止し、インターバルタイマーをクリア。
-   */
+  /** Stops crawling; a no-op if it is not running. */
   static stopCrawling(): void {
     if (!this.crawlTweetInterval) {
       return
@@ -77,16 +77,13 @@ export class CrawlerService {
   }
 
   /**
-   * 現在のセッションでクロールしたツイートの総数を取得。
-   * @returns クロールしたツイート数
+   * Gets the number of tweets scraped since the last reset, counted per crawl
+   * tick (a tweet seen on several ticks is counted each time).
    */
   static getCrawledTweetCount(): number {
     return this.crawledTweetCount
   }
 
-  /**
-   * クロールしたツイートカウンターをゼロにリセット。
-   */
   static resetCrawledTweetCount(): void {
     this.crawledTweetCount = 0
   }

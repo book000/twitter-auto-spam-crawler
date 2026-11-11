@@ -2,16 +2,15 @@ import { DELAYS, THRESHOLDS } from '@/core/constants'
 import { DomUtils } from './dom'
 import { AsyncUtils } from './async'
 
-/**
- * ページの自動スクロールと無限スクロール処理を管理するクラス。
- * コンテンツの動的読み込みと返信ボタンのクリックを自動化。
- */
+/** Auto-scrolling helpers for loading a page's lazily loaded content. */
 export class ScrollUtils {
   private static scrollPageInterval: ReturnType<typeof setInterval> | null =
     null
 
   /**
-   * テスト用: スクロール状態をリセット
+   * Stops the scroll loop started by `scrollPage` and clears its state.
+   * For tests: the promise returned by an interrupted `scrollPage` never
+   * settles.
    */
   static resetScrollState(): void {
     if (this.scrollPageInterval) {
@@ -21,9 +20,14 @@ export class ScrollUtils {
   }
 
   /**
-   * ページの自動無限スクロールを実行。
-   * コンテンツの高さが変化しなくなるまで継続し、返信ボタンのクリックも実行。
-   * @returns スクロール完了時に解決されるPromise
+   * Scrolls down one viewport per `DELAYS.SCROLL_INTERVAL` and clicks the
+   * "show more replies" buttons each time. Stops once the page height has not
+   * changed for `THRESHOLDS.MAX_FAIL_SCROLL_COUNT` consecutive checks.
+   * Only one loop runs at a time; further calls while it runs resolve
+   * immediately.
+   *
+   * @returns A promise that resolves when the loop this call started has
+   * stopped, or immediately if a loop is already running
    */
   static scrollPage(): Promise<void> {
     if (this.scrollPageInterval) {
@@ -67,8 +71,9 @@ export class ScrollUtils {
   }
 
   /**
-   * 指定された回数だけスクロールを実行。
-   * @param count - スクロール回数
+   * Scrolls down one viewport per step, waiting DELAYS.CRAWL_INTERVAL after each.
+   *
+   * @param count - Number of scroll steps
    */
   static async scrollWithCount(count: number): Promise<void> {
     for (let scrollCount = 0; scrollCount < count; scrollCount++) {

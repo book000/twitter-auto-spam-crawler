@@ -2,52 +2,36 @@ import { DELAYS } from '@/core/constants'
 import { DomUtils } from '@/utils/dom'
 import { AsyncUtils } from '@/utils/async'
 
-/**
- * ページエラーハンドリングのオプション
- */
+/** Options for how a page error is handled. */
 export interface PageErrorOptions {
-  /** エラー後にページをリロードするか（デフォルト: true） */
+  /** Reload the page after logging the error (default: true) */
   shouldReload?: boolean
-  /** リロード前の待機時間（ミリ秒、デフォルト: DELAYS.ERROR_RELOAD_WAIT） */
+  /** Milliseconds to wait before reloading (default: DELAYS.ERROR_RELOAD_WAIT) */
   waitTime?: number
-  /** デフォルトの代わりに表示するカスタムエラーメッセージ */
+  /** Message logged instead of the default "Wait 1 minute and reload." */
   customMessage?: string
 }
 
 /**
- * ページコンポーネント共通のエラーハンドラー
+ * Error handling and logging shared by all page components.
  *
- * 全ページコンポーネントで標準化されたエラーハンドリングを提供する。
- * 失敗ページの検出、ログ出力、リロード機能を含む。
+ * Every public method takes an optional method name that labels its log output.
+ * When it is omitted, the name is derived from the call stack, which only
+ * works for stack traces in the V8 format.
  */
 export const PageErrorHandler = {
   /**
-   * 標準的なログ出力とリロード動作でページエラーを処理する
+   * Logs a page error and, unless disabled, reloads the page after a delay.
+   * Also logs a separate message if X's error page is showing.
    *
-   * @param pageName - ログ用のページ名（例: 'Home', 'Search'）
-   * @param methodNameOrError - メソッド名（文字列）またはエラーオブジェクト（自動検出時）
-   * @param errorOrOptions - エラーオブジェクトまたはオプション
-   * @param optionsArg - エラーハンドリングオプション
-   * @returns エラー処理完了を表すPromise
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * try {
-   *   await DomUtils.waitElement('.timeline')
-   * } catch (error) {
-   *   await PageErrorHandler.handlePageError('Home', error)
-   *   return
-   * }
-   *
-   * // メソッド名を手動指定
-   * try {
-   *   await DomUtils.waitElement('.timeline')
-   * } catch (error) {
-   *   await PageErrorHandler.handlePageError('Home', 'runHome', error)
-   *   return
-   * }
-   * ```
+   * @param pageName - Page name used in the log output (e.g. 'Home')
+   * @param methodNameOrError - The method name, or the error when the method
+   *   name is omitted. A string here is always taken as the method name.
+   * @param errorOrOptions - The error (when a method name is given) or the
+   *   options (when it is omitted)
+   * @param optionsArg - Options, when a method name is given
+   * @returns A promise that resolves after logging, or after the delay if a
+   *   reload was scheduled
    */
   async handlePageError(
     pageName: string,
@@ -55,18 +39,15 @@ export const PageErrorHandler = {
     errorOrOptions?: any,
     optionsArg?: PageErrorOptions
   ): Promise<void> {
-    // オーバーロードされたパラメータを処理する
     let methodName: string
     let error: unknown
     let options: PageErrorOptions
 
     if (typeof methodNameOrError === 'string') {
-      // 旧シグネチャ: handlePageError(pageName, methodName, error, options)
       methodName = methodNameOrError
       error = errorOrOptions
       options = optionsArg ?? {}
     } else {
-      // 新シグネチャ: handlePageError(pageName, error, options)
       methodName = PageErrorHandler._getCallerName()
       error = methodNameOrError
       options =
@@ -83,18 +64,13 @@ export const PageErrorHandler = {
       customMessage = 'Wait 1 minute and reload.',
     } = options
 
-    // 失敗ページかどうかチェック
     if (DomUtils.isFailedPage()) {
       console.error(`${methodName}: failed page.`)
     }
 
-    // ページ名付きでエラーをログ出力
     console.error(`${methodName} (${pageName}):`, error)
-
-    // エラーメッセージをログ出力
     console.log(customMessage)
 
-    // 必要に応じて待機してリロード
     if (!shouldReload) {
       return
     }
@@ -104,31 +80,17 @@ export const PageErrorHandler = {
   },
 
   /**
-   * 標準的なエラーハンドリングで要素を待機する
+   * Waits for an element with DomUtils.waitElement; if that fails, handles
+   * the error with `handlePageError` and rethrows it.
    *
-   * DomUtils.waitElement を自動エラーハンドリングとリロードロジックでラップする。
-   *
-   * @param selector - 要素のCSSセレクター
-   * @param pageName - ログ用のページ名
-   * @param methodNameOrOptions - メソッド名（文字列）またはオプション（自動検出時）
-   * @param optionsArg - タイムアウトとエラーハンドリングを含む追加オプション
-   * @returns 要素が見つかった場合に解決するPromise、エラー処理後にリジェクト
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * await PageErrorHandler.waitForElementWithErrorHandling(
-   *   '[role="main"]',
-   *   'Home'
-   * )
-   *
-   * // メソッド名を手動指定
-   * await PageErrorHandler.waitForElementWithErrorHandling(
-   *   '[role="main"]',
-   *   'Home',
-   *   'runHome'
-   * )
-   * ```
+   * @param selector - CSS selector of the element to wait for
+   * @param pageName - Page name used in the log output
+   * @param methodNameOrOptions - The method name, or the options when the
+   *   method name is omitted
+   * @param optionsArg - Options, when a method name is given.
+   *   `timeout` is in seconds, as in DomUtils.waitElement.
+   * @returns The element once it is found
+   * @throws The original error, after it has been handled
    */
   async waitForElementWithErrorHandling(
     selector: string,
@@ -144,7 +106,6 @@ export const PageErrorHandler = {
       errorOptions?: PageErrorOptions
     }
   ): Promise<HTMLElement> {
-    // オーバーロードされたパラメータを処理する
     let methodName: string
     let options: {
       timeout?: number
@@ -152,18 +113,16 @@ export const PageErrorHandler = {
     }
 
     if (typeof methodNameOrOptions === 'string') {
-      // 旧シグネチャ: waitForElementWithErrorHandling(selector, pageName, methodName, options)
       methodName = methodNameOrOptions
       options = optionsArg ?? {}
     } else {
-      // 新シグネチャ: waitForElementWithErrorHandling(selector, pageName, options)
       methodName = PageErrorHandler._getCallerName()
       options = methodNameOrOptions ?? {}
     }
 
     try {
       await DomUtils.waitElement(selector, options.timeout)
-      // DomUtils.waitElement は要素を返さないため、queryで取得する
+      // waitElement resolves without the element, so query it again
       const element = document.querySelector(selector)
       if (!element) {
         throw new Error(`Element ${selector} not found after waiting`)
@@ -176,45 +135,20 @@ export const PageErrorHandler = {
         error,
         options.errorOptions
       )
-      throw error // 制御フローを維持するために再スロー
+      throw error // Callers must still stop after a failed wait
     }
   },
 
   /**
-   * エラーハンドリング付きでページ操作を実行する
+   * Runs an async operation and handles any error with `handlePageError`
+   * instead of propagating it.
    *
-   * 任意の非同期操作を標準エラーハンドリングでラップする。
-   * 要素待機以外の操作に対して有効。
-   *
-   * @param operation - 実行する非同期操作
-   * @param pageName - ログ用のページ名
-   * @param methodNameOrOptions - メソッド名（文字列）またはオプション（自動検出時）
-   * @param optionsArg - エラーハンドリングオプション
-   * @returns 操作結果またはエラー処理後にundefinedを返すPromise
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * await PageErrorHandler.executeWithErrorHandling(
-   *   async () => {
-   *     // 複雑なページ操作
-   *     const element = await DomUtils.waitElement('.timeline')
-   *     await processElement(element)
-   *   },
-   *   'Home'
-   * )
-   *
-   * // メソッド名を手動指定
-   * await PageErrorHandler.executeWithErrorHandling(
-   *   async () => {
-   *     // 複雑なページ操作
-   *     const element = await DomUtils.waitElement('.timeline')
-   *     await processElement(element)
-   *   },
-   *   'Home',
-   *   'processTimeline'
-   * )
-   * ```
+   * @param operation - The async operation to run
+   * @param pageName - Page name used in the log output
+   * @param methodNameOrOptions - The method name, or the options when the
+   *   method name is omitted
+   * @param optionsArg - Options, when a method name is given
+   * @returns The result of `operation`, or undefined if it threw
    */
   async executeWithErrorHandling<T>(
     operation: () => Promise<T>,
@@ -222,16 +156,13 @@ export const PageErrorHandler = {
     methodNameOrOptions?: string | PageErrorOptions,
     optionsArg?: PageErrorOptions
   ): Promise<T | undefined> {
-    // オーバーロードされたパラメータを処理する
     let methodName: string
     let options: PageErrorOptions
 
     if (typeof methodNameOrOptions === 'string') {
-      // 旧シグネチャ: executeWithErrorHandling(operation, pageName, methodName, options)
       methodName = methodNameOrOptions
       options = optionsArg ?? {}
     } else {
-      // 新シグネチャ: executeWithErrorHandling(operation, pageName, options)
       methodName = PageErrorHandler._getCallerName()
       options = methodNameOrOptions ?? {}
     }
@@ -250,42 +181,25 @@ export const PageErrorHandler = {
   },
 
   /**
-   * ページ処理の開始をログ出力する
+   * Logs the start of a page's processing, plus the additional info if given.
    *
-   * 全ページで一貫したログフォーマットを提供する。
-   *
-   * @param pageName - ページ名
-   * @param methodNameOrAdditionalInfo - メソッド名（文字列）または追加情報（自動検出時）
-   * @param additionalInfoArg - オプションの追加情報
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * PageErrorHandler.logPageStart('Home', { userId: '12345' })
-   * // ログ: "runHome: Starting Home page processing..." （スタックから自動検出）
-   * // ログ: "runHome: Additional info: { userId: '12345' }"
-   *
-   * // メソッド名を手動指定
-   * PageErrorHandler.logPageStart('Home', 'runHome', { userId: '12345' })
-   * // ログ: "runHome: Starting Home page processing..."
-   * // ログ: "runHome: Additional info: { userId: '12345' }"
-   * ```
+   * @param pageName - Page name used in the log output
+   * @param methodNameOrAdditionalInfo - The method name, or the additional
+   *   info when the method name is omitted
+   * @param additionalInfoArg - Additional info, when a method name is given
    */
   logPageStart(
     pageName: string,
     methodNameOrAdditionalInfo?: string | Record<string, any>,
     additionalInfoArg?: Record<string, any>
   ): void {
-    // オーバーロードされたパラメータを処理する
     let methodName: string
     let additionalInfo: Record<string, any> | undefined
 
     if (typeof methodNameOrAdditionalInfo === 'string') {
-      // 旧シグネチャ: logPageStart(pageName, methodName, additionalInfo)
       methodName = methodNameOrAdditionalInfo
       additionalInfo = additionalInfoArg
     } else {
-      // 新シグネチャ: logPageStart(pageName, additionalInfo)
       methodName = PageErrorHandler._getCallerName()
       additionalInfo = methodNameOrAdditionalInfo
     }
@@ -298,24 +212,10 @@ export const PageErrorHandler = {
   },
 
   /**
-   * 一貫したフォーマットでページアクションをログ出力する
+   * Logs a page action prefixed with the method name.
    *
-   * スタックトレースから呼び出し元関数名を自動検出する。
-   * オプションでカスタムメソッド名を指定して検出を上書きできる。
-   *
-   * @param action - アクションの説明
-   * @param methodName - オプションのカスタムメソッド名（未指定時は自動検出）
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * PageErrorHandler.logAction('Found 10 new tweets')
-   * // ログ: "runHome: Found 10 new tweets" （スタックから自動検出）
-   *
-   * // 手動上書き
-   * PageErrorHandler.logAction('Found 10 new tweets', 'customMethod')
-   * // ログ: "customMethod: Found 10 new tweets"
-   * ```
+   * @param action - Description of the action
+   * @param methodName - Overrides the method name derived from the call stack
    */
   logAction(action: string, methodName?: string): void {
     const callerName = methodName ?? PageErrorHandler._getCallerName()
@@ -323,25 +223,12 @@ export const PageErrorHandler = {
   },
 
   /**
-   * 一貫したフォーマットでエラーをログ出力する
+   * Logs an error message prefixed with the method name.
+   * The error object itself is logged only when NODE_ENV is 'development'.
    *
-   * スタックトレースから呼び出し元関数名を自動検出する。
-   * オプションでカスタムメソッド名を指定して検出を上書きできる。
-   *
-   * @param errorMessage - ログ出力するエラーメッセージ
-   * @param error - 追加詳細用のオプションのエラーオブジェクト
-   * @param methodName - オプションのカスタムメソッド名（未指定時は自動検出）
-   *
-   * @example
-   * ```typescript
-   * // 自動検出（推奨）
-   * PageErrorHandler.logError('Failed to process timeline', error)
-   * // ログ: "runHome: Failed to process timeline" （スタックから自動検出）
-   *
-   * // 手動上書き
-   * PageErrorHandler.logError('Failed to process timeline', error, 'customMethod')
-   * // ログ: "customMethod: Failed to process timeline"
-   * ```
+   * @param errorMessage - The message to log
+   * @param error - Error whose details are logged in development
+   * @param methodName - Overrides the method name derived from the call stack
    */
   logError(errorMessage: string, error?: unknown, methodName?: string): void {
     const callerName = methodName ?? PageErrorHandler._getCallerName()
@@ -353,27 +240,24 @@ export const PageErrorHandler = {
   },
 
   /**
-   * スタックトレースから呼び出し元関数名を取得する
+   * Derives the name of the function that called the public method that
+   * called this one, from the V8-style stack trace.
    *
-   * @returns 呼び出し元関数名。検出できない場合は 'unknown'
-   * @private
+   * @returns The caller's function name, or 'unknown' if it cannot be found
    */
   _getCallerName(): string {
     try {
       const stack = new Error('Stack trace generation').stack
       if (!stack) return 'unknown'
 
-      // スタックトレースを行に分割
       const stackLines = stack.split('\n')
 
-      // 呼び出し元を探す（Error()、このメソッド、logAction/logError をスキップ）
+      // Line 0 is the error message, 1 is this method and 2 is the public
+      // method that called it, so the real caller starts at line 3.
       for (let i = 3; i < stackLines.length; i++) {
         const line = stackLines[i]
 
-        // 各フォーマットの関数名にマッチ:
-        // - "at functionName (...)"
-        // - "at Object.functionName (...)"
-        // - "at ClassName.functionName (...)"
+        // Matches "at fn (", "at Object.fn (" and "at ClassName.fn ("
         const match = /at (?:(?:Object|[A-Z]\w*)\.)?(\w+)\s*\(/.exec(line)
         if (match?.[1] && match[1] !== 'logAction' && match[1] !== 'logError') {
           return match[1]

@@ -8,7 +8,17 @@ import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
+/**
+ * Handlers for the example.com helper pages, which this script opens or
+ * navigates to in order to download data and send Discord notifications.
+ */
 export const ExamplePages = {
+  /**
+   * Downloads the saved tweets as JSON if they exceed the limit and waits a
+   * fixed `DELAYS.DOWNLOAD_WAIT`, then starts `TweetPage.run(true)` (not
+   * awaited) to open the next waiting tweet, or the bookmark page if none is
+   * waiting.
+   */
   async runDownloadJson(): Promise<void> {
     const ifNeeded = TweetService.isNeedDownload()
 
@@ -23,6 +33,10 @@ export const ExamplePages = {
     })
   },
 
+  /**
+   * Sends the "need to login" notification to the auth webhook, then closes
+   * the window and sets the login-notified flag once Discord responds.
+   */
   runLoginNotify(): void {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
     NotificationService.notifyDiscord(
@@ -42,6 +56,10 @@ export const ExamplePages = {
       })
   },
 
+  /**
+   * Sends the login-success notification to the auth webhook, then closes
+   * the window once Discord responds.
+   */
   runLoginSuccessNotify(): void {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
     NotificationService.notifyDiscord(
@@ -60,13 +78,17 @@ export const ExamplePages = {
       })
   },
 
+  /**
+   * Sends the account-locked notification, with a mention, to the lock
+   * webhook, then closes the window once Discord responds.
+   */
   runLockedNotify(): void {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
     NotificationService.notifyDiscord(
       ':lock: Account is locked!',
       () => {
         window.close()
-        // 通知送信成功時のコールバックは空にする（フラグは事前に設定済み）
+        // The locked-notified flag was already set by OtherPages.runLocked
       },
       true,
       lockWebhookUrl
@@ -75,12 +97,18 @@ export const ExamplePages = {
         PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        // 通知送信失敗時はフラグをリセット
+        // Defensive: notifyDiscord never rejects (it logs and swallows fetch
+        // errors and callback throws), so the flag is not cleared when the
+        // send fails.
         Storage.setLockedNotified(false)
         PageErrorHandler.logError('Failed to notify account locked', error)
       })
   },
 
+  /**
+   * Sends the account-unlocked notification to the lock webhook, then closes
+   * the window once Discord responds.
+   */
   runUnlockedNotify(): void {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
     NotificationService.notifyDiscord(
@@ -99,6 +127,10 @@ export const ExamplePages = {
       })
   },
 
+  /**
+   * Empties the waiting queue, then redirects to the home page after
+   * DELAYS.RESET_REDIRECT_WAIT.
+   */
   runResetWaiting(): void {
     QueueService.resetWaitingQueue()
     alert(
@@ -110,6 +142,11 @@ export const ExamplePages = {
     }, DELAYS.RESET_REDIRECT_WAIT)
   },
 
+  /**
+   * Announces a script update, with a mention, using the `old` and `new`
+   * version query parameters, then closes the window once Discord responds.
+   * Closes the window without notifying if either parameter is missing.
+   */
   runUpdateNotify(): void {
     const params = new URLSearchParams(globalThis.location.search)
     const oldVersion = params.get('old')
