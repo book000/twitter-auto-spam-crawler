@@ -117,6 +117,7 @@ export const TweetPage = {
         if (tweetUrlMatch) {
           const tweetId = tweetUrlMatch[2]
           await QueueService.checkedTweet(tweetId)
+          CrawlerService.resetCrawledTweetCount()
         }
         TweetPage.run(true).catch((error: unknown) => {
           PageErrorHandler.logError('Error in TweetPage.run', error)
