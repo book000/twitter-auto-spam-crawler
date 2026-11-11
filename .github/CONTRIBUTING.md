@@ -56,7 +56,7 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 - **test**: test changes
 - **chore**: everything else
 
-The type decides the version bump of the automated release (`.github/workflows/release.yml`), so pick it carefully.
+The type decides the version bump of the automated release (`.github/workflows/release.yml`), so pick it carefully. `docs` commits do not publish a release.
 
 Example:
 

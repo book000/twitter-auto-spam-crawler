@@ -15,7 +15,7 @@ Write review comments, and expect all deliverables (code comments, JSDoc, test d
 - Every Tampermonkey `GM_*` API called in `src/` is listed in `package.json` `userscript.grant` and declared in `src/types/userscript.d.ts`. Globals from the `@require`d library (`GM_config`, `GM_config_event`) only need the declaration; the menu-command grants exist for that library.
 - New behavior and bug fixes come with tests under `src/__tests__/`. Fake timers are enabled globally, so check for timers left running in tests.
 - No circular imports between services and utilities.
-- Commit and PR titles follow Conventional Commits; the type drives the released version (see `.github/workflows/release.yml`).
+- Commit and PR titles follow Conventional Commits; the type drives the released version (see `.github/workflows/release.yml`). `docs` commits do not publish a release.
 
 ## Do not flag
 
