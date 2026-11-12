@@ -21,6 +21,7 @@ describe('OtherPages', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
   beforeEach(() => {
+    document.body.replaceChildren()
     setupUserscriptMocks()
     clearMockStorage()
     consoleMocks = setupConsoleMocks()
@@ -79,7 +80,7 @@ describe('OtherPages', () => {
       expect(globalThis.history.back).toHaveBeenCalled()
     })
 
-    it.skip('should click only the first matching close button', () => {
+    it('should click only the first matching close button', () => {
       const closeButton1 = document.createElement('button')
       closeButton1.dataset.testid = 'app-bar-close'
       closeButton1.setAttribute('role', 'button')

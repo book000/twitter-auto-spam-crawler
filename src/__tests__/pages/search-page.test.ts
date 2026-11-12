@@ -22,6 +22,10 @@ jest.mock('../../utils/page-error-handler')
 
 jest.useFakeTimers()
 
+const setSearch = (search: string): void => {
+  history.replaceState({}, '', `/search${search}`)
+}
+
 describe('SearchPage', () => {
   let consoleMocks: ReturnType<typeof setupConsoleMocks>
 
@@ -51,6 +55,7 @@ describe('SearchPage', () => {
   afterEach(() => {
     restoreConsoleMocks(consoleMocks)
     jest.runOnlyPendingTimers()
+    history.replaceState({}, '', '/')
   })
 
   describe('run', () => {
@@ -62,103 +67,79 @@ describe('SearchPage', () => {
       expect(StateService.resetState).not.toHaveBeenCalled()
     })
 
-    it.skip('should add live filter when not present', async () => {
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test',
+    it.each(['?q=test', '?q=test&src=typed_query', ''])(
+      'should delay and not start crawling when live filter is missing (%j)',
+      async (search) => {
+        setSearch(search)
+
+        await SearchPage.run()
+
+        expect(StateService.resetState).toHaveBeenCalled()
+        expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
+        expect(CrawlerService.startCrawling).not.toHaveBeenCalled()
+        expect(DomUtils.waitElement).not.toHaveBeenCalled()
       }
+    )
+
+    it.each([
+      '?f=live',
+      '?q=test&f=live',
+      '?f=live&q=test',
+      '?q=spam&f=live&src=search',
+    ])(
+      'should process the search page when live filter is present (%j)',
+      async (search) => {
+        setupSearchPageDOM()
+        setSearch(search)
+
+        await SearchPage.run()
+
+        expect(StateService.resetState).toHaveBeenCalled()
+        expect(CrawlerService.startCrawling).toHaveBeenCalled()
+        expect(DomUtils.waitElement).toHaveBeenCalledWith(
+          'article[data-testid="tweet"]'
+        )
+        expect(TweetPage.run).toHaveBeenCalledWith(true)
+      }
+    )
+
+    it('should delegate to handlePageError when waitElement fails', async () => {
+      setSearch('?q=test&f=live')
+      const error = new Error('Element not found')
+      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(error)
 
       await SearchPage.run()
 
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
-      // Since JSDOM doesn't allow location.search assignment, we can't test the actual change
-      // Instead, we verify the behavior by checking that delay was called
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Search',
+        'runSearch',
+        error,
+        { customMessage: 'Wait 1 minute and reload.' }
+      )
+      expect(TweetPage.run).not.toHaveBeenCalled()
     })
 
-    it.skip('should process search page when live filter is present', async () => {
-      setupSearchPageDOM()
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&f=live',
-      }
-
-      await SearchPage.run()
-
-      expect(StateService.resetState).toHaveBeenCalled()
-      expect(CrawlerService.startCrawling).toHaveBeenCalled()
-      expect(DomUtils.waitElement).toHaveBeenCalledWith(
-        'article[data-testid="tweet"]'
-      )
-      expect(TweetPage.run).toHaveBeenCalledWith(true)
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should handle waitElement error and reload page', async () => {
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&f=live',
-        reload: jest.fn(),
-      }
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
-        new Error('Element not found')
-      )
-
-      await SearchPage.run()
-
-      expect(consoleMocks.log).toHaveBeenCalledWith('Wait 1 minute and reload.')
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.ERROR_RELOAD_WAIT)
-      expect(globalThis.location.reload).toHaveBeenCalled()
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should log error when failed page is detected', async () => {
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&f=live',
-      }
-      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(
-        new Error('Element not found')
-      )
+    it('should use the failed page message when a failed page is detected', async () => {
+      setSearch('?q=test&f=live')
+      const error = new Error('Element not found')
+      ;(DomUtils.waitElement as jest.Mock).mockRejectedValue(error)
       ;(DomUtils.isFailedPage as jest.Mock).mockReturnValue(true)
 
       await SearchPage.run()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'runSearch: failed page. Wait 1 minute and reload.'
+      expect(PageErrorHandler.handlePageError).toHaveBeenCalledWith(
+        'Search',
+        'runSearch',
+        error,
+        {
+          customMessage: 'runSearch: failed page. Wait 1 minute and reload.',
+        }
       )
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
 
-    it.skip('should perform scroll actions with correct intervals', async () => {
+    it('should perform scroll actions with correct intervals', async () => {
       setupSearchPageDOM()
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&f=live',
-      }
+      setSearch('?q=test&f=live')
 
       await SearchPage.run()
 
@@ -167,122 +148,24 @@ describe('SearchPage', () => {
         top: window.innerHeight,
         behavior: 'smooth',
       })
-
+      expect(AsyncUtils.delay).toHaveBeenCalledTimes(10)
       expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
     })
 
-    it.skip('should handle TweetPage.run errors gracefully', async () => {
+    it('should log TweetPage.run errors without failing', async () => {
       setupSearchPageDOM()
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&f=live',
-      }
-
+      setSearch('?q=test&f=live')
       const mockError = new Error('TweetPage error')
       ;(TweetPage.run as jest.Mock).mockRejectedValue(mockError)
 
       await SearchPage.run()
+      await Promise.resolve()
+      await Promise.resolve()
 
-      expect(consoleMocks.error).toHaveBeenCalledWith(
-        'Error in TweetPage.run:',
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'Error in TweetPage.run',
         mockError
       )
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should append live filter to existing query parameters', async () => {
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '?q=test&src=typed_query',
-      }
-
-      await SearchPage.run()
-
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
-      // We verify the behavior by checking that delay was called, not the actual location change
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should add live filter when no query parameters exist', async () => {
-      const originalLocation = globalThis.location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: '',
-      }
-
-      await SearchPage.run()
-
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.CRAWL_INTERVAL)
-      // We verify the behavior by checking that delay was called
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should not modify search when live filter already exists', async () => {
-      setupSearchPageDOM()
-      const originalLocation = globalThis.location
-      const originalSearch = '?q=spam&f=live&src=search'
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete (globalThis as any).location
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = {
-        search: originalSearch,
-      }
-
-      await SearchPage.run()
-
-      // Should proceed without delay since f=live already exists
-      expect(StateService.resetState).toHaveBeenCalled()
-      expect(CrawlerService.startCrawling).toHaveBeenCalled()
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ;(globalThis as any).location = originalLocation
-    })
-
-    it.skip('should detect live filter in various parameter positions', async () => {
-      setupSearchPageDOM()
-
-      const testCases = [
-        '?f=live',
-        '?q=test&f=live',
-        '?f=live&q=test',
-        '?q=test&f=live&src=search',
-      ]
-
-      for (const search of testCases) {
-        const originalLocation = globalThis.location
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        delete (globalThis as any).location
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        ;(globalThis as any).location = {
-          search,
-        }
-        jest.clearAllMocks()
-
-        await SearchPage.run()
-
-        expect(StateService.resetState).toHaveBeenCalled()
-        expect(CrawlerService.startCrawling).toHaveBeenCalled()
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        ;(globalThis as any).location = originalLocation
-      }
     })
   })
 })
