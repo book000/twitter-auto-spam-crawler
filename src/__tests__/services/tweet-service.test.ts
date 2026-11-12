@@ -10,6 +10,7 @@ jest.mock('../../core/storage')
 const mockCreateElement = jest.fn()
 const mockAppend = jest.fn()
 const mockClick = jest.fn()
+const mockRemove = jest.fn()
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 const originalCreateElement = document.createElement.bind(document)
 const originalAppend = document.body.append.bind(document.body)
@@ -41,6 +42,7 @@ describe('TweetService', () => {
     mockCreateElement.mockClear()
     mockAppend.mockClear()
     mockClick.mockClear()
+    mockRemove.mockClear()
     // Reset to original methods for most tests
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     document.createElement = originalCreateElement
@@ -399,6 +401,7 @@ describe('TweetService', () => {
         download: '',
         innerHTML: '',
         click: mockClick,
+        remove: mockRemove,
       }
       mockCreateElement.mockReturnValue(mockAnchor)
 
@@ -424,6 +427,11 @@ describe('TweetService', () => {
       expect(mockAnchor.innerHTML).toBe('download')
       expect(mockAppend).toHaveBeenCalledWith(mockAnchor)
       expect(mockClick).toHaveBeenCalled()
+      expect(mockRemove).toHaveBeenCalledTimes(1)
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('mock-blob-url')
+      expect(mockClick.mock.invocationCallOrder[0]).toBeLessThan(
+        mockRemove.mock.invocationCallOrder[0]
+      )
       expect(Storage.setSavedTweets).toHaveBeenCalledWith([])
       expect(result).toBe(true)
 
