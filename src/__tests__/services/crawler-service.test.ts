@@ -159,7 +159,7 @@ describe('CrawlerService', () => {
       consoleWarnSpy.mockRestore()
     })
 
-    it('should return early when no new tweets to add', async () => {
+    it('should add an empty list and not log when all target tweets are already checked', async () => {
       const mockTweets: Tweet[] = [
         {
           url: 'https://x.com/user1/status/1',
