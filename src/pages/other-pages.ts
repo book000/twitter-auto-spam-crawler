@@ -87,7 +87,7 @@ export const OtherPages = {
     }
 
     // Set the flag before opening the window so the notification is only
-    // requested once; it is not cleared if sending fails
+    // requested once; ExamplePages.runLockedNotify clears it if sending fails
     Storage.setLockedNotified(true)
     window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
 

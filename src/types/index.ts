@@ -44,7 +44,7 @@ export interface StorageData {
   waitingTweets: string[]
   /** Scraped tweets waiting to be exported as JSON */
   savedTweets: Tweet[]
-  /** Whether the login-required notification got a response from Discord */
+  /** Whether the login-required notification was accepted by Discord */
   isLoginNotified: boolean
   /** Whether the account-locked notification has been requested */
   isLockedNotified: boolean

@@ -144,6 +144,7 @@ describe('ExamplePages', () => {
         'Failed to notify login',
         mockError
       )
+      expect(Storage.setLoginNotified).not.toHaveBeenCalled()
     })
   })
 
@@ -242,6 +243,9 @@ describe('ExamplePages', () => {
       expect(PageErrorHandler.logError).toHaveBeenCalledWith(
         'Failed to notify account locked',
         mockError
+      )
+      expect(PageErrorHandler.logAction).not.toHaveBeenCalledWith(
+        'Notification sent successfully'
       )
     })
   })

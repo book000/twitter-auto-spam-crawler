@@ -35,7 +35,7 @@ export const ExamplePages = {
 
   /**
    * Sends the "need to login" notification to the auth webhook, then closes
-   * the window and sets the login-notified flag once Discord responds.
+   * the window and sets the login-notified flag once Discord accepts it.
    */
   runLoginNotify(): void {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
@@ -58,7 +58,7 @@ export const ExamplePages = {
 
   /**
    * Sends the login-success notification to the auth webhook, then closes
-   * the window once Discord responds.
+   * the window once Discord accepts it.
    */
   runLoginSuccessNotify(): void {
     const authWebhookUrl = ConfigManager.getAuthWebhookUrl()
@@ -80,7 +80,8 @@ export const ExamplePages = {
 
   /**
    * Sends the account-locked notification, with a mention, to the lock
-   * webhook, then closes the window once Discord responds.
+   * webhook, then closes the window once Discord accepts it. If sending fails,
+   * clears the locked-notified flag so the notification is requested again.
    */
   runLockedNotify(): void {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
@@ -97,9 +98,8 @@ export const ExamplePages = {
         PageErrorHandler.logAction('Notification sent successfully')
       })
       .catch((error: unknown) => {
-        // Defensive: notifyDiscord never rejects (it logs and swallows fetch
-        // errors and callback throws), so the flag is not cleared when the
-        // send fails.
+        // Clear the flag so the next locked-page visit requests the
+        // notification again.
         Storage.setLockedNotified(false)
         PageErrorHandler.logError('Failed to notify account locked', error)
       })
@@ -107,7 +107,7 @@ export const ExamplePages = {
 
   /**
    * Sends the account-unlocked notification to the lock webhook, then closes
-   * the window once Discord responds.
+   * the window once Discord accepts it.
    */
   runUnlockedNotify(): void {
     const lockWebhookUrl = ConfigManager.getLockWebhookUrl()
@@ -144,7 +144,7 @@ export const ExamplePages = {
 
   /**
    * Announces a script update, with a mention, using the `old` and `new`
-   * version query parameters, then closes the window once Discord responds.
+   * version query parameters, then closes the window once Discord accepts it.
    * Closes the window without notifying if either parameter is missing.
    */
   runUpdateNotify(): void {

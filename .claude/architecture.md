@@ -34,7 +34,7 @@ The script opens `https://example.com/?<command>` in a new window for the notifi
 - `CrawlerService`: `startCrawling()` runs `crawlTweets()` every second. It extracts the tweets on screen, saves them, and puts those that pass the threshold and are neither checked nor waiting into the waiting queue. It also counts the tweets crawled in the current page.
 - `TweetService`: extracts tweets from `article[data-testid="tweet"]` elements (with a `WeakMap` element cache), saves them sorted by tweet ID, filters by engagement, and builds the JSON download.
 - `QueueService`: waiting queue and checked list on top of `Storage`.
-- `NotificationService`: posts to a Discord webhook; the `Comment` setting is appended to each message.
+- `NotificationService`: posts to a Discord webhook; the `Comment` setting is appended to each message. The returned promise rejects on a fetch error or a non-2xx response (callers rely on this to retry) and resolves without sending when no webhook URL is set.
 - `StateService`: clears the "login notified" and "locked notified" flags (and opens the matching success/unlock window) when a normal page loads after a login or lock notification.
 - `VersionService`: compares the stored script version with the current one and opens the update-notification window when it changed.
 
