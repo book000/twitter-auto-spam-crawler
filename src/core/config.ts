@@ -1,5 +1,7 @@
 // Types from userscript.d.ts are globally available
 
+let isMenuCommandRegistered = false
+
 const maskUrls = (value: unknown): unknown => {
   if (typeof value === 'string') {
     return value.replaceAll(/https?:\/\/\S+/gi, '[masked URL]')
@@ -23,9 +25,14 @@ export const ConfigManager = {
   /**
    * Registers the settings menu in Tampermonkey and logs the event detail
    * whenever the configuration changes, with URLs masked because the detail
-   * can carry webhook URLs.
+   * can carry webhook URLs. Calls after the first are no-ops.
    */
   registerMenuCommand(): void {
+    if (isMenuCommandRegistered) {
+      return
+    }
+    isMenuCommandRegistered = true
+
     GM_config(
       {
         discordWebhookUrl: {
