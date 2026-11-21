@@ -130,17 +130,6 @@ describe('CrawlerService', () => {
       expect(QueueService.addWaitingTweets).toHaveBeenCalledWith([])
     })
 
-    it('should return early when no tweets are found', async () => {
-      ;(TweetService.getTweets as jest.Mock).mockReturnValue(null)
-
-      await CrawlerService.crawlTweets()
-
-      expect(TweetService.saveTweets).not.toHaveBeenCalled()
-      expect(TweetService.getTargetTweets).not.toHaveBeenCalled()
-      expect(QueueService.addWaitingTweets).not.toHaveBeenCalled()
-      expect(CrawlerService.getCrawledTweetCount()).toBe(0)
-    })
-
     it('should handle empty tweets array', async () => {
       ;(TweetService.getTweets as jest.Mock).mockReturnValue([])
 

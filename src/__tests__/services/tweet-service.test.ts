@@ -98,7 +98,7 @@ describe('TweetService', () => {
       const result = TweetService.getTweets()
 
       expect(result).toHaveLength(1)
-      expect(result![0]).toEqual({
+      expect(result[0]).toEqual({
         url: 'https://x.com/testuser1/status/123456789',
         tweetText: 'Test tweet content',
         tweetHtml: '<span>Test tweet content</span>',
@@ -117,46 +117,29 @@ describe('TweetService', () => {
       article.dataset.testid = 'tweet'
       document.body.append(article)
 
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
-      expect(TweetService.getTweets()).toBeNull()
-      consoleWarnSpy.mockRestore()
+      expect(TweetService.getTweets()).toEqual([])
 
       article.append(createTweetLink())
 
       const tweets = TweetService.getTweets()
       expect(tweets).toHaveLength(1)
-      expect(tweets?.[0].tweetId).toBe('1')
-      expect(tweets?.[0].screenName).toBe('user')
+      expect(tweets[0].tweetId).toBe('1')
+      expect(tweets[0].screenName).toBe('user')
     })
 
-    it('should return null when tweet element is not found', () => {
-      const article = document.createElement('article')
-      article.dataset.testid = 'tweet'
+    it('should keep valid tweets when another article has no link element yet', () => {
+      TweetElementCache.clearCache()
+      const rendered = document.createElement('article')
+      rendered.dataset.testid = 'tweet'
+      rendered.append(createTweetLink())
+      const unrendered = document.createElement('article')
+      unrendered.dataset.testid = 'tweet'
+      document.body.append(rendered, unrendered)
 
-      const mockQuerySelectorAll = jest.fn().mockReturnValue([article])
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const originalQuerySelector = article.querySelector.bind(article)
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      article.querySelector = jest.fn().mockReturnValue(null)
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      document.querySelectorAll = mockQuerySelectorAll
+      const tweets = TweetService.getTweets()
 
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
-
-      const result = TweetService.getTweets()
-
-      expect(result).toBeNull()
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'getTweets: tweetElement not found'
-      )
-
-      consoleWarnSpy.mockRestore()
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      article.querySelector = originalQuerySelector
+      expect(tweets).toHaveLength(1)
+      expect(tweets[0].tweetId).toBe('1')
     })
 
     it('should skip tweets with invalid URLs', () => {
@@ -211,8 +194,8 @@ describe('TweetService', () => {
       const result = TweetService.getTweets()
 
       expect(result).toHaveLength(1)
-      expect(result![0].tweetText).toBeNull()
-      expect(result![0].tweetHtml).toBeNull()
+      expect(result[0].tweetText).toBeNull()
+      expect(result[0].tweetHtml).toBeNull()
     })
 
     it('should handle missing interaction buttons', () => {
@@ -242,9 +225,9 @@ describe('TweetService', () => {
       const result = TweetService.getTweets()
 
       expect(result).toHaveLength(1)
-      expect(result![0].replyCount).toBe('0')
-      expect(result![0].retweetCount).toBe('0')
-      expect(result![0].likeCount).toBe('0')
+      expect(result[0].replyCount).toBe('0')
+      expect(result[0].retweetCount).toBe('0')
+      expect(result[0].likeCount).toBe('0')
     })
   })
 
@@ -735,7 +718,7 @@ describe('TweetService', () => {
       const result = TweetService.getTweets()
 
       expect(result).toHaveLength(1)
-      expect(result![0].tweetId).toBe('123')
+      expect(result[0].tweetId).toBe('123')
 
       // One lookup per element (tweetElement, textElement, 3 buttons), cached
       // after the first access; without the cache it took 6 or more queries
