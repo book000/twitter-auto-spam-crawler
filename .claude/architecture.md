@@ -24,7 +24,7 @@ A tweet page that shows a "deleted" dialog or a rule-violation/deleted post is m
 
 The script opens `https://example.com/?<command>` in a new window for the notification commands, and navigates the current tab to `?download-json`. `?reset-waiting` is never opened by the script; it only runs if you visit that URL yourself. The commands are defined in `URLS` in `src/core/constants.ts`:
 
-- `download-json`: downloads the saved tweets as `tweets-<timestamp>.json` and clears them if more than 500 are stored, then continues with `TweetPage.run(true)`
+- `download-json`: if more than 500 tweets are stored, downloads them as `tweets-<timestamp>.json` with `GM_download` and removes the downloaded tweets only after `onload`; on failure or timeout the tweets are kept and retried on a later visit. Then continues with `TweetPage.run(true)`, skipping the redirect back to the download page after a failed download so the crawl is not stuck
 - `login-notify`, `login-success-notify`, `locked-notify`, `unlocked-notify`: send the matching Discord message and close the window once the request completes (without a configured webhook URL, or if the request throws, the window stays open); `login-notify` also sets the login-notified flag at that point
 - `update-notify&old=<version>&new=<version>`: sends the update notification (`VersionService` opens it when the script version changed)
 - `reset-waiting` (manual only): clears the waiting queue and goes home after 3 seconds

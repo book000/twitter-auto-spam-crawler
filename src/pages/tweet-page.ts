@@ -24,9 +24,12 @@ export const TweetPage = {
    * @param onlyOpen - Do not crawl; go to the download page if the saved
    *   tweets exceed the limit, to the next waiting tweet, or to the bookmark
    *   page if none is waiting
+   * @param skipDownload - With `onlyOpen`, do not go to the download page even
+   *   if the saved tweets exceed the limit; used right after a failed download
+   *   so the crawl is not stuck redirecting back to it
    * @returns A promise that resolves when this page's work has finished
    */
-  async run(onlyOpen = false): Promise<void> {
+  async run(onlyOpen = false, skipDownload = false): Promise<void> {
     if (DomUtils.checkAndNavigateToLogin()) {
       return
     }
@@ -34,7 +37,7 @@ export const TweetPage = {
     StateService.resetState()
 
     if (onlyOpen) {
-      if (TweetService.isNeedDownload()) {
+      if (!skipDownload && TweetService.isNeedDownload()) {
         location.href = URLS.EXAMPLE_DOWNLOAD_JSON
         return
       }

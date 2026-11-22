@@ -4,7 +4,6 @@ import { ConfigManager } from '@/core/config'
 import { TweetService } from '@/services/tweet-service'
 import { QueueService } from '@/services/queue-service'
 import { NotificationService } from '@/services/notification-service'
-import { AsyncUtils } from '@/utils/async'
 import { PageErrorHandler } from '@/utils/page-error-handler'
 import { TweetPage } from './tweet-page'
 
@@ -14,21 +13,29 @@ import { TweetPage } from './tweet-page'
  */
 export const ExamplePages = {
   /**
-   * Downloads the saved tweets as JSON if they exceed the limit and waits a
-   * fixed `DELAYS.DOWNLOAD_WAIT`, then starts `TweetPage.run(true)` (not
-   * awaited) to open the next waiting tweet, or the bookmark page if none is
-   * waiting.
+   * Downloads the saved tweets as JSON if they exceed the limit and waits for
+   * the download to finish, then starts `TweetPage.run(true)` (not awaited) to
+   * open the next waiting tweet, or the bookmark page if none is waiting. A
+   * failed download keeps the saved tweets and skips the redirect back to the
+   * download page for this visit, so the crawl continues and the download is
+   * retried on a later visit.
    */
   async runDownloadJson(): Promise<void> {
     const ifNeeded = TweetService.isNeedDownload()
+    let downloadFailed = false
 
     if (ifNeeded) {
-      PageErrorHandler.logAction('download needed. Wait 5 seconds.')
-      TweetService.downloadTweets()
-      await AsyncUtils.delay(DELAYS.DOWNLOAD_WAIT)
+      PageErrorHandler.logAction('download needed.')
+      const downloaded = await TweetService.downloadTweets()
+      if (!downloaded) {
+        downloadFailed = true
+        PageErrorHandler.logError(
+          'Download failed. Saved tweets are kept and the download is retried later.'
+        )
+      }
     }
 
-    TweetPage.run(true).catch((error: unknown) => {
+    TweetPage.run(true, downloadFailed).catch((error: unknown) => {
       PageErrorHandler.logError('Error in TweetPage.run', error)
     })
   },

@@ -22,7 +22,7 @@ A small inline plugin in `webpack.config.js` prepends a `// ==UserScript==` bloc
 
 Array values (`@match`, `@grant`) produce one header line per entry. To change the header, edit `package.json`; `@description` is the `description` field, so keep it in English.
 
-`@match` contains `https://x.com/*` and `https://example.com/*` (the latter for the helper pages, see `architecture.md`). `@grant` lists `GM_getValue`, `GM_setValue`, `GM_registerMenuCommand` and `GM_unregisterMenuCommand`, and `@require` loads the Tampermonkey Config library that provides `GM_config`. A new Tampermonkey `GM_*` API called from app code needs an entry in `userscript.grant` and a declaration in `src/types/userscript.d.ts`.
+`@match` contains `https://x.com/*` and `https://example.com/*` (the latter for the helper pages, see `architecture.md`). `@grant` lists `GM_getValue`, `GM_setValue`, `GM_download`, `GM_registerMenuCommand` and `GM_unregisterMenuCommand`, and `@require` loads the Tampermonkey Config library that provides `GM_config`. A new Tampermonkey `GM_*` API called from app code needs an entry in `userscript.grant` and a declaration in `src/types/userscript.d.ts`.
 
 ## TypeScript
 

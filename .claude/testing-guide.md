@@ -13,7 +13,7 @@ Jest runs through `ts-jest` in a `jsdom` environment. The configuration is the `
 
 ## Mocks
 
-- `src/__mocks__/userscript.ts`: installs `GM_getValue`, `GM_setValue`, `GM_config`, `GM_config_event` and `addEventListener` as globals, backed by an in-memory `Map`. Import it first in a test that touches `Storage` or `ConfigManager`, and use `clearMockStorage()` / `getMockStorage()` to reset or inspect the state.
+- `src/__mocks__/userscript.ts`: installs `GM_getValue`, `GM_setValue`, `GM_download`, `GM_config`, `GM_config_event` and `addEventListener` as globals, backed by an in-memory `Map`. Import it first in a test that touches `Storage` or `ConfigManager`, and use `clearMockStorage()` / `getMockStorage()` to reset or inspect the state.
 - `src/core/__mocks__/storage.ts`: the manual mock used by `jest.mock('../../core/storage')`. It mirrors the `Storage` API on top of the `GM_*` mocks, with `jest.fn` wrappers so calls can be asserted.
 - Most page and service tests mock their collaborators with `jest.mock('<path>')` (`DomUtils`, `AsyncUtils`, `PageErrorHandler`, other services) and drive the handler under test directly.
 - `src/__tests__/utils/page-test-utils.ts`: helpers that build the X.com DOM structures the pages expect (timeline tabs, tweet articles, the failed-page icon, error dialogs).

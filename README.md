@@ -28,7 +28,7 @@ The script runs on `https://x.com/*`. It also runs on `https://example.com/*`, w
 1. Log in to [x.com](https://x.com) and open the home page
 2. The script starts crawling on its own and moves between the home timeline, explore, search and the queued tweets
 3. Open the userscript manager menu to change the settings
-4. Collected tweets are downloaded automatically as `tweets-<timestamp>.json` once more than 500 are stored
+4. Collected tweets are downloaded automatically as `tweets-<timestamp>.json` once more than 500 are stored. The download uses `GM_download` (Tampermonkey 5.4.6226 or later), so the download feature must be enabled in Tampermonkey and `.json` must be on its download whitelist. Saved tweets are cleared only after the download completes; if it fails, they are kept and the download is retried later
 
 ### Settings
 

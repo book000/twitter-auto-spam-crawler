@@ -89,6 +89,18 @@ describe('TweetPage', () => {
       expect(TweetService.isNeedDownload).toHaveBeenCalled()
     })
 
+    it('should skip the download page and open the next waiting tweet when skipDownload is set (onlyOpen=true)', async () => {
+      ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(true)
+      ;(QueueService.getNextWaitingTweet as jest.Mock).mockReturnValue(
+        '123456789'
+      )
+
+      await TweetPage.run(true, true)
+
+      expect(TweetService.isNeedDownload).not.toHaveBeenCalled()
+      expect(QueueService.getNextWaitingTweet).toHaveBeenCalled()
+    })
+
     it('should navigate to bookmark when no waiting tweets (onlyOpen=true)', async () => {
       ;(QueueService.getNextWaitingTweet as jest.Mock).mockReturnValue(null)
 

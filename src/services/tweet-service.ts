@@ -1,5 +1,5 @@
 import type { Tweet } from '@/types'
-import { TWEET_URL_REGEX, THRESHOLDS } from '@/core/constants'
+import { TWEET_URL_REGEX, THRESHOLDS, TIMEOUTS } from '@/core/constants'
 import { Storage } from '@/core/storage'
 
 /** Child elements of a tweet article that are read on every crawl tick. */
@@ -160,33 +160,82 @@ export const TweetService = {
   },
 
   /**
-   * Downloads the saved tweets as a JSON file by clicking a link appended to
-   * `document.body`, removes the link and revokes the object URL right after
-   * the click, then clears the saved tweets without waiting for the download.
+   * Downloads the saved tweets as a JSON file with `GM_download` and removes
+   * the downloaded tweets from storage only after Tampermonkey reports the
+   * download as completed. Tweets saved while the download was in flight are
+   * kept. Storage is left untouched when the download fails or does not finish
+   * within `TIMEOUTS.DOWNLOAD_TIMEOUT`.
    *
-   * @returns Always `true`.
+   * @returns `true` if the download completed, otherwise `false`.
    */
-  downloadTweets(): boolean {
+  async downloadTweets(): Promise<boolean> {
     const tweets = Storage.getSavedTweets()
 
-    console.log('downloadTweets: download tweets')
+    console.log(`downloadTweets: download ${tweets.length} tweets`)
     const data = JSON.stringify({
       type: 'tweets',
       data: tweets,
     })
     const blob = new Blob([data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
     const timestamp = new Date().toISOString().replaceAll(':', '-')
-    a.download = `tweets-${timestamp}.json`
-    a.innerHTML = 'download'
-    document.body.append(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
+    const name = `tweets-${timestamp}.json`
 
-    Storage.setSavedTweets([])
+    const succeeded = await new Promise<boolean>((resolve) => {
+      let settled = false
+      const pending: {
+        handle?: { abort: () => void }
+        timer?: ReturnType<typeof setTimeout>
+      } = {}
+      const settle = (ok: boolean, reason?: string): void => {
+        if (settled) {
+          return
+        }
+        settled = true
+        clearTimeout(pending.timer)
+        if (!ok) {
+          console.error(`downloadTweets: download failed: ${reason}`)
+          pending.handle?.abort()
+        }
+        resolve(ok)
+      }
+      pending.timer = setTimeout(() => {
+        settle(false, 'timeout')
+      }, TIMEOUTS.DOWNLOAD_TIMEOUT)
+
+      try {
+        pending.handle = GM_download({
+          url: blob,
+          name,
+          onload: () => {
+            settle(true)
+          },
+          onerror: (download) => {
+            settle(false, `${download.error} ${download.details ?? ''}`.trim())
+          },
+          ontimeout: () => {
+            settle(false, 'timeout')
+          },
+        })
+      } catch (error: unknown) {
+        settle(false, error instanceof Error ? error.message : String(error))
+      }
+    })
+
+    if (!succeeded) {
+      console.error(
+        `downloadTweets: kept ${Storage.getSavedTweets().length} saved tweets`
+      )
+      return false
+    }
+
+    const downloadedIds = new Set(tweets.map((tweet) => tweet.tweetId))
+    const remaining = Storage.getSavedTweets().filter(
+      (tweet) => !downloadedIds.has(tweet.tweetId)
+    )
+    Storage.setSavedTweets(remaining)
+    console.log(
+      `downloadTweets: downloaded ${tweets.length} tweets, kept ${remaining.length}`
+    )
 
     return true
   },
