@@ -57,6 +57,32 @@ class TweetElementCache {
   }
 }
 
+const COUNT_SUFFIX_MULTIPLIERS: Record<string, number> = {
+  K: 1000,
+  k: 1000,
+  M: 1_000_000,
+  m: 1_000_000,
+  万: 10_000,
+}
+
+/**
+ * Reads the first number in an aria-label as an integer digit string.
+ * A `K`/`M`/`万` suffix directly after the digits is expanded (`1.2K` is
+ * `"1200"`); otherwise `.` and `,` are grouping separators (`1,234` is
+ * `"1234"`). Returns `"0"` when the label has no number.
+ */
+function parseCount(label: string | null | undefined): string {
+  const match = /(\d[\d.,]*)([KkMm万])?/.exec(label ?? '')
+  if (!match) return '0'
+
+  const [, digits, suffix] = match
+  if (suffix) {
+    const value = Number.parseFloat(digits.replace(',', '.'))
+    return String(Math.round(value * COUNT_SUFFIX_MULTIPLIERS[suffix]))
+  }
+  return digits.replaceAll(/[.,]/g, '')
+}
+
 /**
  * Scrapes tweets from the DOM, filters them by engagement, and persists them
  * for export.
@@ -67,8 +93,8 @@ export const TweetService = {
    *
    * Articles that have not rendered a tweet link yet, and articles whose link
    * does not match `TWEET_URL_REGEX`, are skipped.
-   * Engagement counts are the first run of digits in the button's aria-label,
-   * or `"0"`.
+   * Engagement counts are the first number in the button's aria-label, with
+   * separators removed and `K`/`M`/`万` suffixes expanded, or `"0"`.
    *
    * @returns The tweets (empty if no article has a matching link).
    */
@@ -77,7 +103,6 @@ export const TweetService = {
       'article[data-testid="tweet"]'
     )
 
-    const numberRegex = /\d+/
     const tweets: Tweet[] = []
 
     for (const element of tweetArticleElements) {
@@ -100,22 +125,15 @@ export const TweetService = {
         : null
       const elementHtml = (element as HTMLElement).innerHTML
 
-      const replyCountRaw =
+      const replyCount = parseCount(
         cachedElements.replyButton?.getAttribute('aria-label')
-      const replyCount = replyCountRaw
-        ? (numberRegex.exec(replyCountRaw)?.[0] ?? '0')
-        : '0'
-
-      const retweetCountRaw =
+      )
+      const retweetCount = parseCount(
         cachedElements.retweetButton?.getAttribute('aria-label')
-      const retweetCount = retweetCountRaw
-        ? (numberRegex.exec(retweetCountRaw)?.[0] ?? '0')
-        : '0'
-
-      const likeCountRaw = cachedElements.likeButton?.getAttribute('aria-label')
-      const likeCount = likeCountRaw
-        ? (numberRegex.exec(likeCountRaw)?.[0] ?? '0')
-        : '0'
+      )
+      const likeCount = parseCount(
+        cachedElements.likeButton?.getAttribute('aria-label')
+      )
 
       const tweet: Tweet = {
         url: tweetUrl,
