@@ -210,6 +210,66 @@ describe('TweetService', () => {
       expect(result[0].retweetCount).toBe('0')
       expect(result[0].likeCount).toBe('0')
     })
+
+    describe('engagement count labels', () => {
+      interface Labels {
+        reply?: string
+        retweet?: string
+        like?: string
+      }
+
+      function getTweetsWithLabels(labels: Labels): Tweet[] {
+        TweetElementCache.clearCache()
+        const article = document.createElement('article')
+        article.dataset.testid = 'tweet'
+        article.append(createTweetLink())
+
+        for (const [testId, label] of Object.entries(labels)) {
+          const button = document.createElement('button')
+          button.setAttribute('role', 'button')
+          button.dataset.testid = testId
+          button.setAttribute('aria-label', label)
+          article.append(button)
+        }
+
+        document.body.append(article)
+        return TweetService.getTweets()
+      }
+
+      it.each([
+        ['retweet', '1,234 retweets. Retweet', '1234'],
+        ['retweet', '1.2K reposts', '1200'],
+        ['like', '3M likes', '3000000'],
+        ['reply', '1.2万 件のリポスト', '12000'],
+        ['reply', '12 replies', '12'],
+        ['like', '5 Mentions', '5'],
+        ['reply', 'Reply', '0'],
+      ] as const)(
+        'should read the %s count of "%s" as %s',
+        (testId, label, expected) => {
+          const [tweet] = getTweetsWithLabels({ [testId]: label })
+
+          expect(tweet[`${testId}Count`]).toBe(expected)
+        }
+      )
+
+      it('should read a missing label as 0', () => {
+        const [tweet] = getTweetsWithLabels({})
+
+        expect(tweet.retweetCount).toBe('0')
+      })
+
+      it('should keep tweets whose counts use separators and K suffixes as targets', () => {
+        const tweets = getTweetsWithLabels({
+          reply: '1.2K replies',
+          retweet: '1,234 retweets',
+        })
+
+        expect(tweets[0].retweetCount).toBe('1234')
+        expect(tweets[0].replyCount).toBe('1200')
+        expect(TweetService.getTargetTweets(tweets)).toEqual(tweets)
+      })
+    })
   })
 
   describe('saveTweets', () => {
