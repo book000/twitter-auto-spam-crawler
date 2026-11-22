@@ -212,7 +212,11 @@ describe('TweetService', () => {
     })
 
     describe('engagement count labels', () => {
-      interface Labels { reply?: string; retweet?: string; like?: string }
+      interface Labels {
+        reply?: string
+        retweet?: string
+        like?: string
+      }
 
       function getTweetsWithLabels(labels: Labels): Tweet[] {
         TweetElementCache.clearCache()
