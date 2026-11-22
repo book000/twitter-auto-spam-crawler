@@ -65,14 +65,14 @@ export const TweetService = {
   /**
    * Extracts the tweets currently rendered on the page.
    *
-   * Articles whose link does not match `TWEET_URL_REGEX` are skipped.
+   * Articles that have not rendered a tweet link yet, and articles whose link
+   * does not match `TWEET_URL_REGEX`, are skipped.
    * Engagement counts are the first run of digits in the button's aria-label,
    * or `"0"`.
    *
-   * @returns The tweets (empty if no article has a matching link), or `null`
-   * as soon as one article has no tweet link element.
+   * @returns The tweets (empty if no article has a matching link).
    */
-  getTweets(): Tweet[] | null {
+  getTweets(): Tweet[] {
     const tweetArticleElements = document.querySelectorAll(
       'article[data-testid="tweet"]'
     )
@@ -83,10 +83,7 @@ export const TweetService = {
     for (const element of tweetArticleElements) {
       const cachedElements = TweetElementCache.getElements(element)
 
-      if (!cachedElements.tweetElement) {
-        console.warn('getTweets: tweetElement not found')
-        return null
-      }
+      if (!cachedElements.tweetElement) continue
 
       const tweetUrl = (cachedElements.tweetElement as HTMLAnchorElement).href
       const tweetUrlMatch = TWEET_URL_REGEX.exec(tweetUrl)

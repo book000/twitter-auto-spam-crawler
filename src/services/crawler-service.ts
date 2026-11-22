@@ -17,15 +17,11 @@ export class CrawlerService {
    * Runs one crawl tick: saves every tweet on the page and adds the target
    * tweets that are neither checked nor waiting to the waiting queue.
    *
-   * Returns immediately if extraction fails or finds no tweets; otherwise
-   * resolves after the queue's own delay.
+   * Returns immediately if no tweets are found; otherwise resolves after the
+   * queue's own delay.
    */
   static async crawlTweets(): Promise<void> {
     const tweets = TweetService.getTweets()
-    if (!tweets) {
-      return
-    }
-
     this.crawledTweetCount += tweets.length
     if (tweets.length === 0) {
       console.warn('crawlTweets: tweets not found')
