@@ -1,24 +1,13 @@
 import { TweetService, TweetElementCache } from '../../services/tweet-service'
 import { Storage } from '../../core/storage'
-import { THRESHOLDS } from '../../core/constants'
+import { THRESHOLDS, TIMEOUTS } from '../../core/constants'
 import type { Tweet } from '../../types'
 import '../../__mocks__/userscript'
 
 jest.mock('../../core/storage')
 
-// Mock document methods for download tests only
-const mockCreateElement = jest.fn()
-const mockAppend = jest.fn()
-const mockClick = jest.fn()
-const mockRemove = jest.fn()
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-const originalCreateElement = document.createElement.bind(document)
-const originalAppend = document.body.append.bind(document.body)
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 const originalQuerySelectorAll = document.querySelectorAll.bind(document)
-
-URL.createObjectURL = jest.fn(() => 'mock-blob-url')
-URL.revokeObjectURL = jest.fn()
 
 globalThis.Blob = jest.fn().mockImplementation((data, options) => ({
   data,
@@ -39,14 +28,6 @@ describe('TweetService', () => {
   beforeEach(() => {
     document.body.replaceChildren()
     jest.clearAllMocks()
-    mockCreateElement.mockClear()
-    mockAppend.mockClear()
-    mockClick.mockClear()
-    mockRemove.mockClear()
-    // Reset to original methods for most tests
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    document.createElement = originalCreateElement
-    document.body.append = originalAppend
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     document.querySelectorAll = originalQuerySelectorAll
     Storage.clearCache()
@@ -358,67 +339,141 @@ describe('TweetService', () => {
   })
 
   describe('downloadTweets', () => {
-    it('should create download link and clear saved tweets', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      document.createElement = mockCreateElement
-      document.body.append = mockAppend
+    const makeTweet = (tweetId: string): Tweet => ({
+      url: `https://x.com/user1/status/${tweetId}`,
+      tweetText: 'Test tweet',
+      tweetHtml: '<span>Test tweet</span>',
+      elementHtml: '<article>Test</article>',
+      screenName: 'user1',
+      tweetId,
+      replyCount: '1',
+      retweetCount: '1',
+      likeCount: '1',
+    })
 
-      const testTweets: Tweet[] = [
-        {
-          url: 'https://x.com/user1/status/1',
-          tweetText: 'Test tweet',
-          tweetHtml: '<span>Test tweet</span>',
-          elementHtml: '<article>Test</article>',
-          screenName: 'user1',
-          tweetId: '1',
-          replyCount: '1',
-          retweetCount: '1',
-          likeCount: '1',
-        },
-      ]
+    let details: GMDownloadDetails
+    let abort: jest.Mock
+    let logSpy: jest.SpyInstance
+    let errorSpy: jest.SpyInstance
 
-      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(testTweets)
+    beforeEach(() => {
+      abort = jest.fn()
+      ;(GM_download as jest.Mock).mockImplementation((d: GMDownloadDetails) => {
+        details = d
+        return { abort }
+      })
+      logSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+      errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    })
 
-      const mockAnchor = {
-        href: '',
-        download: '',
-        innerHTML: '',
-        click: mockClick,
-        remove: mockRemove,
-      }
-      mockCreateElement.mockReturnValue(mockAnchor)
+    afterEach(() => {
+      logSpy.mockRestore()
+      errorSpy.mockRestore()
+    })
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+    it('should call GM_download with the saved tweets as a JSON blob', async () => {
+      const saved = [makeTweet('1'), makeTweet('2')]
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue(saved)
 
-      const result = TweetService.downloadTweets()
+      const promise = TweetService.downloadTweets()
 
-      expect(consoleSpy).toHaveBeenCalledWith('downloadTweets: download tweets')
       expect(Blob).toHaveBeenCalledWith(
-        [
-          JSON.stringify({
-            type: 'tweets',
-            data: testTweets,
-          }),
-        ],
+        [JSON.stringify({ type: 'tweets', data: saved })],
         { type: 'application/json' }
       )
-      expect(URL.createObjectURL).toHaveBeenCalled()
-      expect(mockAnchor.href).toBe('mock-blob-url')
-      expect(mockAnchor.download).toMatch(
+      expect(details.url).toEqual({
+        data: [JSON.stringify({ type: 'tweets', data: saved })],
+        options: { type: 'application/json' },
+      })
+      expect(details.name).toMatch(
         /^tweets-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z\.json$/
       )
-      expect(mockAnchor.innerHTML).toBe('download')
-      expect(mockAppend).toHaveBeenCalledWith(mockAnchor)
-      expect(mockClick).toHaveBeenCalled()
-      expect(mockRemove).toHaveBeenCalledTimes(1)
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith('mock-blob-url')
-      expect(mockClick.mock.invocationCallOrder[0]).toBeLessThan(
-        mockRemove.mock.invocationCallOrder[0]
-      )
-      expect(Storage.setSavedTweets).toHaveBeenCalledWith([])
-      expect(result).toBe(true)
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
 
-      consoleSpy.mockRestore()
+      details.onload?.()
+      await promise
+    })
+
+    it('should remove the downloaded tweets and resolve true on onload', async () => {
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([
+        makeTweet('1'),
+        makeTweet('2'),
+      ])
+
+      const promise = TweetService.downloadTweets()
+      details.onload?.()
+
+      await expect(promise).resolves.toBe(true)
+      expect(Storage.setSavedTweets).toHaveBeenCalledWith([])
+    })
+
+    it('should keep tweets saved while the download was in flight', async () => {
+      const downloaded = [makeTweet('1'), makeTweet('2')]
+      const added = makeTweet('3')
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValueOnce(downloaded)
+
+      const promise = TweetService.downloadTweets()
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([
+        ...downloaded,
+        added,
+      ])
+      details.onload?.()
+
+      await expect(promise).resolves.toBe(true)
+      expect(Storage.setSavedTweets).toHaveBeenCalledWith([added])
+    })
+
+    it('should keep the saved tweets and resolve false on onerror', async () => {
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([makeTweet('1')])
+
+      const promise = TweetService.downloadTweets()
+      details.onerror?.({ error: 'not_enabled', details: 'disabled' })
+
+      await expect(promise).resolves.toBe(false)
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalledWith(
+        'downloadTweets: download failed: not_enabled disabled'
+      )
+    })
+
+    it('should keep the saved tweets and resolve false on ontimeout', async () => {
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([makeTweet('1')])
+
+      const promise = TweetService.downloadTweets()
+      details.ontimeout?.()
+
+      await expect(promise).resolves.toBe(false)
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalledWith(
+        'downloadTweets: download failed: timeout'
+      )
+    })
+
+    it('should keep the saved tweets and resolve false when GM_download throws', async () => {
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([makeTweet('1')])
+      ;(GM_download as jest.Mock).mockImplementation(() => {
+        throw new Error('boom')
+      })
+
+      await expect(TweetService.downloadTweets()).resolves.toBe(false)
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalledWith(
+        'downloadTweets: download failed: boom'
+      )
+    })
+
+    it('should abort and resolve false when no callback fires within the timeout', async () => {
+      ;(Storage.getSavedTweets as jest.Mock).mockReturnValue([makeTweet('1')])
+
+      const promise = TweetService.downloadTweets()
+      jest.advanceTimersByTime(TIMEOUTS.DOWNLOAD_TIMEOUT)
+
+      await expect(promise).resolves.toBe(false)
+      expect(abort).toHaveBeenCalledTimes(1)
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
+
+      details.onload?.()
+      expect(Storage.setSavedTweets).not.toHaveBeenCalled()
     })
   })
 

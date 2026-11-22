@@ -43,6 +43,20 @@ declare function GM_registerMenuCommand(
 // Unregister a previously registered menu command
 declare function GM_unregisterMenuCommand(menuCommandId: number): void
 
+// Download (from @grant)
+// `url` accepts a Blob from Tampermonkey 5.4.6226
+interface GMDownloadDetails {
+  url: string | Blob
+  name: string
+  onload?: () => void
+  onerror?: (download: { error: string; details?: string }) => void
+  ontimeout?: () => void
+}
+
+declare function GM_download(details: GMDownloadDetails): {
+  abort: () => void
+}
+
 // GM_config from Tampermonkey Config library (from @require)
 
 declare const GM_config: (fields: GMConfigFields, init?: boolean) => void
@@ -53,5 +67,5 @@ declare const GM_config_event: string
 
 // Additional Tampermonkey APIs that might be available but not currently granted:
 // GM_addStyle, GM_deleteValue, GM_listValues, GM_getResourceText, GM_getResourceURL,
-// GM_openInTab, GM_notification, GM_setClipboard, GM_xmlhttpRequest, GM_download,
+// GM_openInTab, GM_notification, GM_setClipboard, GM_xmlhttpRequest,
 // GM_getTab, GM_saveTab, GM_getTabs, GM_log, GM_info

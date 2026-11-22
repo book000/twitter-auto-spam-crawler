@@ -4,7 +4,6 @@ import { Storage } from '../../core/storage'
 import { TweetService } from '../../services/tweet-service'
 import { QueueService } from '../../services/queue-service'
 import { NotificationService } from '../../services/notification-service'
-import { AsyncUtils } from '../../utils/async'
 import { TweetPage } from '../../pages/tweet-page'
 import { PageErrorHandler } from '../../utils/page-error-handler'
 import {
@@ -19,7 +18,6 @@ jest.mock('../../core/storage')
 jest.mock('../../services/tweet-service')
 jest.mock('../../services/queue-service')
 jest.mock('../../services/notification-service')
-jest.mock('../../utils/async')
 jest.mock('../../pages/tweet-page')
 jest.mock('../../utils/page-error-handler')
 
@@ -37,8 +35,7 @@ describe('ExamplePages', () => {
     jest.clearAllTimers()
 
     ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(false)
-    ;(TweetService.downloadTweets as jest.Mock).mockImplementation(() => {})
-    ;(AsyncUtils.delay as jest.Mock).mockResolvedValue(undefined)
+    ;(TweetService.downloadTweets as jest.Mock).mockResolvedValue(true)
     ;(TweetPage.run as jest.Mock).mockResolvedValue(undefined)
     ;(NotificationService.notifyDiscord as jest.Mock).mockResolvedValue(
       undefined
@@ -69,21 +66,42 @@ describe('ExamplePages', () => {
       await ExamplePages.runDownloadJson()
 
       expect(TweetService.downloadTweets).not.toHaveBeenCalled()
-      expect(AsyncUtils.delay).not.toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
-      expect(TweetPage.run).toHaveBeenCalledWith(true)
+      expect(TweetPage.run).toHaveBeenCalledWith(true, false)
     })
 
-    it('should download when needed', async () => {
+    it('should download when needed and start TweetPage.run after it completes', async () => {
       ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(true)
+      const download = Promise.withResolvers<boolean>()
+      ;(TweetService.downloadTweets as jest.Mock).mockReturnValue(
+        download.promise
+      )
+
+      const promise = ExamplePages.runDownloadJson()
+      await Promise.resolve()
+
+      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
+        'download needed.'
+      )
+      expect(TweetService.downloadTweets).toHaveBeenCalled()
+      expect(TweetPage.run).not.toHaveBeenCalled()
+
+      download.resolve(true)
+      await promise
+
+      expect(PageErrorHandler.logError).not.toHaveBeenCalled()
+      expect(TweetPage.run).toHaveBeenCalledWith(true, false)
+    })
+
+    it('should log an error and start TweetPage.run without the download redirect when the download fails', async () => {
+      ;(TweetService.isNeedDownload as jest.Mock).mockReturnValue(true)
+      ;(TweetService.downloadTweets as jest.Mock).mockResolvedValue(false)
 
       await ExamplePages.runDownloadJson()
 
-      expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
-        'download needed. Wait 5 seconds.'
+      expect(PageErrorHandler.logError).toHaveBeenCalledWith(
+        'Download failed. Saved tweets are kept and the download is retried later.'
       )
-      expect(TweetService.downloadTweets).toHaveBeenCalled()
-      expect(AsyncUtils.delay).toHaveBeenCalledWith(DELAYS.DOWNLOAD_WAIT)
-      expect(TweetPage.run).toHaveBeenCalledWith(true)
+      expect(TweetPage.run).toHaveBeenCalledWith(true, true)
     })
 
     it('should handle TweetPage.run error gracefully', async () => {
