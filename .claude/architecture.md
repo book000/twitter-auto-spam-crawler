@@ -40,18 +40,22 @@ The script opens `https://example.com/?<command>` in a new window for the notifi
 
 ## Storage
 
-`Storage` (`src/core/storage.ts`) wraps `GM_getValue` / `GM_setValue`. The keys are typed by `StorageData` in `src/types/index.ts`:
+`Storage` (`src/core/storage.ts`) uses `GM_getValue`, `GM_setValue` and `GM_listValues`. The legacy collections and scalar keys are typed by `StorageData` in `src/types/index.ts`:
 
 | Key | Content |
 |---|---|
-| `waitingTweets` | Tweet IDs still to visit |
-| `checkedTweets` | Tweet IDs already visited |
+| `waitingTweets` | Legacy waiting IDs, read as a fallback |
+| `checkedTweets` | Legacy checked IDs, read as a fallback |
 | `savedTweets` | Full tweet objects collected for the JSON download |
 | `isLoginNotified` / `isLockedNotified` | Whether the login / lock notification was already sent |
 | `retryCount` | Failed tweet-page loads in a row |
 | `storedVersion` | Script version seen on the previous run |
 
-`Storage` keeps `Set` / `Map` caches of the three tweet collections for fast lookup; the setters refresh them.
+Queue mutations write `queue:checked:<tweetId>` (`true`) and `queue:waiting:<tweetId>` (enqueue time and sequence, or `false` after removal). Each write affects one ID, so interleaved writes for unrelated IDs cannot overwrite each other. Checked records are never removed and take precedence over waiting records, including when another context enqueues the same ID concurrently. Waiting records are ordered by enqueue time, then the per-context sequence and tweet ID; concurrent same-ID adds may update that ID's position.
+
+Queue membership checks read per-tweet records directly with a legacy-array fallback. Full queue reads enumerate records and build fresh Set snapshots, so remote updates need no notification or origin-scoped lock. Legacy arrays remain readable and are never rewritten by queue operations. Removal uses a `false` tombstone to prevent legacy entries from reappearing. Reset clears the IDs observed in its snapshot; unrelated IDs enqueued concurrently remain. Old tabs must reload after updating the script to use the per-tweet records. Storage retains one checked record and a waiting record or tombstone per updated ID; full queue reads scan the stored keys.
+
+Saved tweets continue to use the existing array and per-context Map cache, refreshed by the saved-tweet setter. The per-tweet coordination applies to the waiting and checked queues.
 
 The settings edited in the userscript manager menu (`discordWebhookUrl`, `authWebhookUrl`, `lockWebhookUrl`, `comment`, `isOnlyHome`) are stored by `GM_config` and read through `ConfigManager` (`src/core/config.ts`) with `GM_getValue`.
 

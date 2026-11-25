@@ -38,9 +38,9 @@ export interface PageMethod {
  * Values persisted through GM_getValue / GM_setValue, keyed by storage key.
  */
 export interface StorageData {
-  /** IDs of tweets that have already been processed */
+  /** Legacy checked IDs; new queue writes use per-tweet records. */
   checkedTweets: string[]
-  /** IDs of tweets queued for processing */
+  /** Legacy waiting IDs; new queue writes use per-tweet records. */
   waitingTweets: string[]
   /** Scraped tweets waiting to be exported as JSON */
   savedTweets: Tweet[]

@@ -31,6 +31,9 @@ declare function GM_getValue<T>(key: string, defaultValue: T): T
 // GM_setValue accepts any serializable value (uses JSON internally)
 declare function GM_setValue(key: string, value: unknown): void
 
+/** Lists the keys in this userscript's shared storage. */
+declare function GM_listValues(): string[]
+
 // Menu commands (from @grant)
 // Only the @require'd Tampermonkey Config library calls these; keep them granted while it is required
 // Returns a menu command ID that can be used to unregister
@@ -66,6 +69,6 @@ declare const GM_config: (fields: GMConfigFields, init?: boolean) => void
 declare const GM_config_event: string
 
 // Additional Tampermonkey APIs that might be available but not currently granted:
-// GM_addStyle, GM_deleteValue, GM_listValues, GM_getResourceText, GM_getResourceURL,
+// GM_addStyle, GM_deleteValue, GM_getResourceText, GM_getResourceURL,
 // GM_openInTab, GM_notification, GM_setClipboard, GM_xmlhttpRequest,
 // GM_getTab, GM_saveTab, GM_getTabs, GM_log, GM_info

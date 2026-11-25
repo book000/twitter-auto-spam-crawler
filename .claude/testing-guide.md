@@ -13,7 +13,7 @@ Jest runs through `ts-jest` in a `jsdom` environment. The configuration is the `
 
 ## Mocks
 
-- `src/__mocks__/userscript.ts`: installs `GM_getValue`, `GM_setValue`, `GM_download`, `GM_config`, `GM_config_event` and `addEventListener` as globals, backed by an in-memory `Map`. Import it first in a test that touches `Storage` or `ConfigManager`, and use `clearMockStorage()` / `getMockStorage()` to reset or inspect the state.
+- `src/__mocks__/userscript.ts`: installs `GM_getValue`, `GM_setValue`, `GM_listValues`, `GM_download`, `GM_config`, `GM_config_event` and `addEventListener` as globals, backed by an in-memory `Map`. Import it first in a test that touches `Storage` or `ConfigManager`, and use `clearMockStorage()` / `getMockStorage()` to reset or inspect the state.
 - `src/core/__mocks__/storage.ts`: the manual mock used by `jest.mock('../../core/storage')`. It mirrors the `Storage` API on top of the `GM_*` mocks, with `jest.fn` wrappers so calls can be asserted.
 - Most page and service tests mock their collaborators with `jest.mock('<path>')` (`DomUtils`, `AsyncUtils`, `PageErrorHandler`, other services) and drive the handler under test directly.
 - `src/__tests__/utils/page-test-utils.ts`: helpers that build the X.com DOM structures the pages expect (timeline tabs, tweet articles, the failed-page icon, error dialogs).
@@ -23,5 +23,5 @@ Jest runs through `ts-jest` in a `jsdom` environment. The configuration is the `
 - Every behavior change needs a test; keep test descriptions in English.
 - Timers: with fake timers, advance time explicitly (`jest.advanceTimersByTime`, `jest.advanceTimersByTimeAsync`) and stop intervals started by the code under test in `afterEach` (for example `CrawlerService.stopCrawling()` and `ScrollUtils.resetScrollState()`).
 - DOM: build the DOM with `document.body.innerHTML = ...` and reset it in `beforeEach`; prefer the selectors the production code uses (`article[data-testid="tweet"]`, `div[data-testid="primaryColumn"]`, and so on).
-- Storage: call `Storage.clearCache()` and reset the mock storage between tests so state does not leak.
+- Storage: call `Storage.clearCache()` and reset the mock storage between tests so state does not leak. Queue Sets are fresh snapshots; the saved-tweet Map remains cached. `services/queue-multicontext.test.ts` uses isolated module contexts with shared GM storage and interleaves writes to cover concurrent adds, checked precedence and resets.
 - Location: jsdom's `location` cannot be replaced, so set `location.search` with `history.replaceState({}, '', '/search?q=test&f=live')` and reset it in `afterEach`. Navigation (`location.search += ...`, `location.href = ...`) is not implemented in jsdom, so assert the surrounding behavior instead of the resulting URL.

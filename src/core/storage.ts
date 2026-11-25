@@ -1,18 +1,20 @@
 import type { StorageData, StorageKey, Tweet } from '@/types'
 
+interface WaitingTweetOrder {
+  queuedAt: number
+  sequence: number
+}
+
+const CHECKED_TWEET_PREFIX = 'queue:checked:'
+const WAITING_TWEET_PREFIX = 'queue:waiting:'
+
 /**
- * Typed wrapper around GM_getValue / GM_setValue for the persisted crawler
- * state.
- *
- * The checked and waiting tweet IDs are cached as Sets and the saved tweets as
- * a Map, because they are looked up and updated on every crawl tick. Every
- * setter that writes one of these collections refreshes its cache.
+ * Persists queue mutations per tweet so independent contexts never replace a
+ * shared collection. Queue reads are fresh snapshots; legacy arrays remain
+ * readable without a migration that could race with another context.
  */
 export class Storage {
-  /** Cache of the checked tweet IDs */
-  private static _checkedTweetsSet: Set<string> | null = null
-  /** Cache of the waiting tweet IDs */
-  private static _waitingTweetsSet: Set<string> | null = null
+  private static _queueSequence = 0
   /** Cache of the saved tweets, keyed by tweet ID */
   private static _savedTweetsMap: Map<string, Tweet> | null = null
 
@@ -39,38 +41,90 @@ export class Storage {
     GM_setValue(key, value)
   }
 
-  /** Reads the checked tweet IDs from storage, bypassing the cache. */
+  /** Reads legacy checked IDs together with per-tweet checked records. */
   static getCheckedTweets(): string[] {
-    return Storage.getValue('checkedTweets', [])
+    const tweets = new Set(Storage.getValue('checkedTweets', []))
+    for (const key of GM_listValues()) {
+      if (
+        key.startsWith(CHECKED_TWEET_PREFIX) &&
+        GM_getValue<boolean>(key, false)
+      ) {
+        tweets.add(key.slice(CHECKED_TWEET_PREFIX.length))
+      }
+    }
+    return [...tweets]
   }
 
-  /**
-   * Gets the cached Set of checked tweet IDs, loading it from storage on first
-   * use.
-   *
-   * The returned Set is the cache itself: mutations are visible to later
-   * callers but are persisted only through a setter.
-   */
+  /** Returns a fresh snapshot, including changes made by other contexts. */
   static getCheckedTweetsSet(): Set<string> {
-    Storage._checkedTweetsSet ??= new Set(Storage.getCheckedTweets())
-    return Storage._checkedTweetsSet
+    return new Set(Storage.getCheckedTweets())
   }
 
-  /** Reads the waiting tweet IDs from storage, bypassing the cache. */
+  /** Reads waiting IDs in enqueue order, excluding checked or reset IDs. */
   static getWaitingTweets(): string[] {
-    return Storage.getValue('waitingTweets', [])
+    const tweets = new Map<string, WaitingTweetOrder>(
+      Storage.getValue('waitingTweets', []).map((tweetId, sequence) => [
+        tweetId,
+        { queuedAt: 0, sequence },
+      ])
+    )
+    for (const key of GM_listValues()) {
+      if (!key.startsWith(WAITING_TWEET_PREFIX)) continue
+      const tweetId = key.slice(WAITING_TWEET_PREFIX.length)
+      const order = GM_getValue<WaitingTweetOrder | false>(key, false)
+      if (order) {
+        tweets.set(tweetId, order)
+      } else {
+        tweets.delete(tweetId)
+      }
+    }
+    const checked = new Set(Storage.getValue('checkedTweets', []))
+    return [...tweets]
+      .filter(
+        ([tweetId]) =>
+          !checked.has(tweetId) &&
+          !GM_getValue<boolean>(CHECKED_TWEET_PREFIX + tweetId, false)
+      )
+      .toSorted(
+        ([firstId, first], [secondId, second]) =>
+          first.queuedAt - second.queuedAt ||
+          first.sequence - second.sequence ||
+          firstId.localeCompare(secondId)
+      )
+      .map(([tweetId]) => tweetId)
   }
 
-  /**
-   * Gets the cached Set of waiting tweet IDs, loading it from storage on first
-   * use.
-   *
-   * The returned Set is the cache itself: mutations are visible to later
-   * callers but are persisted only through a setter.
-   */
+  /** Returns a fresh snapshot, including changes made by other contexts. */
   static getWaitingTweetsSet(): Set<string> {
-    Storage._waitingTweetsSet ??= new Set(Storage.getWaitingTweets())
-    return Storage._waitingTweetsSet
+    return new Set(Storage.getWaitingTweets())
+  }
+
+  /** Adds only the supplied IDs without replacing another context's records. */
+  static addWaitingTweets(tweetIds: string[]): void {
+    for (const tweetId of tweetIds) {
+      const status = Storage.getTweetStatus(tweetId)
+      if (status.isWaiting || status.isChecked) {
+        continue
+      }
+      GM_setValue(WAITING_TWEET_PREFIX + tweetId, {
+        queuedAt: Date.now(),
+        sequence: Storage._queueSequence++,
+      } satisfies WaitingTweetOrder)
+    }
+  }
+
+  /** Marks one ID as checked; checked records always win over waiting records. */
+  static addCheckedTweet(tweetId: string): void {
+    GM_setValue(CHECKED_TWEET_PREFIX + tweetId, true)
+    GM_setValue(WAITING_TWEET_PREFIX + tweetId, false)
+  }
+
+  /** Clears the observed waiting IDs while preserving unrelated concurrent adds. */
+  static resetWaitingTweets(): void {
+    for (const tweetId of Storage.getWaitingTweets()) {
+      // Keep tombstones so legacy queue entries cannot reappear on reload.
+      GM_setValue(WAITING_TWEET_PREFIX + tweetId, false)
+    }
   }
 
   /** Reads the saved tweets from storage, bypassing the cache. */
@@ -110,18 +164,6 @@ export class Storage {
     return Storage.getValue('retryCount', 0)
   }
 
-  /** Replaces the checked tweet IDs in storage and refreshes the cache. */
-  static setCheckedTweets(tweets: string[]): void {
-    Storage.setValue('checkedTweets', tweets)
-    Storage._checkedTweetsSet = new Set(tweets)
-  }
-
-  /** Replaces the waiting tweet IDs in storage and refreshes the cache. */
-  static setWaitingTweets(tweets: string[]): void {
-    Storage.setValue('waitingTweets', tweets)
-    Storage._waitingTweetsSet = new Set(tweets)
-  }
-
   /** Replaces the saved tweets in storage and refreshes the cache. */
   static setSavedTweets(tweets: StorageData['savedTweets']): void {
     Storage.setValue('savedTweets', tweets)
@@ -158,21 +200,30 @@ export class Storage {
     Storage.setValue('storedVersion', version)
   }
 
-  /** Drops all in-memory caches so they reload from storage (for tests). */
+  /** Drops the saved-tweet cache so it reloads from storage (for tests). */
   static clearCache(): void {
-    Storage._checkedTweetsSet = null
-    Storage._waitingTweetsSet = null
     Storage._savedTweetsMap = null
   }
 
-  /** Looks up whether a tweet ID is in the checked and/or waiting set. */
+  /** Reads one ID directly, with legacy fallback and checked precedence. */
   static getTweetStatus(tweetId: string): {
     isChecked: boolean
     isWaiting: boolean
   } {
+    const isChecked =
+      GM_getValue<boolean>(CHECKED_TWEET_PREFIX + tweetId, false) ||
+      Storage.getValue('checkedTweets', []).includes(tweetId)
+    const waiting = GM_getValue<WaitingTweetOrder | false | null>(
+      WAITING_TWEET_PREFIX + tweetId,
+      null
+    )
     return {
-      isChecked: Storage.getCheckedTweetsSet().has(tweetId),
-      isWaiting: Storage.getWaitingTweetsSet().has(tweetId),
+      isChecked,
+      isWaiting:
+        !isChecked &&
+        (waiting === null
+          ? Storage.getValue('waitingTweets', []).includes(tweetId)
+          : waiting !== false),
     }
   }
 
@@ -183,10 +234,7 @@ export class Storage {
 
   /**
    * Gets the number of checked, waiting and saved tweets, plus the sizes of the
-   * in-memory caches.
-   *
-   * Reading the counts loads any cache that is still empty, so the cache sizes
-   * always equal the counts.
+   * queue snapshots and saved-tweet cache.
    */
   static getStorageStats(): {
     checkedTweetsCount: number
@@ -198,13 +246,15 @@ export class Storage {
       savedTweetsMapSize: number
     }
   } {
+    const checked = Storage.getCheckedTweetsSet()
+    const waiting = Storage.getWaitingTweetsSet()
     return {
-      checkedTweetsCount: Storage.getCheckedTweetsSet().size,
-      waitingTweetsCount: Storage.getWaitingTweetsSet().size,
+      checkedTweetsCount: checked.size,
+      waitingTweetsCount: waiting.size,
       savedTweetsCount: Storage.getSavedTweetsMap().size,
       memoryUsage: {
-        checkedTweetsSetSize: Storage._checkedTweetsSet?.size ?? 0,
-        waitingTweetsSetSize: Storage._waitingTweetsSet?.size ?? 0,
+        checkedTweetsSetSize: checked.size,
+        waitingTweetsSetSize: waiting.size,
         savedTweetsMapSize: Storage._savedTweetsMap?.size ?? 0,
       },
     }

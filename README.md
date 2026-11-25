@@ -8,7 +8,7 @@ A TypeScript userscript that automatically crawls tweets on Twitter/X to find po
 
 - 🔄 **Automatic crawling** - Keeps browsing the home timeline, trends and search results on x.com and collects the tweets it sees, refreshing text and engagement counts on each crawl
 - 🎯 **Engagement filtering** - Queues tweets with at least 100 retweets and at least 10 replies for a closer look
-- 📊 **Queue management** - Keeps a waiting queue and a checked list of tweet IDs, stored with the userscript storage API
+- 📊 **Queue management** - Keeps a waiting queue and a checked list of tweet IDs. Queue updates are stored per tweet so multiple tabs cannot overwrite each other's unrelated updates
 - 💾 **Auto-save** - Downloads the collected tweets as a JSON file once more than 500 are stored
 - 🔔 **Discord notifications** - Optional webhook notifications for login required, account locked/unlocked and script updates
 - A blocked lock-notification popup leaves the notification pending for a later visit.
