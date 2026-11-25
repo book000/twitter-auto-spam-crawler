@@ -5,19 +5,17 @@ import { AsyncUtils } from '@/utils/async'
 /**
  * Tracks which tweets are waiting to be processed and which are done.
  *
- * Membership checks use the cached Sets from `Storage`.
+ * Membership checks read the current per-tweet state from `Storage`.
  */
 export const QueueService = {
   /** Whether the tweet has already been processed. */
   isCheckedTweet(tweetId: string): boolean {
-    const checkedTweetsSet = Storage.getCheckedTweetsSet()
-    return checkedTweetsSet.has(tweetId)
+    return Storage.getTweetStatus(tweetId).isChecked
   },
 
   /** Whether the tweet is in the waiting queue. */
   isWaitingTweet(tweetId: string): boolean {
-    const waitingTweetsSet = Storage.getWaitingTweetsSet()
-    return waitingTweetsSet.has(tweetId)
+    return Storage.getTweetStatus(tweetId).isWaiting
   },
 
   /**
@@ -25,11 +23,7 @@ export const QueueService = {
    * waits one crawl interval.
    */
   async addWaitingTweets(tweetIds: string[]): Promise<void> {
-    const waitingTweetsSet = Storage.getWaitingTweetsSet()
-    for (const tweetId of tweetIds) {
-      waitingTweetsSet.add(tweetId)
-    }
-    Storage.setWaitingTweets([...waitingTweetsSet])
+    Storage.addWaitingTweets(tweetIds)
 
     await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
@@ -51,20 +45,12 @@ export const QueueService = {
   async checkedTweet(tweetId: string): Promise<void> {
     console.log(`checkedTweet: ${tweetId}`)
 
-    const checkedTweetsSet = Storage.getCheckedTweetsSet()
-    checkedTweetsSet.add(tweetId)
-    Storage.setCheckedTweets([...checkedTweetsSet])
-
-    const waitingTweetsSet = Storage.getWaitingTweetsSet()
-    if (waitingTweetsSet.has(tweetId)) {
-      waitingTweetsSet.delete(tweetId)
-      Storage.setWaitingTweets([...waitingTweetsSet])
-    }
+    Storage.addCheckedTweet(tweetId)
 
     await AsyncUtils.delay(DELAYS.CRAWL_INTERVAL)
   },
 
   resetWaitingQueue(): void {
-    Storage.setWaitingTweets([])
+    Storage.resetWaitingTweets()
   },
 }

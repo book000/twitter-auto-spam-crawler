@@ -10,6 +10,7 @@ const mockStorage = new Map<string, unknown>()
 ;(globalThis as any).GM_setValue = jest.fn((key: string, value: unknown) => {
   mockStorage.set(key, value)
 })
+;(globalThis as any).GM_listValues = jest.fn(() => mockStorage.keys().toArray())
 ;(globalThis as any).GM_download = jest.fn(() => ({ abort: jest.fn() }))
 ;(globalThis as any).GM_config = jest.fn()
 ;(globalThis as any).GM_config_event = 'GM_config_event'

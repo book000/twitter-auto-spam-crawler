@@ -31,7 +31,7 @@ describe('Storage', () => {
     })
   })
 
-  describe('getCheckedTweets and setCheckedTweets', () => {
+  describe('getCheckedTweets and addCheckedTweet', () => {
     it('should return empty array by default', () => {
       const result = Storage.getCheckedTweets()
       expect(result).toEqual([])
@@ -40,13 +40,13 @@ describe('Storage', () => {
 
     it('should set and get checked tweets', () => {
       const testTweets = ['tweet1', 'tweet2', 'tweet3']
-      Storage.setCheckedTweets(testTweets)
+      for (const tweetId of testTweets) Storage.addCheckedTweet(tweetId)
 
-      expect(GM_setValue).toHaveBeenCalledWith('checkedTweets', testTweets)
+      expect(Storage.getCheckedTweets()).toEqual(testTweets)
     })
   })
 
-  describe('getWaitingTweets and setWaitingTweets', () => {
+  describe('getWaitingTweets and addWaitingTweets', () => {
     it('should return empty array by default', () => {
       const result = Storage.getWaitingTweets()
       expect(result).toEqual([])
@@ -55,9 +55,9 @@ describe('Storage', () => {
 
     it('should set and get waiting tweets', () => {
       const testTweets = ['waiting1', 'waiting2']
-      Storage.setWaitingTweets(testTweets)
+      Storage.addWaitingTweets(testTweets)
 
-      expect(GM_setValue).toHaveBeenCalledWith('waitingTweets', testTweets)
+      expect(Storage.getWaitingTweets()).toEqual(testTweets)
     })
   })
 
@@ -130,10 +130,10 @@ describe('Storage', () => {
     })
   })
 
-  describe('Performance Optimizations', () => {
-    it('should provide O(1) lookup for checked tweets', () => {
+  describe('Snapshots and lookups', () => {
+    it('should provide a checked snapshot for a large legacy collection', () => {
       const testTweets = Array.from({ length: 10_000 }, (_, i) => `tweet${i}`)
-      Storage.setCheckedTweets(testTweets)
+      GM_setValue('checkedTweets', testTweets)
 
       const startTime = performance.now()
       const set = Storage.getCheckedTweetsSet()
@@ -144,9 +144,9 @@ describe('Storage', () => {
       expect(endTime - startTime).toBeLessThan(10)
     })
 
-    it('should provide O(1) lookup for waiting tweets', () => {
+    it('should provide a waiting snapshot for a large legacy collection', () => {
       const testTweets = Array.from({ length: 10_000 }, (_, i) => `waiting${i}`)
-      Storage.setWaitingTweets(testTweets)
+      GM_setValue('waitingTweets', testTweets)
 
       const startTime = performance.now()
       const set = Storage.getWaitingTweetsSet()
@@ -182,8 +182,8 @@ describe('Storage', () => {
     })
 
     it('should provide efficient tweet status checking', () => {
-      Storage.setCheckedTweets(['checked1', 'checked2'])
-      Storage.setWaitingTweets(['waiting1', 'waiting2'])
+      GM_setValue('checkedTweets', ['checked1', 'checked2'])
+      GM_setValue('waitingTweets', ['waiting1', 'waiting2'])
 
       const startTime = performance.now()
       const status1 = Storage.getTweetStatus('checked1')
@@ -198,8 +198,8 @@ describe('Storage', () => {
     })
 
     it('should provide storage statistics', () => {
-      Storage.setCheckedTweets(['stat1', 'stat2'])
-      Storage.setWaitingTweets(['wait1'])
+      GM_setValue('checkedTweets', ['stat1', 'stat2'])
+      GM_setValue('waitingTweets', ['wait1'])
       Storage.setSavedTweets([
         {
           url: 'https://x.com/test/status/1',

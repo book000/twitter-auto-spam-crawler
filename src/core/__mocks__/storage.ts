@@ -2,11 +2,9 @@ import type { StorageData, StorageKey, Tweet } from '../../types'
 
 /**
  * Jest mock of `Storage` that delegates to the GM_getValue / GM_setValue
- * globals and mirrors the Set/Map caches of the real implementation.
+ * globals and mirrors the queue snapshots and saved-tweet cache.
  */
 interface MockStorage {
-  _checkedTweetsSet: Set<string> | null
-  _waitingTweetsSet: Set<string> | null
   _savedTweetsMap: Map<string, Tweet> | null
   /** Generic so that the value type follows the key, as in `Storage`. */
   getValue<K extends StorageKey>(
@@ -21,8 +19,9 @@ interface MockStorage {
   isLoginNotified: jest.MockedFunction<() => boolean>
   isLockedNotified: jest.MockedFunction<() => boolean>
   getRetryCount: jest.MockedFunction<() => number>
-  setCheckedTweets: jest.MockedFunction<(tweets: string[]) => void>
-  setWaitingTweets: jest.MockedFunction<(tweets: string[]) => void>
+  addCheckedTweet: jest.MockedFunction<(tweetId: string) => void>
+  addWaitingTweets: jest.MockedFunction<(tweetIds: string[]) => void>
+  resetWaitingTweets: jest.MockedFunction<() => void>
   setSavedTweets: jest.MockedFunction<
     (tweets: StorageData['savedTweets']) => void
   >
@@ -42,9 +41,10 @@ interface MockStorage {
   getStorageStats: jest.MockedFunction<() => any>
 }
 
+const actualStorage =
+  jest.requireActual<typeof import('../storage')>('../storage').Storage
+
 const mockStorage: MockStorage = {
-  _checkedTweetsSet: null,
-  _waitingTweetsSet: null,
   _savedTweetsMap: null,
 
   getValue: jest.fn(
@@ -63,11 +63,11 @@ const mockStorage: MockStorage = {
   ) as MockStorage['setValue'],
 
   getCheckedTweets: jest.fn((): string[] => {
-    return GM_getValue('checkedTweets', [])
+    return actualStorage.getCheckedTweets()
   }),
 
   getWaitingTweets: jest.fn((): string[] => {
-    return GM_getValue('waitingTweets', [])
+    return actualStorage.getWaitingTweets()
   }),
 
   getSavedTweets: jest.fn(() => {
@@ -86,14 +86,16 @@ const mockStorage: MockStorage = {
     return GM_getValue('retryCount', 0)
   }),
 
-  setCheckedTweets: jest.fn((tweets: string[]): void => {
-    GM_setValue('checkedTweets', tweets)
-    mockStorage._checkedTweetsSet = new Set(tweets)
+  addCheckedTweet: jest.fn((tweetId: string): void => {
+    actualStorage.addCheckedTweet(tweetId)
   }),
 
-  setWaitingTweets: jest.fn((tweets: string[]): void => {
-    GM_setValue('waitingTweets', tweets)
-    mockStorage._waitingTweetsSet = new Set(tweets)
+  addWaitingTweets: jest.fn((tweetIds: string[]): void => {
+    actualStorage.addWaitingTweets(tweetIds)
+  }),
+
+  resetWaitingTweets: jest.fn((): void => {
+    actualStorage.resetWaitingTweets()
   }),
 
   setSavedTweets: jest.fn((tweets: StorageData['savedTweets']): void => {
@@ -124,13 +126,11 @@ const mockStorage: MockStorage = {
   }),
 
   getCheckedTweetsSet: jest.fn((): Set<string> => {
-    mockStorage._checkedTweetsSet ??= new Set(mockStorage.getCheckedTweets())
-    return mockStorage._checkedTweetsSet
+    return new Set(mockStorage.getCheckedTweets())
   }),
 
   getWaitingTweetsSet: jest.fn((): Set<string> => {
-    mockStorage._waitingTweetsSet ??= new Set(mockStorage.getWaitingTweets())
-    return mockStorage._waitingTweetsSet
+    return new Set(mockStorage.getWaitingTweets())
   }),
 
   getSavedTweetsMap: jest.fn((): Map<string, Tweet> => {
@@ -141,8 +141,6 @@ const mockStorage: MockStorage = {
   }),
 
   clearCache: jest.fn((): void => {
-    mockStorage._checkedTweetsSet = null
-    mockStorage._waitingTweetsSet = null
     mockStorage._savedTweetsMap = null
   }),
 
@@ -165,8 +163,8 @@ const mockStorage: MockStorage = {
       waitingTweetsCount: mockStorage.getWaitingTweetsSet().size,
       savedTweetsCount: mockStorage.getSavedTweetsMap().size,
       memoryUsage: {
-        checkedTweetsSetSize: mockStorage._checkedTweetsSet?.size ?? 0,
-        waitingTweetsSetSize: mockStorage._waitingTweetsSet?.size ?? 0,
+        checkedTweetsSetSize: mockStorage.getCheckedTweetsSet().size,
+        waitingTweetsSetSize: mockStorage.getWaitingTweetsSet().size,
         savedTweetsMapSize: mockStorage._savedTweetsMap?.size ?? 0,
       },
     }

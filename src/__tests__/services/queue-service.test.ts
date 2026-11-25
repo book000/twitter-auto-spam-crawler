@@ -1,9 +1,6 @@
 import { QueueService } from '../../services/queue-service'
 import { Storage } from '../../core/storage'
-// Import mock before the module under test
 import { clearMockStorage } from '../../__mocks__/userscript'
-
-jest.useFakeTimers()
 
 describe('QueueService', () => {
   beforeEach(() => {
@@ -14,174 +11,82 @@ describe('QueueService', () => {
   })
 
   afterEach(() => {
-    jest.runOnlyPendingTimers()
+    jest.clearAllTimers()
   })
 
-  describe('isCheckedTweet', () => {
-    it('should return true if tweet is in checked tweets', () => {
-      jest
-        .spyOn(Storage, 'getCheckedTweets')
-        .mockReturnValue(['tweet1', 'tweet2'])
+  it('reports checked and waiting membership', () => {
+    GM_setValue('checkedTweets', ['checked'])
+    GM_setValue('waitingTweets', ['waiting'])
 
-      const result = QueueService.isCheckedTweet('tweet1')
-      expect(result).toBe(true)
-    })
-
-    it('should return false if tweet is not in checked tweets', () => {
-      jest
-        .spyOn(Storage, 'getCheckedTweets')
-        .mockReturnValue(['tweet1', 'tweet2'])
-
-      const result = QueueService.isCheckedTweet('tweet3')
-      expect(result).toBe(false)
-    })
-
-    it('should return false for empty checked tweets list', () => {
-      jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue([])
-
-      const result = QueueService.isCheckedTweet('tweet1')
-      expect(result).toBe(false)
-    })
+    expect(QueueService.isCheckedTweet('checked')).toBe(true)
+    expect(QueueService.isCheckedTweet('missing')).toBe(false)
+    expect(QueueService.isWaitingTweet('waiting')).toBe(true)
+    expect(QueueService.isWaitingTweet('missing')).toBe(false)
   })
 
-  describe('isWaitingTweet', () => {
-    it('should return true if tweet is in waiting tweets', () => {
-      jest
-        .spyOn(Storage, 'getWaitingTweets')
-        .mockReturnValue(['waiting1', 'waiting2'])
+  it('adds new IDs in order without duplicates or checked IDs', async () => {
+    GM_setValue('waitingTweets', ['existing'])
+    GM_setValue('checkedTweets', ['checked'])
 
-      const result = QueueService.isWaitingTweet('waiting1')
-      expect(result).toBe(true)
-    })
-
-    it('should return false if tweet is not in waiting tweets', () => {
-      jest
-        .spyOn(Storage, 'getWaitingTweets')
-        .mockReturnValue(['waiting1', 'waiting2'])
-
-      const result = QueueService.isWaitingTweet('waiting3')
-      expect(result).toBe(false)
-    })
-
-    it('should return false for empty waiting tweets list', () => {
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue([])
-
-      const result = QueueService.isWaitingTweet('waiting1')
-      expect(result).toBe(false)
-    })
+    const pending = QueueService.addWaitingTweets([
+      'new2',
+      'new1',
+      'existing',
+      'new2',
+      'checked',
+    ])
+    expect(Storage.getWaitingTweets()).toEqual(['existing', 'new2', 'new1'])
+    await jest.advanceTimersByTimeAsync(1000)
+    await pending
   })
 
-  describe('addWaitingTweets', () => {
-    it('should add tweets to waiting list', async () => {
-      const existingTweets = ['existing1', 'existing2']
-      const newTweets = ['new1', 'new2']
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+  it('keeps the queue when adding no IDs', async () => {
+    GM_setValue('waitingTweets', ['existing'])
 
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingTweets)
-
-      const promise = QueueService.addWaitingTweets(newTweets)
-
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith([
-        'existing1',
-        'existing2',
-        'new1',
-        'new2',
-      ])
-
-      jest.advanceTimersByTime(1000)
-      await promise
-    })
-
-    it('should handle empty new tweets array', async () => {
-      const existingTweets = ['existing1']
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
-
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingTweets)
-
-      const promise = QueueService.addWaitingTweets([])
-
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith(['existing1'])
-
-      jest.advanceTimersByTime(1000)
-      await promise
-    })
+    const pending = QueueService.addWaitingTweets([])
+    expect(Storage.getWaitingTweets()).toEqual(['existing'])
+    await jest.advanceTimersByTimeAsync(1000)
+    await pending
   })
 
-  describe('getNextWaitingTweet', () => {
-    it('should return first tweet from waiting list', () => {
-      jest
-        .spyOn(Storage, 'getWaitingTweets')
-        .mockReturnValue(['first', 'second', 'third'])
+  it('returns the oldest waiting ID without removing it', () => {
+    GM_setValue('waitingTweets', ['first', 'second'])
 
-      const result = QueueService.getNextWaitingTweet()
-      expect(result).toBe('first')
-    })
-
-    it('should return null for empty waiting list', () => {
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue([])
-
-      const result = QueueService.getNextWaitingTweet()
-      expect(result).toBe(null)
-    })
+    expect(QueueService.getNextWaitingTweet()).toBe('first')
+    expect(QueueService.getNextWaitingTweet()).toBe('first')
   })
 
-  describe('checkedTweet', () => {
-    it('should move tweet from waiting to checked', async () => {
-      const tweetId = 'test123'
-      const existingChecked = ['checked1']
-      const existingWaiting = ['test123', 'waiting2']
-
-      const setCheckedTweetsSpy = jest.spyOn(Storage, 'setCheckedTweets')
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
-
-      jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue(existingChecked)
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingWaiting)
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-
-      const promise = QueueService.checkedTweet(tweetId)
-
-      expect(setCheckedTweetsSpy).toHaveBeenCalledWith(['checked1', 'test123'])
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith(['waiting2'])
-      expect(consoleSpy).toHaveBeenCalledWith('checkedTweet: test123')
-
-      jest.advanceTimersByTime(1000)
-      await promise
-
-      consoleSpy.mockRestore()
-    })
-
-    it('should handle tweet not in waiting list', async () => {
-      const tweetId = 'notInWaiting'
-      const existingChecked = ['checked1']
-      const existingWaiting = ['waiting1', 'waiting2']
-
-      const setCheckedTweetsSpy = jest.spyOn(Storage, 'setCheckedTweets')
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
-
-      jest.spyOn(Storage, 'getCheckedTweets').mockReturnValue(existingChecked)
-      jest.spyOn(Storage, 'getWaitingTweets').mockReturnValue(existingWaiting)
-
-      const promise = QueueService.checkedTweet(tweetId)
-
-      expect(setCheckedTweetsSpy).toHaveBeenCalledWith([
-        'checked1',
-        'notInWaiting',
-      ])
-      expect(setWaitingTweetsSpy).not.toHaveBeenCalled()
-
-      jest.advanceTimersByTime(1000)
-      await promise
-    })
+  it('returns null for an empty queue', () => {
+    expect(QueueService.getNextWaitingTweet()).toBeNull()
   })
 
-  describe('resetWaitingQueue', () => {
-    it('should clear waiting tweets list', () => {
-      const setWaitingTweetsSpy = jest.spyOn(Storage, 'setWaitingTweets')
+  it('moves an ID from waiting to checked while preserving other IDs', async () => {
+    GM_setValue('checkedTweets', ['checked'])
+    GM_setValue('waitingTweets', ['target', 'waiting'])
 
-      QueueService.resetWaitingQueue()
+    const pending = QueueService.checkedTweet('target')
+    expect(Storage.getCheckedTweets()).toEqual(['checked', 'target'])
+    expect(Storage.getWaitingTweets()).toEqual(['waiting'])
+    await jest.advanceTimersByTimeAsync(1000)
+    await pending
+  })
 
-      expect(setWaitingTweetsSpy).toHaveBeenCalledWith([])
-    })
+  it('checks an ID that is not waiting without changing the queue', async () => {
+    GM_setValue('waitingTweets', ['waiting'])
+
+    const pending = QueueService.checkedTweet('target')
+    expect(Storage.getCheckedTweets()).toEqual(['target'])
+    expect(Storage.getWaitingTweets()).toEqual(['waiting'])
+    await jest.advanceTimersByTimeAsync(1000)
+    await pending
+  })
+
+  it('resets waiting IDs while keeping checked IDs', () => {
+    GM_setValue('waitingTweets', ['first', 'second'])
+    GM_setValue('checkedTweets', ['checked'])
+
+    QueueService.resetWaitingQueue()
+    expect(Storage.getWaitingTweets()).toEqual([])
+    expect(Storage.getCheckedTweets()).toEqual(['checked'])
   })
 })
