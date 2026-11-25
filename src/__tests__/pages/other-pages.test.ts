@@ -288,8 +288,21 @@ describe('OtherPages', () => {
   })
 
   describe('runLocked', () => {
-    it('should set locked flag immediately, open notify page and start periodic check when not notified', () => {
+    it('should leave the locked flag unset when the popup is blocked', () => {
+      ;(window.open as jest.Mock).mockReturnValue(null)
+
+      OtherPages.runLocked()
+
+      expect(Storage.setLockedNotified).not.toHaveBeenCalledWith(true)
+      expect(setInterval).toHaveBeenCalledWith(
+        expect.any(Function),
+        DELAYS.LOCKED_CHECK_INTERVAL
+      )
+    })
+
+    it('should set locked flag when the notify page opens and start periodic check', () => {
       ;(Storage.isLockedNotified as jest.Mock).mockReturnValue(false)
+      ;(window.open as jest.Mock).mockReturnValue({})
 
       const startPeriodicUnlockCheckSpy = jest.spyOn(
         OtherPages,
@@ -301,7 +314,6 @@ describe('OtherPages', () => {
       expect(PageErrorHandler.logAction).toHaveBeenCalledWith(
         'Account is locked, starting continuous unlock detection'
       )
-      // Set the flag immediately to prevent duplicate notifications
       expect(Storage.setLockedNotified).toHaveBeenCalledWith(true)
       expect(window.open).toHaveBeenCalledWith(
         URLS.EXAMPLE_LOCKED_NOTIFY,
