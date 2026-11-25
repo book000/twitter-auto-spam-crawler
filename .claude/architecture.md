@@ -13,7 +13,7 @@
 | `https://x.com/compose/post` | `OtherPages.runComposePost`: closes the compose view and goes back |
 | `https://x.com/i/bookmarks` | `OtherPages.runProcessBlueBlockerQueue`: waits 60 seconds, then until Blue Blocker's toasts (`#injected-blue-block-toasts > div.toast`) are gone, then goes home |
 | `https://x.com/i/flow/login` | `OtherPages.runLogin`: opens the login-notification window unless it was already sent |
-| `https://x.com/account/access` | `OtherPages.runLocked`: opens the lock-notification window unless it was already sent, and starts a 30-second timer that navigates to the bookmarks page to test whether the account is unlocked |
+| `https://x.com/account/access` | `OtherPages.runLocked`: opens the lock-notification window unless it was already sent, leaves the flag unset if the popup is blocked so a later visit can retry, and starts a 30-second timer that navigates to the bookmarks page to test whether the account is unlocked |
 | `https://example.com/?<command>` | `ExamplePages`: helper pages, see below |
 
 `TweetPage.run(true)` (open-only mode) decides where to go next: to the download page when more than 500 tweets are saved, otherwise to the next waiting tweet, or to the bookmarks page when the queue is empty.

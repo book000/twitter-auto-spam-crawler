@@ -86,10 +86,10 @@ export const OtherPages = {
       return
     }
 
-    // Set the flag before opening the window so the notification is only
-    // requested once; ExamplePages.runLockedNotify clears it if sending fails
-    Storage.setLockedNotified(true)
-    window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
+    const popup = window.open(URLS.EXAMPLE_LOCKED_NOTIFY, '_blank')
+    if (popup) {
+      Storage.setLockedNotified(true)
+    }
 
     OtherPages.startPeriodicUnlockCheck()
   },

@@ -11,6 +11,7 @@ A TypeScript userscript that automatically crawls tweets on Twitter/X to find po
 - 📊 **Queue management** - Keeps a waiting queue and a checked list of tweet IDs, stored with the userscript storage API
 - 💾 **Auto-save** - Downloads the collected tweets as a JSON file once more than 500 are stored
 - 🔔 **Discord notifications** - Optional webhook notifications for login required, account locked/unlocked and script updates
+- A blocked lock-notification popup leaves the notification pending for a later visit.
 - 🧩 **Blue Blocker compatibility** - Designed to run alongside Blue Blocker, which does the actual blocking (this script never blocks accounts itself)
 
 ## 🚀 Installation
