@@ -92,6 +92,43 @@ describe('TweetService', () => {
       })
     })
 
+    it('reads newly rendered text and replaced engagement buttons on later crawls', () => {
+      const article = document.createElement('article')
+      article.dataset.testid = 'tweet'
+      article.append(createTweetLink())
+      for (const name of ['reply', 'retweet', 'like']) {
+        const button = document.createElement('button')
+        button.setAttribute('role', 'button')
+        button.dataset.testid = name
+        button.setAttribute('aria-label', '25 replies')
+        article.append(button)
+      }
+      document.body.append(article)
+
+      expect(TweetService.getTweets()[0].tweetText).toBeNull()
+      expect(TweetService.getTweets()[0].replyCount).toBe('25')
+
+      const text = document.createElement('div')
+      text.setAttribute('lang', 'en')
+      text.setAttribute('dir', 'ltr')
+      text.dataset.testid = 'tweetText'
+      text.innerHTML = '<span>Rendered later</span>'
+      article.append(text)
+      for (const button of article.querySelectorAll('button')) {
+        const replacement = button.cloneNode() as HTMLButtonElement
+        replacement.setAttribute('aria-label', '99 replies')
+        button.replaceWith(replacement)
+      }
+
+      expect(TweetService.getTweets()[0]).toMatchObject({
+        tweetText: 'Rendered later',
+        tweetHtml: '<span>Rendered later</span>',
+        replyCount: '99',
+        retweetCount: '99',
+        likeCount: '99',
+      })
+    })
+
     it('should return the tweet once its link element has been rendered', () => {
       TweetElementCache.clearCache()
       const article = document.createElement('article')
@@ -663,7 +700,7 @@ describe('TweetService', () => {
       expect(secondResult).toBe(firstResult)
     })
 
-    it('should reduce DOM query count significantly', () => {
+    it('should reuse the tweet link lookup', () => {
       const article = document.createElement('article')
       // eslint-disable-next-line @typescript-eslint/no-deprecated
       const originalQuerySelector = article.querySelector.bind(article)
@@ -695,7 +732,8 @@ describe('TweetService', () => {
       const secondQueryCount = queryCount
 
       expect(firstQueryCount).toBeGreaterThan(0)
-      expect(secondQueryCount).toBe(0)
+      expect(secondQueryCount).toBe(4)
+      expect(firstQueryCount).toBe(5)
     })
 
     it('should clear cache when requested', () => {
@@ -835,8 +873,6 @@ describe('TweetService', () => {
       expect(result).toHaveLength(1)
       expect(result[0].tweetId).toBe('123')
 
-      // One lookup per element (tweetElement, textElement, 3 buttons), cached
-      // after the first access; without the cache it took 6 or more queries
       expect(queryCount).toBeLessThanOrEqual(5)
     })
   })

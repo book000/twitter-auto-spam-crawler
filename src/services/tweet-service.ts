@@ -11,14 +11,7 @@ interface CachedTweetElements {
   likeButton?: Element | null
 }
 
-/**
- * Memoizes the child element lookups of each tweet article, so repeated crawl
- * ticks do not re-run the selectors. Entries are keyed weakly and are dropped
- * with their DOM nodes.
- *
- * An article whose tweet link element is not rendered yet is not cached, so
- * it is looked up again on the next call.
- */
+/** Caches tweet links while refreshing content and engagement elements. */
 class TweetElementCache {
   private static cache = new WeakMap<Element, CachedTweetElements>()
 
@@ -30,25 +23,24 @@ class TweetElementCache {
         tweetElement: articleElement.querySelector(
           'a[role="link"]:has(time[datetime])'
         ),
-        textElement: articleElement.querySelector(
-          'div[lang][dir][data-testid="tweetText"]'
-        ),
-        replyButton: articleElement.querySelector(
-          'button[role="button"][data-testid="reply"]'
-        ),
-        retweetButton: articleElement.querySelector(
-          'button[role="button"][data-testid="retweet"]'
-        ),
-        likeButton: articleElement.querySelector(
-          'button[role="button"][data-testid="like"]'
-        ),
       }
-
       if (cached.tweetElement) {
         this.cache.set(articleElement, cached)
       }
     }
 
+    cached.textElement = articleElement.querySelector(
+      'div[lang][dir][data-testid="tweetText"]'
+    )
+    cached.replyButton = articleElement.querySelector(
+      'button[role="button"][data-testid="reply"]'
+    )
+    cached.retweetButton = articleElement.querySelector(
+      'button[role="button"][data-testid="retweet"]'
+    )
+    cached.likeButton = articleElement.querySelector(
+      'button[role="button"][data-testid="like"]'
+    )
     return cached
   }
 
